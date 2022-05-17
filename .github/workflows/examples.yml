@@ -1,0 +1,84 @@
+on: [push]
+
+env:
+  TERMINAL_WIDTH: 70
+
+jobs:
+  markdown_comments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      # Uses the action in this local repository
+      # Generally you would write 'uses: ewels/rich-img-action@v1'
+      - name: Generate images from markdown comments
+        uses: ./
+
+      - name: Add and commit new images
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: Generate new screengrabs with rich-img-action
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+
+  actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Generate images from actions commands
+        uses: ./
+        with:
+          cmd: "rich --help"
+          img_paths: |
+            examples/actions/rich-cli-help.svg
+            examples/actions/rich-cli-help.png
+            examples/actions/rich-cli-help.pdf
+
+      - name: Generate images from actions snippets
+        uses: ./
+        with:
+          snippet: |
+            >>> print("[italic red]Hello[/italic red] World!", locals())
+            Hello World!
+            {
+                '__annotations__': {},
+                '__builtins__': <module 'builtins' (built-in)>,
+                '__doc__': None,
+                '__loader__': <class '_frozen_importlib.BuiltinImporter'>,
+                '__name__': '__main__',
+                '__package__': None,
+                '__spec__': None,
+                'print': <function print at 0x1027fd4c0>,
+            }
+          img_paths: |
+            examples/actions/rich-example.svg
+            examples/actions/rich-example.png
+            examples/actions/rich-example.pdf
+
+      - name: Add and commit new images
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: Generate new screengrabs with rich-img-action
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+
+  yml_configs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Generate images from a YAML config
+        uses: ./
+        with:
+          configs: yml_configs/*.yml
+
+      - name: Add and commit new images
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: Generate new screengrabs with rich-img-action
+          committer_name: GitHub Actions
+          committer_email: actions@github.com

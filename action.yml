@@ -1,0 +1,66 @@
+name: rich-img-action
+author: Phil Ewels
+
+description: Create rich code images for your docs
+
+branding:
+  icon: "terminal"
+  color: "yellow"
+
+inputs:
+  include:
+    description: Files to search for rich-img-action comments
+    default: "**/*.md"
+    required: false
+  exclude:
+    description: Files to exclude from search for rich-img-action comments
+    default: |
+      **/.git*
+      **/.git*/**
+      **/node_modules/**
+    required: false
+  cmd:
+    description: Command to run
+    required: false
+  snippet:
+    description: Literal code snippet to render
+    required: false
+  img_paths:
+    description: Path to image filenames if using 'cmd' or 'snippet'
+    required: false
+  configs:
+    description: Paths to YAML config files
+    default: |
+      .rich_img_action.yml
+      .github/rich_img_action.yml
+    required: false
+  width:
+    description: Width of the terminal
+    required: false
+  theme:
+    description: Colour theme
+    required: false
+
+# echo "::set-output name=<output name>::<value>"
+outputs:
+  images:
+    description: JSON array of all generated images
+  svgs:
+    description: JSON array of all generated SVG files
+  pngs:
+    description: JSON array of all generated PNG files
+  pdfs:
+    description: JSON array of all generated PDF files
+
+runs:
+  using: "docker"
+  image: Dockerfile
+  env:
+    SEARCH_INCLUDE: ${{ inputs.include }}
+    SEARCH_EXCLUDE: ${{ inputs.exclude }}
+    COMMAND: ${{ inputs.cmd }}
+    SNIPPET: ${{ inputs.snippet }}
+    IMG_PATHS: ${{ inputs.img_paths }}
+    CONFIGS: ${{ inputs.config }}
+    TERMINAL_WIDTH: ${{ inputs.width }}
+    TERMINAL_THEME: ${{ inputs.theme }}
