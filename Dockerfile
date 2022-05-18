@@ -13,4 +13,4 @@ COPY . .
 RUN pip install .
 
 # Prepare GitHub Action
-ENTRYPOINT ["rich-img"]
+ENTRYPOINT ["rich-codex"]

@@ -11,14 +11,14 @@ jobs:
         uses: actions/checkout@v3
 
       # Uses the action in this local repository
-      # Generally you would write 'uses: ewels/rich-img-action@v1'
+      # Generally you would write 'uses: ewels/rich-codex@v1'
       - name: Generate images from markdown comments
         uses: ./
 
       - name: Add and commit new images
         uses: EndBug/add-and-commit@v9
         with:
-          message: Generate new screengrabs with rich-img-action
+          message: Generate new screengrabs with rich-codex
           committer_name: GitHub Actions
           committer_email: actions@github.com
 
@@ -61,7 +61,7 @@ jobs:
       - name: Add and commit new images
         uses: EndBug/add-and-commit@v9
         with:
-          message: Generate new screengrabs with rich-img-action
+          message: Generate new screengrabs with rich-codex
           committer_name: GitHub Actions
           committer_email: actions@github.com
 
@@ -79,6 +79,6 @@ jobs:
       - name: Add and commit new images
         uses: EndBug/add-and-commit@v9
         with:
-          message: Generate new screengrabs with rich-img-action
+          message: Generate new screengrabs with rich-codex
           committer_name: GitHub Actions
           committer_email: actions@github.com

@@ -11,11 +11,11 @@ from rich.logging import RichHandler
 
 logging.basicConfig(level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 
-log = logging.getLogger("rich-img")
+log = logging.getLogger("rich-codex")
 
 
 class RichImg:
-    """Main class for rich-img."""
+    """Main class for rich-codex."""
 
     def __init__(self, terminal_width=None, terminal_theme=None):
         """Initialise the RichImg object with core console options."""

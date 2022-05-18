@@ -3,6 +3,6 @@ from setuptools import setup
 requirements = open("requirements.txt").read().splitlines()
 
 setup(
-    name="rich-img",
+    name="rich-codex",
     install_requires=requirements,
 )

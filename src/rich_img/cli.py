@@ -1,14 +1,13 @@
 import logging
 
 from rich.logging import RichHandler
-
-from rich_img.rich_img import RichImg
+from rich_codex.rich_img import RichImg
 
 import rich_click as click
 
 logging.basicConfig(level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
 
-log = logging.getLogger("rich-img")
+log = logging.getLogger("rich-codex")
 
 
 @click.command()

@@ -1,4 +1,4 @@
-name: rich-img-action
+name: rich-codex
 author: Phil Ewels
 
 description: Create rich code images for your docs
@@ -9,11 +9,11 @@ branding:
 
 inputs:
   include:
-    description: Files to search for rich-img-action comments
+    description: Files to search for rich-codex comments
     default: "**/*.md"
     required: false
   exclude:
-    description: Files to exclude from search for rich-img-action comments
+    description: Files to exclude from search for rich-codex comments
     default: |
       **/.git*
       **/.git*/**
@@ -31,8 +31,8 @@ inputs:
   configs:
     description: Paths to YAML config files
     default: |
-      .rich_img_action.yml
-      .github/rich_img_action.yml
+      .rich_codex.yml
+      .github/rich_codex.yml
     required: false
   width:
     description: Width of the terminal

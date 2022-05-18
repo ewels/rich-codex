@@ -1,4 +1,4 @@
-# rich-img-action
+# rich-codex
 
 This GitHub Action generates screengrab images of a terminal window containing code snippets or outputs from commands.
 
@@ -16,9 +16,9 @@ Some examples can be found in the [Complete examples](#complete-examples) sectio
 ## Markdown comments
 
 ```yaml
-rich_img:
+rich_codex:
   - uses: actions/checkout@v3
-  - uses: ewels/rich-img-action@v1
+  - uses: ewels/rich-codex@v1
 ```
 
 ## Action inputs
@@ -29,22 +29,22 @@ rich_img:
 
 ### Auto-generate and push
 
-This action looks for rich-img-action markdown comments, generates the images and then creates and pushes a new commit with the changes.
+This action looks for rich-codex markdown comments, generates the images and then creates and pushes a new commit with the changes.
 
 ```yaml
 on: [push]
 jobs:
-  rich_img:
+  rich_codex:
     - name: Check out the repo
       uses: actions/checkout@v3
 
     - name: Generate code images
-      uses: ewels/rich-img-action@v1
+      uses: ewels/rich-codex@v1
 
     - name: Add and commit new images
       uses: EndBug/add-and-commit@v9
       with:
-        message: Generate new screengrabs with rich-img-action
+        message: Generate new screengrabs with rich-codex
         committer_name: GitHub Actions
         committer_email: actions@github.com
 ```
@@ -53,11 +53,11 @@ jobs:
 
 ### `include`
 
-Files to search for rich-img-action comments.
+Files to search for rich-codex comments.
 
 ### `exclude`
 
-Files to exclude from search for rich-img-action comments.
+Files to exclude from search for rich-codex comments.
 
 ### `cmd`
 
