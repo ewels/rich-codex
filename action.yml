@@ -10,14 +10,9 @@ branding:
 inputs:
   include:
     description: Files to search for rich-codex comments
-    default: "**/*.md"
     required: false
   exclude:
     description: Files to exclude from search for rich-codex comments
-    default: |
-      **/.git*
-      **/.git*/**
-      **/node_modules/**
     required: false
   cmd:
     description: Command to run
@@ -61,6 +56,6 @@ runs:
     COMMAND: ${{ inputs.cmd }}
     SNIPPET: ${{ inputs.snippet }}
     IMG_PATHS: ${{ inputs.img_paths }}
-    CONFIGS: ${{ inputs.config }}
+    RC_CONFIGS: ${{ inputs.config }}
     TERMINAL_WIDTH: ${{ inputs.width }}
     TERMINAL_THEME: ${{ inputs.theme }}

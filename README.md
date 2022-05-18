@@ -1,8 +1,6 @@
-# rich-codex
+# rich-codex ⚡️📖⚡️
 
-This GitHub Action generates screengrab images of a terminal window containing code snippets or outputs from commands.
-
-It uses the Python library [rich](https://github.com/textualize/rich) and also the command line tool [rich-cli](https://github.com/textualize/rich-cli/).
+A command-line tool and GitHub Action to generate screengrab images of a terminal window containing code snippets or outputs from commands.
 
 It can be configured in three different ways:
 
@@ -48,6 +46,15 @@ jobs:
         committer_name: GitHub Actions
         committer_email: actions@github.com
 ```
+
+## How it works
+
+Rich-codex uses the Python library [rich](https://github.com/textualize/rich) and also the command line tool [rich-cli](https://github.com/textualize/rich-cli/) under the hood.
+These do all of the heavy lifting of actually creating the images.
+
+Rich-codex is a simple wrapper that loads commands/snippets from various places, collects command outputs and then passes this to rich.
+This command-line tool should really only be used in the context of the GitHub action, to auto-generate images from inline configs.
+The [rich-cli](https://github.com/textualize/rich-cli/) tool is better for basically all other uses.
 
 ## Inputs
 
