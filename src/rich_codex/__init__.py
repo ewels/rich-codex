@@ -7,4 +7,4 @@ for use with the rich-codex GitHub Action.
 
 __version__ = "1.0.dev0"
 
-from rich_codex import rich_codex  # noqa: F401
+from rich_codex import rich_img  # noqa: F401

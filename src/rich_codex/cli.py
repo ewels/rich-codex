@@ -1,6 +1,7 @@
 import logging
 
 from rich.logging import RichHandler
+
 from rich_codex.rich_img import RichImg
 
 import rich_click as click
