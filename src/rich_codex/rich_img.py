@@ -34,7 +34,7 @@ class RichImg:
 
     def pipe_command(self, cmd):
         """Capture output from a supplied command and save to an image."""
-        log.info(f"Running {cmd}")
+        log.info(f"Running command '{cmd}'")
         self.title = cmd
 
         # Run the command
@@ -73,7 +73,7 @@ class RichImg:
         """Save the images to the specified filenames."""
         # Save image as requested with $IMG_PATHS
         for filename in img_paths.splitlines():
-            log.info(f"Saving {filename}")
+            log.info(f"Saving [magenta]{filename}")
             svg_filename = filename
             if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
                 svg_filename = mkstemp(suffix=".svg")[1]

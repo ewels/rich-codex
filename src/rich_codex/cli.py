@@ -6,7 +6,7 @@ from rich_codex import codex_search, rich_img
 
 import rich_click as click
 
-logging.basicConfig(level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()])
+logging.basicConfig(level="NOTSET", format="%(message)s", datefmt="[%X]", handlers=[RichHandler(markup=True)])
 
 log = logging.getLogger("rich-codex")
 
@@ -55,8 +55,7 @@ def main(
     # Search files for codex strings
     if not no_search:
         codex_obj = codex_search.CodexSearch(search_include, search_exclude, terminal_width, terminal_theme)
-        print(codex_obj.search_include)
-        print(codex_obj.search_exclude)
+        codex_obj.search_files()
 
 
 if __name__ == "__main__":
