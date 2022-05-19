@@ -22,7 +22,7 @@ pip install rich-codex
 rich-codex
 ```
 
-Behaviour can be customised with either command line options or environment variables, see `rich-codex --help`:
+Behaviour can be customised on the command-line with environment variables, see `rich-codex --help`:
 ![`rich-codex --help`](docs/img/rich-codex-help.svg)
 
 If generating PNG or PDF, you'll need [CairoSVG](https://cairosvg.org/documentation/) installed.
