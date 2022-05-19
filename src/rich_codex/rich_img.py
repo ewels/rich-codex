@@ -1,4 +1,5 @@
 import logging
+import pathlib
 import shlex
 import subprocess
 from os import devnull, unlink
@@ -34,7 +35,7 @@ class RichImg:
 
     def pipe_command(self, cmd):
         """Capture output from a supplied command and save to an image."""
-        log.info(f"Running command '{cmd}'")
+        log.debug(f"Running command '{cmd}'")
         self.title = cmd
 
         # Run the command
@@ -58,14 +59,14 @@ class RichImg:
         try:
             if snippet_format == "json" or snippet_format is None:
                 self.console.print_json(json=snippet)
-                log.info("Formatting snippet as JSON")
+                log.debug("Formatting snippet as JSON")
                 return
             else:
                 raise
 
         # All other languages, use rich Syntax highlighter (no reformatting whitespace)
         except Exception:
-            log.info(f"Formatting snippet as {snippet_format}")
+            log.debug(f"Formatting snippet as {snippet_format}")
             syntax = Syntax(snippet, snippet_format)
             self.console.print(syntax)
 
@@ -73,7 +74,12 @@ class RichImg:
         """Save the images to the specified filenames."""
         # Save image as requested with $IMG_PATHS
         for filename in img_paths.splitlines():
-            log.info(f"Saving [magenta]{filename}")
+            log.debug(f"Saving [magenta]{filename}")
+
+            # Make directories if necessary
+            pathlib.Path(filename).parent.mkdir(parents=True, exist_ok=True)
+
+            # Set filenames
             svg_filename = filename
             if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
                 svg_filename = mkstemp(suffix=".svg")[1]
