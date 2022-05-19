@@ -14,14 +14,14 @@ inputs:
   exclude:
     description: Files to exclude from search for rich-codex comments
     required: false
-  cmd:
+  command:
     description: Command to run
     required: false
   snippet:
     description: Literal code snippet to render
     required: false
   img_paths:
-    description: Path to image filenames if using 'cmd' or 'snippet'
+    description: Path to image filenames if using 'command' or 'snippet'
     required: false
   configs:
     description: Paths to YAML config files
@@ -53,7 +53,7 @@ runs:
   env:
     SEARCH_INCLUDE: ${{ inputs.include }}
     SEARCH_EXCLUDE: ${{ inputs.exclude }}
-    COMMAND: ${{ inputs.cmd }}
+    COMMAND: ${{ inputs.command }}
     SNIPPET: ${{ inputs.snippet }}
     IMG_PATHS: ${{ inputs.img_paths }}
     RC_CONFIGS: ${{ inputs.config }}

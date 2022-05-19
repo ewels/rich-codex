@@ -4,10 +4,10 @@ A [command-line tool](#command-line) and [GitHub Action](#github-action) to gene
 
 It can be configured in four different ways:
 
-- [Markdown images](#markdown-images): Search markdown files for images with `commands` as their alt texts.
-- [Markdown comments](#markdown-comments): Search markdown files for special HTML comments.
-- [Command-line / action inputs](#command-line-action-inputs): Specify a command or snippet using the action `with` inputs.
-- [Config files](#yaml-config-files): Use one or more YAML config files for multiple images and more complex customisation.
+- 🖼 [Markdown images](#markdown-images): Search markdown files for images with `commands` as their alt texts.
+- 💬 [Markdown comments](#markdown-comments): Search markdown files for special HTML comments.
+- ➡️ [Command-line / action inputs](#command-line-action-inputs): Specify a command or snippet using the action `with` inputs.
+- ⚙️ [Config files](#yaml-config-files): Use one or more YAML config files for multiple images and more complex customisation.
 
 Images can be generated as SVG, PNG or PDF (detected by filename extension).
 
@@ -25,7 +25,7 @@ rich-codex
 Behaviour can be customised on the command-line with environment variables, see `rich-codex --help`:
 ![`rich-codex --help`](docs/img/rich-codex-help.svg)
 
-If generating PNG or PDF, you'll need [CairoSVG](https://cairosvg.org/documentation/) installed.
+If you're generating PNG or PDF files, you'll need [CairoSVG](https://cairosvg.org/documentation/) installed.
 You may prefer to use the `ewels/richcodex` docker container which contains everything you need.
 
 Usage is typically as follows:
@@ -87,15 +87,23 @@ This is getting meta!
 
 ### Markdown comments
 
-```yaml
-rich_codex:
-  - uses: actions/checkout@v3
-  - uses: ewels/rich-codex@v1
-```
+_coming soon_
 
 ### Command-line / action inputs
 
+You can generate images by providing a command or snippet as a direct input to the tool.
+
+You need the following command line flags / environment variables / GitHub Action inputs
+
+- One of:
+  - `--command` / `$COMMAND` / `command`
+  - `--snippet` / `$SNIPPET` / `snippet`
+- And:
+  - `--img_paths` / `$IMG_PATHS` / `img_paths`
+
 ### YAML config files
+
+_coming soon_
 
 ## How it works
 
