@@ -1,8 +1,7 @@
 import logging
 import pathlib
+import re
 from glob import glob
-
-import regex
 
 from rich_codex import rich_img
 
@@ -51,7 +50,7 @@ class CodexSearch:
             search_files = search_files - set(glob(pattern, recursive=True))
 
         # eg. ![`rich --help`](rich-cli-help.svg)
-        img_cmd_re = regex.compile(r"!\[`([^`]+)`\]\(([^\]]+)\)")
+        img_cmd_re = re.compile(r"!\[`([^`]+)`\]\(([^\]]+)\)")
         for file in search_files:
             with open(file, "r") as fh:
                 for line in fh:
