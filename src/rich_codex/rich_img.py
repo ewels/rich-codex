@@ -59,11 +59,11 @@ class RichImg:
 
     def __hash__(self):
         """Hash stable identifier of RichImg object based on important attributes."""
-        return hash(getattr(self, attr) for attr in RICH_IMG_ATTRS)
+        return hash(tuple(getattr(self, attr) for attr in RICH_IMG_ATTRS))
 
     def _hash_no_fn(self):
         """Hash stable identifier of RichImg object based without output filenames."""
-        return hash(getattr(self, attr) for attr in RICH_IMG_ATTRS if attr != "img_paths")
+        return hash(tuple(getattr(self, attr) for attr in RICH_IMG_ATTRS if attr != "img_paths"))
 
     def confirm_command(self):
         """Prompt user to confirm running command."""
