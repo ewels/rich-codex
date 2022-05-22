@@ -1,19 +1,108 @@
 # rich-codex ⚡️📖⚡️
 
-A [command-line tool](#command-line) and [GitHub Action](#github-action) to generate screengrab images of a terminal window containing code snippets or outputs from commands.
+### A [GitHub Action](#github-action) and [command-line tool](#command-line) to generate screengrab images of a terminal window containing _command outputs_ or _code snippets_.
 
-It can be configured in four different ways:
+[![PyPI Version](https://img.shields.io/pypi/v/rich-codex.svg?style=flat-square)](https://pypi.python.org/pypi/multiqc/)
+[![Docker](https://img.shields.io/docker/automated/ewels/rich-codex.svg?style=flat-square)](https://hub.docker.com/r/ewels/multiqc/)
 
-- 🖼 [Markdown images](#markdown-images): Search markdown files for images with `commands` as their alt texts.
-- 💬 [Markdown comments](#markdown-comments): Search markdown files for special HTML comments.
-- ➡️ [Command-line / action inputs](#command-line-action-inputs): Specify a command or snippet using the action `with` inputs.
-- ⚙️ [Config files](#yaml-config-files): Use one or more YAML config files for multiple images and more complex customisation.
+## How it works
+
+rich-codex is a command-line tool that you can via a **GitHub action** or as a **command line tool**.
+
+It collects either commands or code snippets, together with output filenames and configuration options. Commands are run in a subprocess and the standard output & standard error collected. These are then rendered as an image using [Textualize/rich](https://github.com/textualize/rich). For example:
+
+![`rich-codex --help`](docs/img/rich-codex-help.svg)
+
+Typical use cases include:
+
+- 📷 Example outputs that _automatically stay in sync with your package_
+- ✨ Awesome looking code examples that match your docs
+
+Rich-codex needs **Inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
+
+- 🖼 [Markdown images](#markdown-images)
+  - Search markdown files for image tags with command alt text. eg: `` ![`your-command`](img/rich-codex-help.svg) ``
+- 💬 [Markdown comments](#markdown-comments)
+  - Search markdown files for special HTML comments.
+- ➡️ [Command-line / action inputs](#command-line-action-inputs)
+  - Specify a command or snippet using the action `with` inputs.
+- ⚙️ [Config files](#yaml-config-files)
+  - Use one or more YAML config files for multiple images and more complex customisation.
 
 Images can be generated as SVG, PNG or PDF (detected by filename extension).
 
-## Usage
+## GitHub Action
 
-### Command-line
+Rich-codex was primarily designed to run automatically via a GitHub action, to keep your screenshots up to date for you.
+Once the action generates images, it's up to you to use them however you like in the rest of your workflow.
+
+A very simple example is shown below. This action looks for rich-codex content in the repo, generates the images and then creates and pushes a new commit with any changes.
+
+```yaml
+on: [push]
+jobs:
+  rich_codex:
+    - name: Check out the repo
+      uses: actions/checkout@v3
+
+    - name: Install the tool and dependencies
+      run: pip install .
+
+    - name: Generate code images
+      uses: ewels/rich-codex@v1
+
+    - name: Add and commit new images
+      uses: EndBug/add-and-commit@v9
+      with:
+        message: Generate new screengrabs with rich-codex
+        committer_name: GitHub Actions
+        committer_email: actions@github.com
+```
+
+## Command-line
+
+In addition to the GitHub Action, rich-codex is also a stand-alone command line tool.
+
+You are welcome to use it locally, for example when first writing new documentation and generating initial images to check their output.
+
+> ⚠️ **Warning** ⚠️
+> Please remember that rich-codex is designed to _run_ arbitrary commands that it finds within documentation for your project.
+> As such, it should be considered a fairly risky piece of software. You alone are responsible for any damage you cause to your computer! 🙃
+> Running rich-codex entirely within GitHub Actions is recommended, as any damage it can cause as it doesn't really matter if it wipes the hard disk there.
+
+### Docker image
+
+Probably the easiest way to run rich-codex is with the docker package. This includes all requirements and should give identical results to GitHub Actions.
+
+```bash
+docker run .... #TODO: Write example command
+```
+
+### Local installation
+
+You can install `rich-codex` from the [Python Package Index (PyPI)](https://pypi.org/project/rich-codex/) with `pip` or equivalent.
+
+```bash
+pip install rich-click
+```
+
+### Requirements for PNG / PDF outputs
+
+If you wish to generate `PNG` or `PDF` images (not just `SVG`) then there are a few additional requirements. Conversion is done using [CairoSVG](https://cairosvg.org/). First, install rich-click with the `cairo` [extra](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-setuptools-extras):
+
+```bash
+pip install rich-click[cario]
+```
+
+You'll then probably need some additional libraries, see the [Cairo documentation](https://cairosvg.org/documentation/):
+
+> CairoSVG and its dependencies may require additional tools during the installation: a compiler, Python headers, Cairo, and FFI headers. These tools have different names depending on the OS you are using, but:
+>
+> - on Windows, you’ll have to install Visual C++ compiler for Python and Cairo;
+> - on macOS, you’ll have to install cairo and libffi (eg. with [Homebrew](https://brew.sh): `brew install cairo`);
+> - on Linux, you’ll have to install the cairo, python3-dev and libffi-dev packages (names may vary for your distribution).
+
+### Usage
 
 At its simplest, the command-line tool runs without any arguments and recursively searches the current working directory for anything it recognises:
 
@@ -39,35 +128,6 @@ docker run v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
 - `-u` sets your local user account as the user inside the container, so that any files created have the correct ownership permissions.
 
 You can then pass environment variables with the `-e` flag to customise behaviour.
-
-### GitHub Action
-
-This tool is designed to run automatically via a GitHub action, to keep your screenshots up to date for you.
-Once the action generates images, it's up to you to use them however you like.
-
-A very simple example is shown below.
-This action looks for rich-codex content in the repo, generates the images and then creates and pushes a new commit with the changes.
-
-```yaml
-on: [push]
-jobs:
-  rich_codex:
-    - name: Check out the repo
-      uses: actions/checkout@v3
-
-    - name: Install the tool and dependencies
-      run: pip install .
-
-    - name: Generate code images
-      uses: ewels/rich-codex@v1
-
-    - name: Add and commit new images
-      uses: EndBug/add-and-commit@v9
-      with:
-        message: Generate new screengrabs with rich-codex
-        committer_name: GitHub Actions
-        committer_email: actions@github.com
-```
 
 ## Generating images
 
@@ -105,63 +165,56 @@ You need the following command line flags / environment variables / GitHub Actio
 
 _coming soon_
 
-## How it works
+## Reference docs
 
-Rich-codex uses the Python library [rich](https://github.com/textualize/rich) and also the command line tool [rich-cli](https://github.com/textualize/rich-cli/) under the hood.
-These do all of the heavy lifting of actually creating the images.
+### GitHub Action Inputs
 
-Rich-codex is a simple wrapper that loads commands/snippets from various places, collects command outputs and then passes this to rich.
-This command-line tool should really only be used in the context of the GitHub action, to auto-generate images from inline configs.
-The [rich-cli](https://github.com/textualize/rich-cli/) tool is better for basically all other uses.
-
-## Inputs
-
-### `include`
+#### `include`
 
 Files to search for rich-codex comments.
 
-### `exclude`
+#### `exclude`
 
 Files to exclude from search for rich-codex comments.
 
-### `cmd`
+#### `cmd`
 
 Command to run.
 
-### `snippet`
+#### `snippet`
 
 Literal code snippet to render.
 
-### `img_paths`
+#### `img_paths`
 
 Path to image filenames if using 'cmd' or 'snippet'.
 
-### `configs`
+#### `configs`
 
 Paths to YAML config files.
 
-### `width`
+#### `width`
 
 Width of the terminal.
 
-### `theme`
+#### `theme`
 
 Colour theme.
 
-## Outputs
+### GitHub Action Outputs
 
-### `images`
+#### `images`
 
 JSON array of all generated images.
 
-### `svgs`
+#### `svgs`
 
 JSON array of all generated SVG files.
 
-### `pngs`
+#### `pngs`
 
 JSON array of all generated PNG files.
 
-### `pdfs`
+#### `pdfs`
 
 JSON array of all generated PDF files.
