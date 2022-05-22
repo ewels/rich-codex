@@ -24,6 +24,7 @@ class CodexSearch:
             self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
+        self.rich_imgs = []
 
         # Look in .gitignore to add to search_exclude
         try:
@@ -56,17 +57,34 @@ class CodexSearch:
             log.debug(f"Searching {len(search_files)} files")
 
         # eg. ![`rich --help`](rich-cli-help.svg)
-        img_cmd_re = re.compile(r"!\[`([^`]+)`\]\(([^\]]+)\)")
+        img_cmd_re = re.compile(r"!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
         for file in search_files:
             with open(file, "r") as fh:
                 for line in fh:
-                    matches = img_cmd_re.findall(line)
-                    for match in matches:
-                        log.info(f"Found markdown image in [magenta]{file}[/]: {match}")
+                    for match in img_cmd_re.finditer(line):
+                        m = match.groupdict()
+
+                        log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
                         img_obj = rich_img.RichImg(self.terminal_width, self.terminal_theme)
-                        command = match[0]
-                        file_base = pathlib.Path(file).parent
-                        img_base = pathlib.Path(match[1])
-                        img_path = str(file_base / img_base)
-                        img_obj.pipe_command(command)
-                        img_obj.save_images(img_path)
+
+                        # Save the command
+                        img_obj.cmd = m["cmd"]
+
+                        # Save the image path
+                        img_path = pathlib.Path(file).parent / pathlib.Path(m["img_path"].strip())
+                        img_obj.img_paths = [str(img_path)]
+
+                        # Save the title if set
+                        if m["title"]:
+                            img_obj.title = m["title"].strip("'\" ")
+
+                        # Save the image object
+                        self.rich_imgs.append(img_obj)
+
+    def save_all_images(self):
+        """Save the images that we have collected."""
+        dedup_imgs = set(self.rich_imgs)
+        log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(dedup_imgs)} deduplicated")
+        for img_obj in dedup_imgs:
+            img_obj.get_output()
+            img_obj.save_images()

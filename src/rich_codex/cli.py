@@ -49,10 +49,13 @@ def main(
     if command or snippet:
         img_obj = rich_img.RichImg(terminal_width, terminal_theme)
         if command:
-            img_obj.pipe_command(command)
+            img_obj.cmd = command
         if snippet:
-            img_obj.format_snippet(snippet, snippet_format)
-        img_obj.save_images(img_paths)
+            img_obj.snippet = snippet
+            img_obj.snippet_format = snippet_format
+        img_obj.img_paths = img_paths.splitlines()
+        img_obj.get_output()
+        img_obj.save_images()
 
     # Search files for codex strings
     if not no_search:
@@ -60,6 +63,7 @@ def main(
             search_paths, search_include, search_exclude, terminal_width, terminal_theme
         )
         codex_obj.search_files()
+        codex_obj.save_all_images()
 
 
 if __name__ == "__main__":
