@@ -1,4 +1,0 @@
-rich>=12.4.1
-rich-cli>=1.8.0
-rich-click>=1.4
-CairoSVG>=2.5.2
