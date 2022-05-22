@@ -21,7 +21,7 @@ Typical use cases include:
 Rich-codex needs **Inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
 
 - 🖼 [Markdown images](#markdown-images)
-  - Search markdown files for image tags with command alt text. eg: `` ![`your-command`](img/rich-codex-help.svg) ``
+  - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](docs/img/rich-codex-help.svg) ``
 - 💬 [Markdown comments](#markdown-comments)
   - Search markdown files for special HTML comments.
 - ➡️ [Command-line / action inputs](#command-line-action-inputs)

@@ -17,7 +17,7 @@ class CodexSearch:
 
     def __init__(self, search_paths, search_include, search_exclude, terminal_width, terminal_theme):
         """Initialize the search object."""
-        self.search_paths = [None] if search_paths is None else search_paths
+        self.search_paths = [None] if len(search_paths) == 0 else search_paths
         self.search_include = ["**/*.md"] if search_include is None else self._clean_list(search_include.splitlines())
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
@@ -50,6 +50,10 @@ class CodexSearch:
                 search_files |= set(glob(pattern, root_dir=search_path, recursive=True))
             for pattern in self.search_exclude:
                 search_files = search_files - set(glob(pattern, root_dir=search_path, recursive=True))
+        if len(search_files) == 0:
+            log.error("No files found to search")
+        else:
+            log.debug(f"Searching {len(search_files)} files")
 
         # eg. ![`rich --help`](rich-cli-help.svg)
         img_cmd_re = re.compile(r"!\[`([^`]+)`\]\(([^\]]+)\)")
