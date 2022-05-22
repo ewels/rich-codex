@@ -75,8 +75,14 @@ You are welcome to use it locally, for example when first writing new documentat
 Probably the easiest way to run rich-codex is with the docker package. This includes all requirements and should give identical results to GitHub Actions.
 
 ```bash
-docker run .... #TODO: Write example command
+docker run v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
 ```
+
+- The `-v` argument tells Docker to bind your current working directory (`pwd`) to the same path inside the container, so that files created there will be saved to your local file system outside of the container.
+- `-w` sets the working directory in the container to this path, so that it's the same as your working directory outside of the container.
+- `-u` sets your local user account as the user inside the container, so that any files created have the correct ownership permissions.
+
+You can then pass environment variables with the `-e` flag to customise behaviour. See the usage instructions below for the available environment variables.
 
 ### Local installation
 
@@ -86,7 +92,15 @@ You can install `rich-codex` from the [Python Package Index (PyPI)](https://pypi
 pip install rich-click
 ```
 
-### Requirements for PNG / PDF outputs
+At its simplest, the command-line tool runs without any arguments and recursively searches the current working directory for anything it recognises:
+
+```bash
+rich-codex
+```
+
+Behaviour can be customised on the command-line with environment variables, see `rich-codex --help`.
+
+#### Requirements for PNG / PDF outputs
 
 If you wish to generate `PNG` or `PDF` images (not just `SVG`) then there are a few additional requirements. Conversion is done using [CairoSVG](https://cairosvg.org/). First, install rich-click with the `cairo` [extra](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-setuptools-extras):
 
@@ -102,32 +116,9 @@ You'll then probably need some additional libraries, see the [Cairo documentatio
 > - on macOS, you’ll have to install cairo and libffi (eg. with [Homebrew](https://brew.sh): `brew install cairo`);
 > - on Linux, you’ll have to install the cairo, python3-dev and libffi-dev packages (names may vary for your distribution).
 
-### Usage
+You'll also need Fira Code installed, a open-licence font: [GitHub repo](https://github.com/tonsky/FiraCode) / [Google Fonts](https://fonts.google.com/specimen/Fira+Code)
 
-At its simplest, the command-line tool runs without any arguments and recursively searches the current working directory for anything it recognises:
-
-```bash
-pip install rich-codex
-rich-codex
-```
-
-Behaviour can be customised on the command-line with environment variables, see `rich-codex --help`:
-![`rich-codex --help`](docs/img/rich-codex-help.svg)
-
-If you're generating PNG or PDF files, you'll need [CairoSVG](https://cairosvg.org/documentation/) installed.
-You may prefer to use the `ewels/richcodex` docker container which contains everything you need.
-
-Usage is typically as follows:
-
-```bash
-docker run v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
-```
-
-- The `-v` argument tells Docker to bind your current working directory (`pwd`) to the same path inside the container, so that files created there will be saved to your local file system outside of the container.
-- `-w` sets the working directory in the container to this path, so that it's the same as your working directory outside of the container.
-- `-u` sets your local user account as the user inside the container, so that any files created have the correct ownership permissions.
-
-You can then pass environment variables with the `-e` flag to customise behaviour.
+Note that the Docker image has all of these dependencies installed.
 
 ## Generating images
 
