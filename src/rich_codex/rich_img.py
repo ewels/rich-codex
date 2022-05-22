@@ -24,6 +24,9 @@ RICH_IMG_ATTRS = [
     "img_paths",
 ]
 
+# Base list of commands to ignore
+IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
+
 
 class RichImg:
     """Image generation for rich-codex.
@@ -49,6 +52,7 @@ class RichImg:
         self.snippet_format = None
         self.img_paths = []
         self.no_confirm = False
+        self.aborted = False
 
     def __eq__(self, other):
         """Compare RichImg objects for equality."""
@@ -59,11 +63,13 @@ class RichImg:
 
     def __hash__(self):
         """Hash stable identifier of RichImg object based on important attributes."""
-        return hash(tuple(getattr(self, attr) for attr in RICH_IMG_ATTRS))
+        attrs = str([getattr(self, attr) for attr in RICH_IMG_ATTRS])
+        return hash(attrs)
 
     def _hash_no_fn(self):
         """Hash stable identifier of RichImg object based without output filenames."""
-        return hash(tuple(getattr(self, attr) for attr in RICH_IMG_ATTRS if attr != "img_paths"))
+        attrs = str([getattr(self, attr) for attr in RICH_IMG_ATTRS if attr != "img_paths"])
+        return hash(attrs)
 
     def confirm_command(self):
         """Prompt user to confirm running command."""
@@ -76,6 +82,12 @@ class RichImg:
         if self.cmd is None:
             log.debug("Tried to generate image with no command")
             return
+
+        for ignore in IGNORE_COMMANDS:
+            if any(cmd_part.strip().startswith(ignore) for cmd_part in self.cmd.split("&;")):
+                log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.cmd} [/]")
+                self.aborted = True
+                return False
 
         log.debug(f"Running command '{self.cmd}'")
         if self.title is None:
@@ -128,6 +140,8 @@ class RichImg:
 
     def save_images(self):
         """Save the images to the specified filenames."""
+        if self.aborted:
+            return
         if len(self.img_paths) == 0:
             log.debug("Tried to save images with no paths")
             return
