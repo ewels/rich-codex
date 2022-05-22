@@ -21,6 +21,7 @@ log = logging.getLogger("rich-codex")
 @click.option("--snippet-format", envvar="SNIPPET_FORMAT", show_envvar=True)
 @click.option("--img-paths", envvar="IMG_PATHS", show_envvar=True)
 @click.option("--configs", envvar="RC_CONFIGS", show_envvar=True)
+@click.option("--no-confirm", is_flag=True, envvar="NO_CONFIRM", show_envvar=True)
 @click.option("--terminal-width", envvar="TERMINAL_WIDTH", show_envvar=True)
 @click.option("--terminal-theme", envvar="TERMINAL_THEME", show_envvar=True)
 def main(
@@ -33,6 +34,7 @@ def main(
     snippet_format,
     img_paths,
     configs,
+    no_confirm,
     terminal_width,
     terminal_theme,
 ):
@@ -48,21 +50,25 @@ def main(
     # Generate image from a supplied command / snippet
     if command or snippet:
         img_obj = rich_img.RichImg(terminal_width, terminal_theme)
+        img_obj.no_confirm = no_confirm
         if command:
             img_obj.cmd = command
         if snippet:
             img_obj.snippet = snippet
             img_obj.snippet_format = snippet_format
         img_obj.img_paths = img_paths.splitlines()
-        img_obj.get_output()
-        img_obj.save_images()
+        if img_obj.confirm_command():
+            img_obj.get_output()
+            img_obj.save_images()
 
     # Search files for codex strings
     if not no_search:
         codex_obj = codex_search.CodexSearch(
-            search_paths, search_include, search_exclude, terminal_width, terminal_theme
+            search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme
         )
         codex_obj.search_files()
+        codex_obj.collapse_duplicates()
+        codex_obj.confirm_commands()
         codex_obj.save_all_images()
 
 

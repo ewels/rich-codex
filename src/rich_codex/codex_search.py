@@ -3,6 +3,11 @@ import pathlib
 import re
 from glob import glob
 
+from rich import print
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.table import Table
+
 from rich_codex import rich_img
 
 log = logging.getLogger("rich-codex")
@@ -15,13 +20,14 @@ class CodexSearch:
     needed to generate screenshots.
     """
 
-    def __init__(self, search_paths, search_include, search_exclude, terminal_width, terminal_theme):
+    def __init__(self, search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme):
         """Initialize the search object."""
         self.search_paths = [None] if len(search_paths) == 0 else search_paths
         self.search_include = ["**/*.md"] if search_include is None else self._clean_list(search_include.splitlines())
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
             self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
+        self.no_confirm = no_confirm
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
         self.rich_imgs = []
@@ -81,10 +87,56 @@ class CodexSearch:
                         # Save the image object
                         self.rich_imgs.append(img_obj)
 
+    def collapse_duplicates(self):
+        """Collapse duplicate commands."""
+        # Remove exact duplicates
+        dedup_imgs = set(self.rich_imgs)
+        # Merge dups that are the same except for output filename
+        merged_imgs = {}
+        for ri in dedup_imgs:
+            ri_hash = ri._hash_no_fn()
+            if ri_hash in merged_imgs:
+                merged_imgs[ri_hash].img_paths.extend(ri.img_paths)
+            else:
+                merged_imgs[ri_hash] = ri
+        log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
+        self.rich_imgs = merged_imgs.values()
+
+    def confirm_commands(self):
+        """Prompt the user to confirm running the commands."""
+        # Collect the unique commands
+        commands = set()
+        for img_obj in self.rich_imgs:
+            if img_obj.cmd is not None:
+                commands.add(img_obj.cmd)
+
+        if len(commands) == 0:
+            return True
+
+        table = Table(box=None, show_header=False, row_styles=["bold green", "green"])
+        for cmd in commands:
+            table.add_row(cmd)
+
+        print(Panel(table, title="Commands to run", title_align="left"))
+
+        if self.no_confirm:
+            return True
+
+        confirm = Prompt.ask("Do you want to run these commands? (All / Some / None)", choices=["a", "s", "n"])
+        if confirm == "a":
+            log.info("Running all commands")
+            return True
+        elif confirm == "n":
+            log.info("Skipping all outputs that require running a command")
+            self.rich_imgs = [ri for ri in self.rich_imgs if ri.cmd is None]
+            return False
+        else:
+            log.info("Please select commands individually")
+            self.rich_imgs = [ri for ri in self.rich_imgs if ri.confirm_command()]
+            return None
+
     def save_all_images(self):
         """Save the images that we have collected."""
-        dedup_imgs = set(self.rich_imgs)
-        log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(dedup_imgs)} deduplicated")
-        for img_obj in dedup_imgs:
+        for img_obj in self.rich_imgs:
             img_obj.get_output()
             img_obj.save_images()

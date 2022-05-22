@@ -3,10 +3,12 @@ import pathlib
 import shlex
 import subprocess
 from os import devnull, unlink
+from shutil import copyfile
 from tempfile import mkstemp
 
 from rich.ansi import AnsiDecoder
 from rich.console import Console
+from rich.prompt import Confirm
 from rich.syntax import Syntax
 
 log = logging.getLogger("rich-codex")
@@ -46,6 +48,7 @@ class RichImg:
         self.snippet = None
         self.snippet_format = None
         self.img_paths = []
+        self.no_confirm = False
 
     def __eq__(self, other):
         """Compare RichImg objects for equality."""
@@ -57,6 +60,16 @@ class RichImg:
     def __hash__(self):
         """Hash stable identifier of RichImg object based on important attributes."""
         return hash(getattr(self, attr) for attr in RICH_IMG_ATTRS)
+
+    def _hash_no_fn(self):
+        """Hash stable identifier of RichImg object based without output filenames."""
+        return hash(getattr(self, attr) for attr in RICH_IMG_ATTRS if attr != "img_paths")
+
+    def confirm_command(self):
+        """Prompt user to confirm running command."""
+        if self.cmd is None or self.no_confirm:
+            return True
+        return Confirm.ask(f"Command: [white on black] {self.cmd} [/] Run?")
 
     def pipe_command(self):
         """Capture output from a supplied command and save to an image."""
@@ -120,11 +133,25 @@ class RichImg:
             return
 
         # Save image as requested with $IMG_PATHS
+        svg_img = None
+        png_img = None
+        pdf_img = None
         for filename in self.img_paths:
             log.debug(f"Saving [magenta]{filename}")
 
             # Make directories if necessary
             pathlib.Path(filename).parent.mkdir(parents=True, exist_ok=True)
+
+            # If already made this image, copy it from the last destination
+            if filename.lower().endswith(".png") and png_img is not None:
+                copyfile(png_img, filename)
+                continue
+            if filename.lower().endswith(".pdf") and pdf_img is not None:
+                copyfile(pdf_img, filename)
+                continue
+            if svg_img is not None:
+                copyfile(svg_img, filename)
+                continue
 
             # Set filenames
             svg_filename = filename
@@ -132,7 +159,9 @@ class RichImg:
                 svg_filename = mkstemp(suffix=".svg")[1]
 
             # We always generate an SVG first
-            self.console.save_svg(svg_filename, title=self.title)
+            if svg_img is None:
+                self.console.save_svg(svg_filename, title=self.title)
+                svg_img = svg_filename
 
             # Lazy-load PNG / PDF libraries if needed
             if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
@@ -147,6 +176,7 @@ class RichImg:
                     output_width=4000,
                 )
                 unlink(svg_filename)
+                png_img = filename
 
             # Convert to PDF if requested
             if filename.lower().endswith(".pdf"):
@@ -155,3 +185,4 @@ class RichImg:
                     write_to=filename,
                 )
                 unlink(svg_filename)
+                pdf_img = filename
