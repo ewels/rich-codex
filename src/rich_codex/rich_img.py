@@ -5,7 +5,6 @@ import subprocess
 from os import devnull, unlink
 from tempfile import mkstemp
 
-from cairosvg import svg2pdf, svg2png
 from rich.ansi import AnsiDecoder
 from rich.console import Console
 from rich.syntax import Syntax
@@ -86,6 +85,10 @@ class RichImg:
 
             # We always generate an SVG first
             self.console.save_svg(svg_filename, title=self.title)
+
+            # Lazy-load PNG / PDF libraries if needed
+            if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
+                from cairosvg import svg2pdf, svg2png
 
             # Convert to PNG if requested
             if filename.lower().endswith(".png"):

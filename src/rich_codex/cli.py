@@ -12,6 +12,7 @@ log = logging.getLogger("rich-codex")
 
 
 @click.command()
+@click.argument("search_paths", nargs=-1)
 @click.option("--search-include", envvar="SEARCH_INCLUDE", show_envvar=True)
 @click.option("--search-exclude", envvar="SEARCH_EXCLUDE", show_envvar=True)
 @click.option("--no-search", is_flag=True, envvar="NO_SEARCH", show_envvar=True)
@@ -23,6 +24,7 @@ log = logging.getLogger("rich-codex")
 @click.option("--terminal-width", envvar="TERMINAL_WIDTH", show_envvar=True)
 @click.option("--terminal-theme", envvar="TERMINAL_THEME", show_envvar=True)
 def main(
+    search_paths,
     search_include,
     search_exclude,
     no_search,
@@ -54,7 +56,9 @@ def main(
 
     # Search files for codex strings
     if not no_search:
-        codex_obj = codex_search.CodexSearch(search_include, search_exclude, terminal_width, terminal_theme)
+        codex_obj = codex_search.CodexSearch(
+            search_paths, search_include, search_exclude, terminal_width, terminal_theme
+        )
         codex_obj.search_files()
 
 
