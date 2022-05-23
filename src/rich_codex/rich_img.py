@@ -20,7 +20,7 @@ RICH_IMG_ATTRS = [
     "title",
     "cmd",
     "snippet",
-    "snippet_format",
+    "snippet_syntax",
     "img_paths",
 ]
 
@@ -49,7 +49,7 @@ class RichImg:
         )
         self.cmd = None
         self.snippet = None
-        self.snippet_format = None
+        self.snippet_syntax = None
         self.img_paths = []
         self.no_confirm = False
         self.aborted = False
@@ -116,7 +116,7 @@ class RichImg:
 
         # JSON is a special case, use rich function
         try:
-            if self.snippet_format == "json" or self.snippet_format is None:
+            if self.snippet_syntax == "json" or self.snippet_syntax is None:
                 self.console.print_json(json=self.snippet)
                 log.debug("Formatting snippet as JSON")
                 return
@@ -125,8 +125,8 @@ class RichImg:
 
         # All other languages, use rich Syntax highlighter (no reformatting whitespace)
         except Exception:
-            log.debug(f"Formatting snippet as {self.snippet_format}")
-            syntax = Syntax(self.snippet, self.snippet_format)
+            log.debug(f"Formatting snippet as {self.snippet_syntax}")
+            syntax = Syntax(self.snippet, self.snippet_syntax)
             self.console.print(syntax)
 
     def get_output(self):

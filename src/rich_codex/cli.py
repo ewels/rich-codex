@@ -18,7 +18,7 @@ log = logging.getLogger("rich-codex")
 @click.option("--no-search", is_flag=True, envvar="NO_SEARCH", show_envvar=True)
 @click.option("--command", envvar="COMMAND", show_envvar=True)
 @click.option("--snippet", envvar="SNIPPET", show_envvar=True)
-@click.option("--snippet-format", envvar="SNIPPET_FORMAT", show_envvar=True)
+@click.option("--snippet-syntax", envvar="SNIPPET_SYNTAX", show_envvar=True)
 @click.option("--img-paths", envvar="IMG_PATHS", show_envvar=True)
 @click.option("--configs", envvar="RC_CONFIGS", show_envvar=True)
 @click.option("--no-confirm", is_flag=True, envvar="NO_CONFIRM", show_envvar=True)
@@ -31,7 +31,7 @@ def main(
     no_search,
     command,
     snippet,
-    snippet_format,
+    snippet_syntax,
     img_paths,
     configs,
     no_confirm,
@@ -55,7 +55,7 @@ def main(
             img_obj.cmd = command
         if snippet:
             img_obj.snippet = snippet
-            img_obj.snippet_format = snippet_format
+            img_obj.snippet_syntax = snippet_syntax
         img_obj.img_paths = img_paths.splitlines()
         if img_obj.confirm_command():
             img_obj.get_output()

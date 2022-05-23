@@ -7,7 +7,6 @@ RUN apk add --no-cache \
     # pillow dependencies
     jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev
 
-
 # Install requirements
 COPY . .
 RUN pip install .

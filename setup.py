@@ -3,8 +3,7 @@ from setuptools import setup
 setup(
     name="rich-codex",
     install_requires=[
-        "rich>=12.4.1",
-        "rich-cli>=1.8.0",
+        "rich>=12.4.3",
         "rich-click>=1.4",
         "importlib-metadata; python_version < '3.8'",
     ],

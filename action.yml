@@ -14,11 +14,17 @@ inputs:
   exclude:
     description: Files to exclude from search for rich-codex comments
     required: false
+  no_search:
+    description: Set to 'true' to disable searching for rich-codex comments
+    required: false
   command:
     description: Command to run
     required: false
   snippet:
     description: Literal code snippet to render
+    required: false
+  snippet_syntax:
+    description: Language to use for snippet sytax highlighting
     required: false
   img_paths:
     description: Path to image filenames if using 'command' or 'snippet'
@@ -53,9 +59,12 @@ runs:
   env:
     SEARCH_INCLUDE: ${{ inputs.include }}
     SEARCH_EXCLUDE: ${{ inputs.exclude }}
+    NO_SEARCH: ${{ inputs.no_search }}
     COMMAND: ${{ inputs.command }}
     SNIPPET: ${{ inputs.snippet }}
+    SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
     IMG_PATHS: ${{ inputs.img_paths }}
     RC_CONFIGS: ${{ inputs.config }}
     TERMINAL_WIDTH: ${{ inputs.width }}
     TERMINAL_THEME: ${{ inputs.theme }}
+    NO_CONFIRM: "true"
