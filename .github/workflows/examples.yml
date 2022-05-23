@@ -1,7 +1,7 @@
 on: [push]
 
 env:
-  TERMINAL_WIDTH: 70
+  TERMINAL_WIDTH: 120
 
 jobs:
   markdown_comments:

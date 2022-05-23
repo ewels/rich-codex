@@ -60,7 +60,7 @@ class CodexSearch:
         if len(search_files) == 0:
             log.error("No files found to search")
         else:
-            log.debug(f"Searching {len(search_files)} files")
+            log.info(f"Searching {len(search_files)} files")
 
         # eg. ![`rich --help`](rich-cli-help.svg)
         img_cmd_re = re.compile(r"!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
@@ -117,7 +117,7 @@ class CodexSearch:
         for cmd in commands:
             table.add_row(cmd)
 
-        print(Panel(table, title="Commands to run", title_align="left"))
+        print(Panel(table, title="Commands to run", title_align="left", border_style="blue"))
 
         if self.no_confirm:
             return True

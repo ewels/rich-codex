@@ -107,7 +107,7 @@ def main(
     terminal_theme,
     verbose,
 ):
-    """Run the click command-line interface."""
+    """Create rich code images for your docs."""
     # Set up the logger
     log.setLevel(logging.DEBUG if verbose else logging.INFO)
 
@@ -119,7 +119,6 @@ def main(
                 force_terminal=(
                     True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
                 ),
-                width=getenv("TERMINAL_WIDTH"),
             ),
             show_time=False,
             markup=True,
