@@ -184,7 +184,7 @@ Files to search for rich-codex comments.
 
 Files to exclude from search for rich-codex comments.
 
-#### `cmd`
+#### `command`
 
 Command to run.
 
@@ -194,7 +194,7 @@ Literal code snippet to render.
 
 #### `img_paths`
 
-Path to image filenames if using 'cmd' or 'snippet'.
+Path to image filenames if using 'command' or 'snippet'.
 
 #### `configs`
 

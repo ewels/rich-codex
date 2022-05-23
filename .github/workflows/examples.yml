@@ -18,7 +18,7 @@ jobs:
       - name: Add and commit new images
         run: |
           if [[ `git status --porcelain` ]]; then
-            git config user.name github-actions && git config user.email github-actions@github.com
+            git config user.name "GitHub Actions" && git config user.email actions@github.com
             git add . && git commit -m "Generate new screengrabs with rich-codex"
             git push
           fi
@@ -33,7 +33,7 @@ jobs:
         uses: ./
         with:
           no_search: true
-          cmd: "rich --help"
+          command: "rich --help"
           img_paths: |
             examples/actions/rich-cli-help.svg
             examples/actions/rich-cli-help.png
@@ -64,7 +64,7 @@ jobs:
       - name: Add and commit new images
         run: |
           if [[ `git status --porcelain` ]]; then
-            git config user.name github-actions && git config user.email github-actions@github.com
+            git config user.name "GitHub Actions" && git config user.email actions@github.com
             git add . && git commit -m "Generate new screengrabs with rich-codex"
             git push
           fi
@@ -83,7 +83,7 @@ jobs:
       - name: Add and commit new images
         run: |
           if [[ `git status --porcelain` ]]; then
-            git config user.name github-actions && git config user.email github-actions@github.com
+            git config user.name "GitHub Actions" && git config user.email actions@github.com
             git add . && git commit -m "Generate new screengrabs with rich-codex"
             git push
           fi
