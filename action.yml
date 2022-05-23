@@ -9,16 +9,16 @@ branding:
 
 inputs:
   include:
-    description: Files to search for rich-codex comments
+    description: Glob patterns to search for rich-codex comments
     required: false
   exclude:
-    description: Files to exclude from search for rich-codex comments
+    description: Glob patterns to exclude from search for rich-codex comments
     required: false
   no_search:
     description: Set to 'true' to disable searching for rich-codex comments
     required: false
   command:
-    description: Command to run
+    description: Specify a command to run to capture output
     required: false
   snippet:
     description: Literal code snippet to render
