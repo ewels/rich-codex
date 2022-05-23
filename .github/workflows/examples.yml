@@ -28,15 +28,19 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
+      - name: Install requirements
+        run: pip install cowsay lolcat
+
       - name: Generate images from actions commands
         uses: ./
         with:
           no_search: true
-          command: "rich --help"
+          width: 60
+          command: cowsay "Taste the rainbow" | lolcat -S 100
           img_paths: |
-            examples/actions/rich-cli-help.svg
-            examples/actions/rich-cli-help.png
-            examples/actions/rich-cli-help.pdf
+            examples/actions/cowsay-colours.svg
+            examples/actions/cowsay-colours.png
+            examples/actions/cowsay-colours.pdf
 
       - name: Generate images from actions snippets
         uses: ./
