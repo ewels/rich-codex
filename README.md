@@ -52,11 +52,10 @@ jobs:
       uses: ewels/rich-codex@v1
 
     - name: Add and commit new images
-      uses: EndBug/add-and-commit@v9
-      with:
-        message: Generate new screengrabs with rich-codex
-        committer_name: GitHub Actions
-        committer_email: actions@github.com
+      run: |
+        git config user.name github-actions && git config user.email github-actions@github.com
+        git add . && git commit -m "Generate new screengrabs with rich-codex"
+        git push
 ```
 
 ## Command-line

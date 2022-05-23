@@ -16,11 +16,10 @@ jobs:
         uses: ./
 
       - name: Add and commit new images
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: Generate new screengrabs with rich-codex
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
+        run: |
+          git config user.name github-actions && git config user.email github-actions@github.com
+          git add . && git commit -m "Generate new screengrabs with rich-codex"
+          git push
 
   actions:
     runs-on: ubuntu-latest
@@ -31,6 +30,7 @@ jobs:
       - name: Generate images from actions commands
         uses: ./
         with:
+          no_search: true
           cmd: "rich --help"
           img_paths: |
             examples/actions/rich-cli-help.svg
@@ -40,6 +40,7 @@ jobs:
       - name: Generate images from actions snippets
         uses: ./
         with:
+          no_search: true
           snippet: |
             >>> print("[italic red]Hello[/italic red] World!", locals())
             Hello World!
@@ -59,11 +60,10 @@ jobs:
             examples/actions/rich-example.pdf
 
       - name: Add and commit new images
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: Generate new screengrabs with rich-codex
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
+        run: |
+          git config user.name github-actions && git config user.email github-actions@github.com
+          git add . && git commit -m "Generate new screengrabs with rich-codex"
+          git push
 
   yml_configs:
     runs-on: ubuntu-latest
@@ -74,11 +74,11 @@ jobs:
       - name: Generate images from a YAML config
         uses: ./
         with:
+          no_search: true
           configs: yml_configs/*.yml
 
       - name: Add and commit new images
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: Generate new screengrabs with rich-codex
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
+        run: |
+          git config user.name github-actions && git config user.email github-actions@github.com
+          git add . && git commit -m "Generate new screengrabs with rich-codex"
+          git push
