@@ -119,7 +119,7 @@ def main(
                 force_terminal=(
                     True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
                 ),
-                terminal_width=getenv("TERMINAL_WIDTH"),
+                width=getenv("TERMINAL_WIDTH"),
             ),
             show_time=False,
             markup=True,
