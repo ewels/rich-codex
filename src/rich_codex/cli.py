@@ -149,7 +149,9 @@ def main(
             img_obj.save_images()
 
     # Search files for codex strings
-    if not no_search:
+    if no_search:
+        log.info("Skipping file search")
+    else:
         codex_obj = codex_search.CodexSearch(
             search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme
         )

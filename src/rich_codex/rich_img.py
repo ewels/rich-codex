@@ -38,7 +38,7 @@ class RichImg:
         """Initialise the RichImg object with core console options."""
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
-        self.title = None
+        self.title = ""
         self.console = Console(
             file=open(devnull, "w"),
             force_terminal=True,
@@ -90,7 +90,7 @@ class RichImg:
                 return False
 
         log.debug(f"Running command '{self.cmd}'")
-        if self.title is None:
+        if self.title == "":
             self.title = self.cmd
 
         # Run the command

@@ -7,11 +7,13 @@
 
 ## How it works
 
-rich-codex is a command-line tool that you can via a **GitHub action** or as a **command line tool**.
+rich-codex is a command-line tool that you can via a **GitHub action** or as a **command line tool**. It works with any markdown, including GitHub READMEs.
 
 It collects either commands or code snippets, together with output filenames and configuration options. Commands are run in a subprocess and the standard output & standard error collected. These are then rendered as an image using [Textualize/rich](https://github.com/textualize/rich). For example:
 
 ![`rich-codex --help`](docs/img/rich-codex-help.svg)
+
+Rich-codex creates the images that your markdown docs expect. It doesn't require a HTML build-step and doesn't make any changes to your markdown or its output. As such, it's compatible with _**any documentation engine**_, including rendering markdown on [github.com](https://github.com).
 
 Typical use cases include:
 
@@ -42,20 +44,24 @@ A very simple example is shown below. This action looks for rich-codex content i
 on: [push]
 jobs:
   rich_codex:
-    - name: Check out the repo
-      uses: actions/checkout@v3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
 
-    - name: Install the tool and dependencies
-      run: pip install .
+      - name: Install the tool and dependencies
+        run: pip install .
 
-    - name: Generate code images
-      uses: ewels/rich-codex@v1
+      - name: Generate code images
+        uses: ewels/rich-codex@v1
 
-    - name: Add and commit new images
-      run: |
-        git config user.name github-actions && git config user.email github-actions@github.com
-        git add . && git commit -m "Generate new screengrabs with rich-codex"
-        git push
+      - name: Add and commit new images
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            git config user.name github-actions && git config user.email github-actions@github.com
+            git add . && git commit -m "Generate new screengrabs with rich-codex"
+            git push
+          fi
 ```
 
 > **NB:** For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).

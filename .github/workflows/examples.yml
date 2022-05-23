@@ -17,9 +17,11 @@ jobs:
 
       - name: Add and commit new images
         run: |
-          git config user.name github-actions && git config user.email github-actions@github.com
-          git add . && git commit -m "Generate new screengrabs with rich-codex"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git config user.name github-actions && git config user.email github-actions@github.com
+            git add . && git commit -m "Generate new screengrabs with rich-codex"
+            git push
+          fi
 
   actions:
     runs-on: ubuntu-latest
@@ -61,10 +63,11 @@ jobs:
 
       - name: Add and commit new images
         run: |
-          git config user.name github-actions && git config user.email github-actions@github.com
-          git add . && git commit -m "Generate new screengrabs with rich-codex"
-          git push
-
+          if [[ `git status --porcelain` ]]; then
+            git config user.name github-actions && git config user.email github-actions@github.com
+            git add . && git commit -m "Generate new screengrabs with rich-codex"
+            git push
+          fi
   yml_configs:
     runs-on: ubuntu-latest
     steps:
@@ -79,6 +82,8 @@ jobs:
 
       - name: Add and commit new images
         run: |
-          git config user.name github-actions && git config user.email github-actions@github.com
-          git add . && git commit -m "Generate new screengrabs with rich-codex"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git config user.name github-actions && git config user.email github-actions@github.com
+            git add . && git commit -m "Generate new screengrabs with rich-codex"
+            git push
+          fi
