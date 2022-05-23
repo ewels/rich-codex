@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install requirements
-        run: pip install cowsay lolcat
+        run: pip install cowpy lolcat
 
       # Uses the action in this local repository
       # Generally you would write 'uses: ewels/rich-codex@v1'
@@ -32,14 +32,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install requirements
-        run: pip install cowsay lolcat
+        run: pip install cowpy lolcat
 
       - name: Generate images from actions commands
         uses: ./
         with:
           no_search: true
           width: 60
-          command: cowsay "Taste the rainbow" | lolcat -S 100
+          command: cowpy "Taste the rainbow" | lolcat -S 100
           img_paths: |
             examples/actions/cowsay-colours.svg
             examples/actions/cowsay-colours.png

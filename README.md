@@ -146,10 +146,10 @@ You can also add title text, which will be used in the top menu bar of the scree
 
 ```markdown
 This is getting meta!
-![`cowsay "Taste the rainbow" | lolcat -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
+![`cowpy "Taste the rainbow" | lolcat -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
 ```
 
-![`cowsay "Taste the rainbow" | lolcat -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
+![`cowpy "Taste the rainbow" | lolcat -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
 
 ### Markdown comments
 
