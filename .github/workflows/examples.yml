@@ -10,6 +10,9 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
+      - name: Install requirements
+        run: pip install cowsay lolcat
+
       # Uses the action in this local repository
       # Generally you would write 'uses: ewels/rich-codex@v1'
       - name: Generate images from markdown comments

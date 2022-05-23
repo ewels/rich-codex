@@ -84,6 +84,8 @@ class RichImg:
             log.debug("Tried to generate image with no command")
             return
 
+        self.cmd = self.cmd.strip()
+
         for ignore in IGNORE_COMMANDS:
             if any(cmd_part.strip().startswith(ignore) for cmd_part in self.cmd.split("&;")):
                 log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.cmd} [/]")
