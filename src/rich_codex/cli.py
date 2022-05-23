@@ -66,13 +66,6 @@ log = logging.getLogger()
     help="Paths to YAML config files",
 )
 @click.option(
-    "--no-confirm",
-    is_flag=True,
-    envvar="NO_CONFIRM",
-    show_envvar=True,
-    help="Set to skip confirmation prompt before running commands",
-)
-@click.option(
     "--terminal-width",
     envvar="TERMINAL_WIDTH",
     show_envvar=True,
