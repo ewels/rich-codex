@@ -125,6 +125,11 @@ def main(
         )
     )
 
+    # Console for printing to stdout
+    console = Console(
+        force_terminal=(True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None)
+    )
+
     # Check for mutually exclusive options
     if command and snippet:
         raise click.BadOptionUsage("--command", "Please use either --command OR --snippet but not both")
@@ -135,7 +140,7 @@ def main(
 
     # Generate image from a supplied command / snippet
     if command or snippet:
-        img_obj = rich_img.RichImg(terminal_width, terminal_theme)
+        img_obj = rich_img.RichImg(terminal_width, terminal_theme, console)
         img_obj.no_confirm = no_confirm
         if command:
             img_obj.cmd = command
@@ -152,7 +157,7 @@ def main(
         log.info("Skipping file search")
     else:
         codex_obj = codex_search.CodexSearch(
-            search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme
+            search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, console
         )
         codex_obj.search_files()
         codex_obj.collapse_duplicates()

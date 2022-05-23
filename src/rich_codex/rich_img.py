@@ -34,12 +34,13 @@ class RichImg:
     Objects from this class are typically used once per screenshot.
     """
 
-    def __init__(self, terminal_width=None, terminal_theme=None):
+    def __init__(self, terminal_width=None, terminal_theme=None, console=None):
         """Initialise the RichImg object with core console options."""
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
         self.title = ""
-        self.console = Console(
+        self.console = Console() if console is None else console
+        self.capture_console = Console(
             file=open(devnull, "w"),
             force_terminal=True,
             color_system="truecolor",
@@ -75,7 +76,7 @@ class RichImg:
         """Prompt user to confirm running command."""
         if self.cmd is None or self.no_confirm:
             return True
-        return Confirm.ask(f"Command: [white on black] {self.cmd} [/] Run?")
+        return Confirm.ask(f"Command: [white on black] {self.cmd} [/] Run?", console=self.console)
 
     def pipe_command(self):
         """Capture output from a supplied command and save to an image."""
@@ -104,7 +105,7 @@ class RichImg:
         output = process.stdout.read().decode("utf-8")
         decoder = AnsiDecoder()
         for line in decoder.decode(output):
-            self.console.print(line)
+            self.capture_console.print(line)
 
     def format_snippet(self):
         """Take a text snippet and format it using rich."""
@@ -117,7 +118,7 @@ class RichImg:
         # JSON is a special case, use rich function
         try:
             if self.snippet_syntax == "json" or self.snippet_syntax is None:
-                self.console.print_json(json=self.snippet)
+                self.capture_console.print_json(json=self.snippet)
                 log.debug("Formatting snippet as JSON")
                 return
             else:
@@ -127,7 +128,7 @@ class RichImg:
         except Exception:
             log.debug(f"Formatting snippet as {self.snippet_syntax}")
             syntax = Syntax(self.snippet, self.snippet_syntax)
-            self.console.print(syntax)
+            self.capture_console.print(syntax)
 
     def get_output(self):
         """Either pipe command or format snippet, depending on what is set."""
@@ -174,7 +175,7 @@ class RichImg:
 
             # We always generate an SVG first
             if svg_img is None:
-                self.console.save_svg(svg_filename, title=self.title)
+                self.capture_console.save_svg(svg_filename, title=self.title)
                 svg_img = svg_filename
 
             # Lazy-load PNG / PDF libraries if needed

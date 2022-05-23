@@ -3,7 +3,7 @@ import pathlib
 import re
 from glob import glob
 
-from rich import print
+from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
@@ -20,7 +20,9 @@ class CodexSearch:
     needed to generate screenshots.
     """
 
-    def __init__(self, search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme):
+    def __init__(
+        self, search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, console
+    ):
         """Initialize the search object."""
         self.search_paths = [None] if len(search_paths) == 0 else search_paths
         self.search_include = ["**/*.md"] if search_include is None else self._clean_list(search_include.splitlines())
@@ -30,6 +32,7 @@ class CodexSearch:
         self.no_confirm = no_confirm
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
+        self.console = Console() if console is None else console
         self.rich_imgs = []
 
         # Look in .gitignore to add to search_exclude
@@ -117,12 +120,14 @@ class CodexSearch:
         for cmd in commands:
             table.add_row(cmd)
 
-        print(Panel(table, title="Commands to run", title_align="left", border_style="blue"))
+        self.console.print(Panel(table, title="Commands to run", title_align="left", border_style="blue"))
 
         if self.no_confirm:
             return True
 
-        confirm = Prompt.ask("Do you want to run these commands? (All / Some / None)", choices=["a", "s", "n"])
+        confirm = Prompt.ask(
+            "Do you want to run these commands? (All / Some / None)", choices=["a", "s", "n"], console=self.console
+        )
         if confirm == "a":
             log.info("Running all commands")
             return True
