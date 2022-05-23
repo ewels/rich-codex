@@ -58,6 +58,8 @@ jobs:
         git push
 ```
 
+> **NB:** For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
+
 ## Command-line
 
 In addition to the GitHub Action, rich-codex is also a stand-alone command line tool.
