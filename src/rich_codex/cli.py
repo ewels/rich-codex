@@ -1,4 +1,5 @@
 import logging
+import time
 from os import environ, getenv
 
 from rich.console import Console
@@ -94,11 +95,19 @@ log = logging.getLogger()
     help="Print verbose output to the console.",
 )
 @click.option(
+    "--save-log",
+    is_flag=True,
+    envvar="LOG_SAVE",
+    show_envvar=True,
+    help="Save a verbose log to a file (automatic filename).",
+    metavar="<filename>",
+)
+@click.option(
     "-l",
     "--log-file",
     envvar="LOG_FILENAME",
     show_envvar=True,
-    help="Save a verbose log to a file.",
+    help="Save a verbose log to a file (specific filename).",
     metavar="<filename>",
 )
 def main(
@@ -115,6 +124,7 @@ def main(
     terminal_width,
     terminal_theme,
     verbose,
+    save_log,
     log_file,
 ):
     """Create rich code images for your docs."""
@@ -125,11 +135,12 @@ def main(
     num_images = 0
 
     # Set up the logger
-    log.setLevel(logging.DEBUG if verbose else logging.INFO)
+    log.setLevel(logging.DEBUG)
 
     # Set up logs to the console
     log.addHandler(
         RichHandler(
+            level=logging.DEBUG if verbose else logging.INFO,
             console=Console(
                 stderr=True,
                 force_terminal=force_terminal,
@@ -142,6 +153,9 @@ def main(
     )
 
     # Set up logs to a file if we asked for one
+    if save_log and not log_file:
+        log_file = f"rich_codex_{time.strftime('%Y%m%d-%H%M%S')}.log"
+
     if log_file:
         log_fh = logging.FileHandler(log_file, encoding="utf-8")
         log_fh.setLevel(logging.DEBUG)

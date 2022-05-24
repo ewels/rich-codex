@@ -1,12 +1,14 @@
 name: Generate rich-codex example images
 on: [push]
 
+env:
+  TERMINAL_WIDTH: 120
+  FORCE_COLOR: true
+  LOG_SAVE: true
+
 jobs:
   rich_codex:
     runs-on: ubuntu-latest
-    env:
-      TERMINAL_WIDTH: 120
-      FORCE_COLOR: true
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -25,10 +27,10 @@ jobs:
           rm -r docs/img
 
       - name: Generate images from markdown comments
-        run: rich-codex --log-file log_md_comments.txt
+        run: rich-codex
 
       - name: Generate images from action command
-        run: rich-codex --log-file log_action_cmd.txt
+        run: rich-codex
         env:
           NO_SEARCH: true
           TERMINAL_WIDTH: 60
@@ -39,7 +41,7 @@ jobs:
             examples/actions/cowsay-colours.pdf
 
       - name: Generate images from action snippet
-        run: rich-codex --log-file log_action_snippet.txt
+        run: rich-codex
         env:
           NO_SEARCH: true
           SNIPPET: |
@@ -60,7 +62,7 @@ jobs:
             examples/actions/rich-example.png
 
       - name: Generate images from a YAML config
-        run: rich-codex --log-file log_yaml_conf.txt
+        run: rich-codex
         env:
           NO_SEARCH: true
           RC_CONFIGS: examples/yml_configs/*.yml
@@ -80,4 +82,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Log files
-          path: log_*.txt
+          path: rich_codex_*.log
