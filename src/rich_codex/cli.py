@@ -154,7 +154,7 @@ def main(
 
     # Set up logs to a file if we asked for one
     if save_log and not log_file:
-        log_file = f"rich_codex_{time.strftime('%Y%m%d-%H%M%S')}.log"
+        log_file = f"rich_codex_{time.strftime('%Y%-m-%d_%H-%M-%S.%f')}.log"
 
     if log_file:
         log_fh = logging.FileHandler(log_file, encoding="utf-8")
