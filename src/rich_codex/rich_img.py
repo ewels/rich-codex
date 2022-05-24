@@ -182,7 +182,21 @@ class RichImg:
 
             # Lazy-load PNG / PDF libraries if needed
             if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
-                from cairosvg import svg2pdf, svg2png
+                try:
+                    from cairosvg import svg2pdf, svg2png
+                except ImportError as e:
+                    log.debug(e)
+                    log.error("CairoSVG not installed, cannot convert SVG to PNG or PDF.")
+                    log.info("Please install with cairo extra: 'rich-codex[cairo]'")
+                    continue
+                except OSError as e:
+                    log.debug(e)
+                    log.error(
+                        "⚠️  Missing [link=https://cairosvg.org/documentation/]CairoSVG dependencies[/], "
+                        "cannot convert SVG to PNG or PDF. ⚠️\n"
+                        f"[red]Skipping image '{filename}'[/]"
+                    )
+                    continue
 
             # Convert to PNG if requested
             if filename.lower().endswith(".png"):
