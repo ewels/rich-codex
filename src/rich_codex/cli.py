@@ -150,7 +150,7 @@ def main(
         img_obj.img_paths = img_paths.splitlines()
         if img_obj.confirm_command():
             img_obj.get_output()
-            img_obj.save_images()
+            num_images = img_obj.save_images()
 
     # Search files for codex strings
     if no_search:
@@ -162,7 +162,12 @@ def main(
         codex_obj.search_files()
         codex_obj.collapse_duplicates()
         codex_obj.confirm_commands()
-        codex_obj.save_all_images()
+        num_images = codex_obj.save_all_images()
+
+    if num_images > 0:
+        log.info(f"Saved {num_images} images ✨")
+    else:
+        log.warning("Couldn't find anything to do 🙄")
 
 
 if __name__ == "__main__":

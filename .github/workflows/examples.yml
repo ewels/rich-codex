@@ -24,6 +24,8 @@ jobs:
 
       - name: Add and commit new images
         run: |
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
           if [[ `git status --porcelain` ]]; then
             git add . && git commit -m "Generate new screengrabs with rich-codex"
             git push
@@ -78,6 +80,8 @@ jobs:
 
       - name: Add and commit new images
         run: |
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
           if [[ `git status --porcelain` ]]; then
             git add . && git commit -m "Generate new screengrabs with rich-codex"
             git push
@@ -104,6 +108,8 @@ jobs:
 
       - name: Add and commit new images
         run: |
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
           if [[ `git status --porcelain` ]]; then
             git add . && git commit -m "Generate new screengrabs with rich-codex"
             git push

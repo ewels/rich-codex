@@ -142,6 +142,8 @@ class CodexSearch:
 
     def save_all_images(self):
         """Save the images that we have collected."""
+        num_images = 0
         for img_obj in self.rich_imgs:
             img_obj.get_output()
-            img_obj.save_images()
+            num_images += img_obj.save_images()
+        return num_images

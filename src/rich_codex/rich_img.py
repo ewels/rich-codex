@@ -146,7 +146,7 @@ class RichImg:
         if self.aborted:
             return
         if len(self.img_paths) == 0:
-            log.debug("Tried to save images with no paths")
+            log.warning("Tried to save images with no paths")
             return
 
         # Save image as requested with $IMG_PATHS
@@ -203,3 +203,5 @@ class RichImg:
                 )
                 unlink(svg_filename)
                 pdf_img = filename
+
+        return len(self.img_paths)
