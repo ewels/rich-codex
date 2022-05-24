@@ -1,0 +1,2 @@
+[2022-05-24 15:02:55,027] rich-codex           [INFO   ]  Searching 2 files
+[2022-05-24 15:02:55,312] root                 [INFO   ]  Saved 3 images ✨
