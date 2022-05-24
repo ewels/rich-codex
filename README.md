@@ -81,7 +81,7 @@ You are welcome to use it locally, for example when first writing new documentat
 Probably the easiest way to run rich-codex is with the docker package. This includes all requirements and should give identical results to GitHub Actions.
 
 ```bash
-docker run v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
+docker run -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
 ```
 
 - The `-v` argument tells Docker to bind your current working directory (`pwd`) to the same path inside the container, so that files created there will be saved to your local file system outside of the container.
@@ -146,10 +146,10 @@ You can also add title text, which will be used in the top menu bar of the scree
 
 ```markdown
 This is getting meta!
-![`cowsay "Taste the rainbow" | lolcat --force -S 100g`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
+![`cowsay "Taste the rainbow" | lolcat --force -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
 ```
 
-![`cowsay "Taste the rainbow" | lolcat --force -S 100g`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
+![`cowsay "Taste the rainbow" | lolcat --force -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
 
 ### Markdown comments
 

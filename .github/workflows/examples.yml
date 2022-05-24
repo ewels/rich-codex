@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install requirements
-        run: pip install lolcat
+        run: pip install cowsay lolcat .
 
       # Uses the action in this local repository
       # Generally you would write 'uses: ewels/rich-codex@v1'
@@ -33,11 +33,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install requirements
-        run: pip install lolcat
+        run: pip install cowsay lolcat .
 
       - name: Generate images from actions commands
-        uses: ./
-        with:
+        run: rich-codex
+        env:
           no_search: true
           width: 60
           command: cowsay "Taste the rainbow" | lolcat --force -S 100
@@ -47,8 +47,8 @@ jobs:
             examples/actions/cowsay-colours.pdf
 
       - name: Generate images from actions snippets
-        uses: ./
-        with:
+        run: rich-codex
+        env:
           no_search: true
           snippet: |
             >>> print("[italic red]Hello[/italic red] World!", locals())
@@ -80,9 +80,12 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
+      - name: Install requirements
+        run: pip install cowsay lolcat .
+
       - name: Generate images from a YAML config
-        uses: ./
-        with:
+        run: rich-codex
+        env:
           no_search: true
           configs: yml_configs/*.yml
 
