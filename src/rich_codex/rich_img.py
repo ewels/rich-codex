@@ -1,6 +1,5 @@
 import logging
 import pathlib
-import shlex
 import subprocess
 from os import devnull, unlink
 from shutil import copyfile
@@ -98,9 +97,10 @@ class RichImg:
 
         # Run the command
         process = subprocess.Popen(
-            shlex.split(self.cmd),
+            self.cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            shell=True,  # Needed for pipes
         )
 
         # Decode and print the output (captured)

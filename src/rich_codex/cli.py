@@ -108,6 +108,10 @@ def main(
     verbose,
 ):
     """Create rich code images for your docs."""
+    # Sensible defaults if not set
+    no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
+    force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else False
+
     # Set up the logger
     log.setLevel(logging.DEBUG if verbose else logging.INFO)
 
@@ -116,9 +120,7 @@ def main(
         RichHandler(
             console=Console(
                 stderr=True,
-                force_terminal=(
-                    True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
-                ),
+                force_terminal=force_terminal,
             ),
             show_time=False,
             markup=True,
@@ -126,9 +128,7 @@ def main(
     )
 
     # Console for printing to stdout
-    console = Console(
-        force_terminal=(True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None)
-    )
+    console = Console(force_terminal=force_terminal)
 
     # Check for mutually exclusive options
     if command and snippet:
