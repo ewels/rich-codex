@@ -111,7 +111,7 @@ Behaviour can be customised on the command-line with environment variables, see 
 If you wish to generate `PNG` or `PDF` images (not just `SVG`) then there are a few additional requirements. Conversion is done using [CairoSVG](https://cairosvg.org/). First, install rich-click with the `cairo` [extra](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-setuptools-extras):
 
 ```bash
-pip install rich-click[cario]
+pip install rich-click[cairo]
 ```
 
 You'll then probably need some additional libraries, see the [Cairo documentation](https://cairosvg.org/documentation/):
