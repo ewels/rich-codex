@@ -93,6 +93,14 @@ log = logging.getLogger()
     show_envvar=True,
     help="Print verbose output to the console.",
 )
+@click.option(
+    "-l",
+    "--log-file",
+    envvar="LOG_FILENAME",
+    show_envvar=True,
+    help="Save a verbose log to a file.",
+    metavar="<filename>",
+)
 def main(
     search_paths,
     search_include,
@@ -107,6 +115,7 @@ def main(
     terminal_width,
     terminal_theme,
     verbose,
+    log_file,
 ):
     """Create rich code images for your docs."""
     # Sensible defaults
@@ -131,6 +140,13 @@ def main(
             tracebacks_suppress=[click],
         )
     )
+
+    # Set up logs to a file if we asked for one
+    if log_file:
+        log_fh = logging.FileHandler(log_file, encoding="utf-8")
+        log_fh.setLevel(logging.DEBUG)
+        log_fh.setFormatter(logging.Formatter("[%(asctime)s] %(name)-20s [%(levelname)-7s]  %(message)s"))
+        log.addHandler(log_fh)
 
     # Console for printing to stdout
     console = Console(force_terminal=force_terminal)
