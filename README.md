@@ -157,12 +157,12 @@ For example:
 
 ```markdown
 This is getting meta!
-<!-- RICH-CODEX TERMINAL_WIDTH=40 -->
-![`cowsay "Taste the rainbow" | lolcat --force -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
+<!-- RICH-CODEX TERMINAL_WIDTH=60 -->
+![`cowsay "Taste the rainbow" | lolcat --force -S 100`](docs/img/taste-the-rainbow.svg "Taste the rainbow")
 ```
 
-<!-- RICH-CODEX TERMINAL_WIDTH=40 -->
-![`cowsay "Taste the rainbow" | lolcat --force -S 100`](docs/img/rich-codex-help-title.svg "Taste the rainbow")
+<!-- RICH-CODEX TERMINAL_WIDTH=60 -->
+![`cowsay "Taste the rainbow" | lolcat --force -S 100`](docs/img/taste-the-rainbow.svg "Taste the rainbow")
 
 <!-- prettier-ignore-end -->
 
