@@ -5,7 +5,7 @@ setup(
     install_requires=[
         "rich>=12.4.3",
         # "rich-click>=1.5",
-        "git+https://github.com/ewels/rich-click@master#egg=rich-click",
+        "rich-click @ git+https://github.com/ewels/rich-click@main#egg=rich-click",
         "importlib-metadata; python_version < '3.8'",
     ],
     extras_require={
