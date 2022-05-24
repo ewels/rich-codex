@@ -22,30 +22,7 @@ jobs:
       - name: Generate images from markdown comments
         run: rich-codex
 
-      - name: Add and commit new images
-        run: |
-          git config --local user.name 'github-actions[bot]'
-          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-          if [[ `git status --porcelain` ]]; then
-            git add . && git commit -m "Generate new screengrabs with rich-codex"
-            git push
-          fi
-
-  actions:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-
-      - name: Install requirements
-        run: pip install cowsay lolcat .
-
-      - name: Generate images from actions commands
+      - name: Generate images from action command
         run: rich-codex
         env:
           no_search: true
@@ -56,7 +33,7 @@ jobs:
             examples/actions/cowsay-colours.png
             examples/actions/cowsay-colours.pdf
 
-      - name: Generate images from actions snippets
+      - name: Generate images from action snippet
         run: rich-codex
         env:
           no_search: true
@@ -78,33 +55,11 @@ jobs:
             examples/actions/rich-example.png
             examples/actions/rich-example.pdf
 
-      - name: Add and commit new images
-        run: |
-          git config --local user.name 'github-actions[bot]'
-          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-          if [[ `git status --porcelain` ]]; then
-            git add . && git commit -m "Generate new screengrabs with rich-codex"
-            git push
-          fi
-  yml_configs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-
-      - name: Install requirements
-        run: pip install cowsay lolcat .
-
       - name: Generate images from a YAML config
         run: rich-codex
         env:
           no_search: true
-          configs: yml_configs/*.yml
+          configs: examples/yml_configs/*.yml
 
       - name: Add and commit new images
         run: |
