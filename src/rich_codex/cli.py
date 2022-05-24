@@ -108,9 +108,10 @@ def main(
     verbose,
 ):
     """Create rich code images for your docs."""
-    # Sensible defaults if not set
+    # Sensible defaults
     no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
+    num_images = 0
 
     # Set up the logger
     log.setLevel(logging.DEBUG if verbose else logging.INFO)
