@@ -25,10 +25,10 @@ jobs:
       - name: Generate images from action command
         run: rich-codex
         env:
-          no_search: true
-          width: 60
-          command: cowsay "Taste the rainbow" | lolcat --force -S 100
-          img_paths: |
+          NO_SEARCH: true
+          TERMINAL_WIDTH: 60
+          COMMAND: cowsay "Taste the rainbow" | lolcat --force -S 100
+          IMG_PATHS: |
             examples/actions/cowsay-colours.svg
             examples/actions/cowsay-colours.png
             examples/actions/cowsay-colours.pdf
@@ -36,8 +36,8 @@ jobs:
       - name: Generate images from action snippet
         run: rich-codex
         env:
-          no_search: true
-          snippet: |
+          NO_SEARCH: true
+          SNIPPET: |
             >>> print("[italic red]Hello[/italic red] World!", locals())
             Hello World!
             {
@@ -50,7 +50,7 @@ jobs:
                 '__spec__': None,
                 'print': <function print at 0x1027fd4c0>,
             }
-          img_paths: |
+          IMG_PATHS: |
             examples/actions/rich-example.svg
             examples/actions/rich-example.png
             examples/actions/rich-example.pdf
@@ -58,13 +58,14 @@ jobs:
       - name: Generate images from a YAML config
         run: rich-codex
         env:
-          no_search: true
-          configs: examples/yml_configs/*.yml
+          NO_SEARCH: true
+          RC_CONFIGS: examples/yml_configs/*.yml
 
       - name: Add and commit new images
         run: |
           git config --local user.name 'github-actions[bot]'
           git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+          git status
           if [[ `git status --porcelain` ]]; then
             git add . && git commit -m "Generate new screengrabs with rich-codex"
             git push
