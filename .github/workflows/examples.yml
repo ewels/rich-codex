@@ -33,7 +33,6 @@ jobs:
         run: rich-codex
         env:
           NO_SEARCH: true
-          TERMINAL_WIDTH: 60
           COMMAND: cowsay "Taste the rainbow" | lolcat --force -S 100
           IMG_PATHS: |
             examples/actions/cowsay-colours.svg

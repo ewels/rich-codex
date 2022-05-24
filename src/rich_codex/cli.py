@@ -1,5 +1,5 @@
 import logging
-import time
+from datetime import datetime
 from os import environ, getenv
 
 from rich.console import Console
@@ -134,6 +134,13 @@ def main(
     terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
     num_images = 0
 
+    if no_confirm:
+        log.debug("Skipping confirmation of commands")
+    if force_terminal:
+        log.debug("Forcing terminal logging output")
+    if terminal_width:
+        log.info(f"Setting terminal width to {terminal_width}")
+
     # Set up the logger
     log.setLevel(logging.DEBUG)
 
@@ -154,7 +161,8 @@ def main(
 
     # Set up logs to a file if we asked for one
     if save_log and not log_file:
-        log_file = f"rich_codex_{time.strftime('%Y%-m-%d_%H-%M-%S.%f')}.log"
+        timestamp = datetime.now().strftime("%Y.%m.%d--%H.%M.%S.%f")
+        log_file = f"rich_codex_{timestamp}.log"
 
     if log_file:
         log_fh = logging.FileHandler(log_file, encoding="utf-8")

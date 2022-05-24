@@ -65,16 +65,26 @@ class CodexSearch:
         else:
             log.info(f"Searching {len(search_files)} files")
 
+        # eg. <!-- RICH-CODEX TERMINAL_WIDTH=60 -->
+        config_comment_re = re.compile(r"<!\-\-\s*RICH-CODEX\s+(?P<config_str>.*(?!-->)\w)+\s*\-\->")
+
         # eg. ![`rich --help`](rich-cli-help.svg)
         img_cmd_re = re.compile(r"!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
+
+        local_config = {}
         for file in search_files:
             with open(file, "r") as fh:
                 for line in fh:
-                    for match in img_cmd_re.finditer(line):
-                        m = match.groupdict()
+
+                    # Look for images first, in case we have a local config
+                    img_match = img_cmd_re.match(line)
+                    if img_match and not local_config.get("SKIP"):
+                        m = img_match.groupdict()
 
                         log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
-                        img_obj = rich_img.RichImg(self.terminal_width, self.terminal_theme)
+                        t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
+                        t_theme = local_config.get("TERMINAL_THEME", self.terminal_theme)
+                        img_obj = rich_img.RichImg(t_width, t_theme)
 
                         # Save the command
                         img_obj.cmd = m["cmd"]
@@ -89,6 +99,19 @@ class CodexSearch:
 
                         # Save the image object
                         self.rich_imgs.append(img_obj)
+
+                    # Clear local config
+                    if line.strip() != "":
+                        local_config = {}
+
+                    # Now look for a local config
+                    config_match = config_comment_re.match(line)
+                    if config_match:
+                        m = config_match.groupdict()
+                        for config_part in m.get("config_str", "").split():
+                            if "=" in config_part:
+                                key, value = config_part.split("=", 1)
+                                local_config[key] = value
 
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
