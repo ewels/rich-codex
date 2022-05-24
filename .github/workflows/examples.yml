@@ -1,12 +1,12 @@
+name: Generate rich-codex example images
 on: [push]
 
-env:
-  TERMINAL_WIDTH: 120
-  FORCE_COLOR: true
-
 jobs:
-  markdown_comments:
+  rich_codex:
     runs-on: ubuntu-latest
+    env:
+      TERMINAL_WIDTH: 120
+      FORCE_COLOR: true
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -18,6 +18,11 @@ jobs:
 
       - name: Install requirements
         run: pip install cowsay lolcat .
+
+      - name: Delete all existing images
+        run: |
+          rm -r examples/*/img/
+          rm -r docs/img
 
       - name: Generate images from markdown comments
         run: rich-codex
@@ -53,7 +58,6 @@ jobs:
           IMG_PATHS: |
             examples/actions/rich-example.svg
             examples/actions/rich-example.png
-            examples/actions/rich-example.pdf
 
       - name: Generate images from a YAML config
         run: rich-codex

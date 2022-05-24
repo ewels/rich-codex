@@ -1,8 +1,9 @@
 import logging
-from os import getenv
+from os import environ, getenv
 
 from rich.console import Console
 from rich.logging import RichHandler
+from rich.pretty import pretty_repr
 
 from rich_codex import codex_search, rich_img
 
@@ -111,6 +112,7 @@ def main(
     # Sensible defaults
     no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
+    terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
     num_images = 0
 
     # Set up the logger
@@ -125,11 +127,15 @@ def main(
             ),
             show_time=False,
             markup=True,
+            rich_tracebacks=True,
+            tracebacks_suppress=[click],
         )
     )
 
     # Console for printing to stdout
     console = Console(force_terminal=force_terminal)
+
+    log.debug("Environment variables: " + pretty_repr(environ))
 
     # Check for mutually exclusive options
     if command and snippet:
