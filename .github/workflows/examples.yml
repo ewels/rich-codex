@@ -19,7 +19,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install requirements
-        run: pip install cowsay lolcat .
+        run: pip install cowsay lolcat .[cario]
 
       - name: Delete all existing images
         run: |
@@ -72,7 +72,8 @@ jobs:
           git config --local user.email 'github-actions[bot]@users.noreply.github.com'
           git status
           if [[ `git status --porcelain` ]]; then
-            git add . && git commit -m "Generate new screengrabs with rich-codex"
+            git add .
+            git commit -m "Generate new screengrabs with rich-codex"
             git push
           fi
 
