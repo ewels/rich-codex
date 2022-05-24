@@ -1,2 +1,0 @@
-[2022-05-24 15:02:55,575] root                 [INFO   ]  Skipping file search
-[2022-05-24 15:02:55,580] root                 [INFO   ]  Saved 3 images ✨
