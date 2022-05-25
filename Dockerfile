@@ -2,6 +2,7 @@
 FROM python:3.10-alpine
 
 # Install Cairo for SVG -> PNG / PDF conversion
+# From: https://phauer.com/2018/install-cairo-cairosvg-alpine-docker/
 RUN apk add --no-cache \
     build-base cairo-dev cairo cairo-tools \
     # pillow dependencies
