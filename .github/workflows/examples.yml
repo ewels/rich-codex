@@ -3,7 +3,6 @@ on: [push]
 
 env:
   TERMINAL_WIDTH: 120
-  FORCE_COLOR: true
   LOG_SAVE: true
 
 jobs:
@@ -33,7 +32,7 @@ jobs:
         run: rich-codex
         env:
           NO_SEARCH: true
-          COMMAND: cowsay "Taste the rainbow" | lolcat --force -S 100
+          COMMAND: cowsay "Taste the rainbow" | lolcat -S 100
           IMG_PATHS: |
             examples/actions/cowsay-colours.svg
             examples/actions/cowsay-colours.png

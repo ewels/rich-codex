@@ -112,7 +112,10 @@ class RichImg:
             for line in decoder.decode(str(f.read())):
                 self.capture_console.print(line)
 
-    def format_snippet(self):
+        # Clean up the temporary file
+        pathlib.Path(tmp_file).unlink()
+
+    def format_snippetg(self):
         """Take a text snippet and format it using rich."""
         if self.snippet is None:
             log.debug("Tried to format snippet with no snippet")
