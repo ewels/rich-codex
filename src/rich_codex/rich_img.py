@@ -113,8 +113,8 @@ class RichImg:
                 self.capture_console.print(line)
 
         # Clean up the temporary file
-        import datetime
         import shutil
+        from datetime import datetime
 
         timestamp = datetime.now().strftime("%Y.%m.%d--%H.%M.%S.%f")
         shutil.copy(tmp_file, f"rich_codex_cmdout_{timestamp}.log")
