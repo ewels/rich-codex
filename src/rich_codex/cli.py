@@ -17,7 +17,6 @@ log = logging.getLogger()
 
 
 @click.command()
-@click.argument("search_paths", nargs=-1)
 @click.option(
     "--search-include",
     envvar="SEARCH_INCLUDE",
@@ -118,7 +117,6 @@ log = logging.getLogger()
     metavar="<filename>",
 )
 def main(
-    search_paths,
     search_include,
     search_exclude,
     no_search,
@@ -213,7 +211,7 @@ def main(
         log.info("Skipping file search")
     else:
         codex_obj = codex_search.CodexSearch(
-            search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console
+            search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console
         )
         codex_obj.search_files()
         codex_obj.collapse_duplicates()

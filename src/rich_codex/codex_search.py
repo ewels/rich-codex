@@ -20,11 +20,8 @@ class CodexSearch:
     needed to generate screenshots.
     """
 
-    def __init__(
-        self, search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console
-    ):
+    def __init__(self, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console):
         """Initialize the search object."""
-        self.search_paths = [None] if len(search_paths) == 0 else search_paths
         self.search_include = ["**/*.md"] if search_include is None else self._clean_list(search_include.splitlines())
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
@@ -56,11 +53,10 @@ class CodexSearch:
     def search_files(self):
         """Search through a set of files for codex strings."""
         search_files = set()
-        for search_path in self.search_paths:
-            for pattern in self.search_include:
-                search_files |= set(glob(pattern, root_dir=search_path, recursive=True))
-            for pattern in self.search_exclude:
-                search_files = search_files - set(glob(pattern, root_dir=search_path, recursive=True))
+        for pattern in self.search_include:
+            search_files |= set(glob(pattern, recursive=True))
+        for pattern in self.search_exclude:
+            search_files = search_files - set(glob(pattern, recursive=True))
         if len(search_files) == 0:
             log.error("No files found to search")
         else:
