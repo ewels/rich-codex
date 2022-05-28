@@ -1,7 +1,9 @@
 import logging
+import os
 import pathlib
+import pty
+import shlex
 import subprocess
-from os import devnull, unlink
 from shutil import copyfile
 from tempfile import mkstemp
 
@@ -40,7 +42,7 @@ class RichImg:
         self.title = ""
         self.console = Console() if console is None else console
         self.capture_console = Console(
-            file=open(devnull, "w"),
+            file=open(os.devnull, "w"),
             force_terminal=True,
             color_system="truecolor",
             highlight=False,
@@ -48,6 +50,7 @@ class RichImg:
             width=int(terminal_width) if terminal_width else None,
         )
         self.cmd = None
+        self.fake_tty = True
         self.snippet = None
         self.snippet_syntax = None
         self.img_paths = []
@@ -95,14 +98,31 @@ class RichImg:
         if self.title == "":
             self.title = self.cmd
 
-        # Run the command
-        process = subprocess.Popen(
-            self.cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True,  # Needed for pipes
-        )
-        output = process.stdout.read().decode("utf-8")
+        # Run the command with a fake tty to try to get colours
+        if self.fake_tty:
+            # https://stackoverflow.com/a/61724722/713980
+            output_arr = []
+
+            def read(fd):
+                data = os.read(fd, 1024)
+                output_arr.append(data)
+                return data
+
+            pty.spawn(shlex.split(self.cmd), read)
+            output = b"".join(output_arr).decode("utf-8")
+
+        # Run the command without messing with ttys
+        else:
+            process = subprocess.Popen(
+                self.cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,  # Needed for pipes
+            )
+            output = process.stdout.read().decode("utf-8")
+
+        print(output)
+        print(type(output))
 
         # Decode and print the output (captured)
         decoder = AnsiDecoder()
@@ -206,7 +226,7 @@ class RichImg:
                     dpi=300,
                     output_width=4000,
                 )
-                unlink(svg_filename)
+                os.unlink(svg_filename)
                 png_img = filename
 
             # Convert to PDF if requested
@@ -215,7 +235,7 @@ class RichImg:
                     file_obj=open(svg_filename, "rb"),
                     write_to=filename,
                 )
-                unlink(svg_filename)
+                os.unlink(svg_filename)
                 pdf_img = filename
 
         return len(self.img_paths)
