@@ -50,7 +50,7 @@ class RichImg:
             width=int(terminal_width) if terminal_width else None,
         )
         self.cmd = None
-        self.fake_tty = True
+        self.fake_tty = False
         self.snippet = None
         self.snippet_syntax = None
         self.img_paths = []
