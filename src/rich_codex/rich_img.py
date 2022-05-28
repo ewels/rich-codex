@@ -35,10 +35,11 @@ class RichImg:
     Objects from this class are typically used once per screenshot.
     """
 
-    def __init__(self, terminal_width=None, terminal_theme=None, console=None):
+    def __init__(self, terminal_width=None, terminal_theme=None, use_pty=False, console=None):
         """Initialise the RichImg object with core console options."""
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
+        self.use_pty = use_pty
         self.title = ""
         self.console = Console() if console is None else console
         self.capture_console = Console(
@@ -50,7 +51,6 @@ class RichImg:
             width=int(terminal_width) if terminal_width else None,
         )
         self.cmd = None
-        self.fake_tty = False
         self.snippet = None
         self.snippet_syntax = None
         self.img_paths = []
@@ -99,7 +99,7 @@ class RichImg:
             self.title = self.cmd
 
         # Run the command with a fake tty to try to get colours
-        if self.fake_tty:
+        if self.use_pty:
             # https://stackoverflow.com/a/61724722/713980
             output_arr = []
 
@@ -108,6 +108,7 @@ class RichImg:
                 output_arr.append(data)
                 return data
 
+            # NOTE: Does not support piped commands!
             pty.spawn(shlex.split(self.cmd), read)
             output = b"".join(output_arr).decode("utf-8")
 

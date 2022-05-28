@@ -21,7 +21,7 @@ class CodexSearch:
     """
 
     def __init__(
-        self, search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, console
+        self, search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console
     ):
         """Initialize the search object."""
         self.search_paths = [None] if len(search_paths) == 0 else search_paths
@@ -32,6 +32,7 @@ class CodexSearch:
         self.no_confirm = no_confirm
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
+        self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.rich_imgs = []
 
@@ -84,7 +85,8 @@ class CodexSearch:
                         log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
                         t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
                         t_theme = local_config.get("TERMINAL_THEME", self.terminal_theme)
-                        img_obj = rich_img.RichImg(t_width, t_theme)
+                        use_pty = local_config.get("USE_PTY", self.use_pty)
+                        img_obj = rich_img.RichImg(t_width, t_theme, use_pty)
 
                         # Save the command
                         img_obj.cmd = m["cmd"]

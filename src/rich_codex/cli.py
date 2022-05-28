@@ -87,6 +87,13 @@ log = logging.getLogger()
     help="Colour theme",
 )
 @click.option(
+    "--use-pty",
+    is_flag=True,
+    envvar="USE_PTY",
+    show_envvar=True,
+    help="Use a pseudo-terminal for commands (may capture coloured output)",
+)
+@click.option(
     "-v",
     "--verbose",
     is_flag=True,
@@ -123,6 +130,7 @@ def main(
     no_confirm,
     terminal_width,
     terminal_theme,
+    use_pty,
     verbose,
     save_log,
     log_file,
@@ -185,7 +193,7 @@ def main(
 
     # Generate image from a supplied command / snippet
     if command or snippet:
-        img_obj = rich_img.RichImg(terminal_width, terminal_theme, console)
+        img_obj = rich_img.RichImg(terminal_width, terminal_theme, use_pty, console)
         img_obj.no_confirm = no_confirm
         if command:
             log.info(f"Command: [white on black] {command} [/]")
@@ -205,7 +213,7 @@ def main(
         log.info("Skipping file search")
     else:
         codex_obj = codex_search.CodexSearch(
-            search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, console
+            search_paths, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console
         )
         codex_obj.search_files()
         codex_obj.collapse_duplicates()
