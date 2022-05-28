@@ -173,6 +173,7 @@ class RichImg:
         svg_img = None
         png_img = None
         pdf_img = None
+        tmp_svg = None
         for filename in self.img_paths:
             log.debug(f"Saving [magenta]{filename}")
 
@@ -181,24 +182,31 @@ class RichImg:
 
             # If already made this image, copy it from the last destination
             if filename.lower().endswith(".png") and png_img is not None:
+                log.debug(f"Copying existing file '{png_img}' to '{filename}'")
                 copyfile(png_img, filename)
                 continue
             if filename.lower().endswith(".pdf") and pdf_img is not None:
+                log.debug(f"Copying existing file '{pdf_img}' to '{filename}'")
                 copyfile(pdf_img, filename)
                 continue
-            if svg_img is not None:
+            if filename.lower().endswith(".svg") and svg_img is not None:
+                log.debug(f"Copying existing file '{svg_img}' to '{filename}'")
                 copyfile(svg_img, filename)
                 continue
 
             # Set filenames
             svg_filename = filename
-            if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
-                svg_filename = mkstemp(suffix=".svg")[1]
 
             # We always generate an SVG first
             if svg_img is None:
+                if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
+                    svg_filename = mkstemp(suffix=".svg")[1]
+                    tmp_svg = svg_filename
                 self.capture_console.save_svg(svg_filename, title=self.title)
                 svg_img = svg_filename
+            else:
+                # Use already-generated SVG
+                svg_filename = svg_img
 
             # Lazy-load PNG / PDF libraries if needed
             if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
@@ -220,22 +228,28 @@ class RichImg:
 
             # Convert to PNG if requested
             if filename.lower().endswith(".png"):
+                log.debug(f"Converting SVG '{svg_filename}' to PNG '{filename}'")
                 svg2png(
                     file_obj=open(svg_filename, "rb"),
                     write_to=filename,
                     dpi=300,
                     output_width=4000,
                 )
-                os.unlink(svg_filename)
                 png_img = filename
 
             # Convert to PDF if requested
             if filename.lower().endswith(".pdf"):
+                log.debug(f"Converting SVG '{svg_filename}' to PDF '{filename}'")
                 svg2pdf(
                     file_obj=open(svg_filename, "rb"),
                     write_to=filename,
                 )
-                os.unlink(svg_filename)
                 pdf_img = filename
+
+        # Clean up temporary SVG
+        print(tmp_svg)
+        if tmp_svg is not None:
+            log.debug(f"Removing temporary SVG '{tmp_svg}'")
+            os.remove(tmp_svg)
 
         return len(self.img_paths)
