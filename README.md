@@ -35,7 +35,7 @@ Images can be generated as SVG, PNG or PDF (detected by filename extension).
 
 ## GitHub Action
 
-Rich-codex was primarily designed to run automatically via a GitHub action, to keep your screenshots up to date for you.
+Rich-codex was primarily designed to run automatically with GitHub actions, to keep your screenshots up to date for you.
 Once the action generates images, it's up to you to use them however you like in the rest of your workflow.
 
 A very simple example is shown below. This action looks for rich-codex content in the repo, generates the images and then creates and pushes a new commit with any changes.
@@ -49,21 +49,50 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Install the tool and dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install rich-codex
+        run: pip install rich-codex
+
+      - name: Install your tools, whatever they are
         run: pip install .
 
-      - name: Generate code images
-        uses: ewels/rich-codex@v1
+      - name: Delete all existing images
+        run: rm -r docs/img/screengrabs
+
+      - name: Generate images from markdown comments
+        run: rich-codex
 
       - name: Add and commit new images
         run: |
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+          git status
           if [[ `git status --porcelain` ]]; then
-            git add . && git commit -m "Generate new screengrabs with rich-codex"
+            git add **/*.svg
+            git commit -m "Generate new screengrabs with rich-codex"
             git push
           fi
 ```
 
+For a more extensive example, see [`.github/workflows/examples.yml`](.github/workflows/examples.yml) in this repository.
+
 > **NB:** For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
+
+### Actions with PNG / PDF outputs
+
+If you want to generate PNG or PDF images, you'll need to install the Fira-Code font and also the `cairo` rich-codex extras:
+
+```yaml
+- name: Install fonts
+  run: sudo apt install fonts-firacode
+
+- name: Install requirements
+  run: pip install "rich-codex[cairo]"
+```
 
 ## Command-line
 
@@ -78,12 +107,15 @@ You are welcome to use it locally, for example when first writing new documentat
 
 ### Docker image
 
-Probably the easiest way to run rich-codex is with the docker package. This includes all requirements and should give identical results to GitHub Actions.
+There is a docker image for running rich-codex, however - note that if you're trying to run commands, they will likely not be available in the container! So this is best used for code snippets or common linux tools. Alternatively, you can build your own docker image using this as a base, with additional dependencies installed.
+
+To run, a typical command would be:
 
 ```bash
-docker run -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
+docker run -i -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
 ```
 
+- The `-i` flag enables stdin so that you can confirm running commands (alternatively, use `--no-confirm` at the end)
 - The `-v` argument tells Docker to bind your current working directory (`pwd`) to the same path inside the container, so that files created there will be saved to your local file system outside of the container.
 - `-w` sets the working directory in the container to this path, so that it's the same as your working directory outside of the container.
 - `-u` sets your local user account as the user inside the container, so that any files created have the correct ownership permissions.
@@ -122,9 +154,9 @@ You'll then probably need some additional libraries, see the [Cairo documentatio
 > - on macOS, you’ll have to install cairo and libffi (eg. with [Homebrew](https://brew.sh): `brew install cairo`);
 > - on Linux, you’ll have to install the cairo, python3-dev and libffi-dev packages (names may vary for your distribution).
 
-You'll also need Fira Code installed, a open-licence font: [GitHub repo](https://github.com/tonsky/FiraCode) / [Google Fonts](https://fonts.google.com/specimen/Fira+Code)
+Installation can be messy, so be prepared to do a bit of googling to get things to work. Remember that running rich-codex with the `-v` flag to get verbose logging can give you more information about what's going wrong (if anything).
 
-Note that the Docker image has all of these dependencies installed.
+You'll also need Fira Code installed, an open-licence font: [GitHub repo](https://github.com/tonsky/FiraCode) / [Google Fonts](https://fonts.google.com/specimen/Fira+Code).
 
 ## Generating images
 
