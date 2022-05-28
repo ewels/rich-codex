@@ -100,6 +100,7 @@ class RichImg:
 
         # Run the command with a fake tty to try to get colours
         if self.use_pty:
+            log.debug("Running with pty")
             # https://stackoverflow.com/a/61724722/713980
             output_arr = []
 
@@ -114,6 +115,7 @@ class RichImg:
 
         # Run the command without messing with ttys
         else:
+            log.debug("Running with subprocess")
             process = subprocess.Popen(
                 self.cmd,
                 stdout=subprocess.PIPE,
@@ -121,9 +123,6 @@ class RichImg:
                 shell=True,  # Needed for pipes
             )
             output = process.stdout.read().decode("utf-8")
-
-        print(output)
-        print(type(output))
 
         # Decode and print the output (captured)
         decoder = AnsiDecoder()
