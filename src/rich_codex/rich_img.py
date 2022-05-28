@@ -95,30 +95,19 @@ class RichImg:
         if self.title == "":
             self.title = self.cmd
 
-        # Create a temporary file
-        fd, tmp_file = mkstemp()
-
-        # Wrap the command in 'script' to fake a tty and get colours
-        command = f"script -q {devnull} {self.cmd} 2>&1 > {tmp_file}"
+        # Run the command
         process = subprocess.Popen(
-            command,
+            self.cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             shell=True,  # Needed for pipes
         )
-        process.communicate()
+        output = process.stdout.read().decode("utf-8")
 
         # Decode and print the output (captured)
         decoder = AnsiDecoder()
-        with open(tmp_file, "r") as f:
-            for line in decoder.decode(str(f.read())):
-                self.capture_console.print(line)
-
-        # Clean up the temporary file
-        import shutil
-        from datetime import datetime
-
-        timestamp = datetime.now().strftime("%Y.%m.%d--%H.%M.%S.%f")
-        shutil.copy(tmp_file, f"rich_codex_cmdout_{timestamp}.log")
-        pathlib.Path(tmp_file).unlink()
+        for line in decoder.decode(output):
+            self.capture_console.print(line)
 
     def format_snippetg(self):
         """Take a text snippet and format it using rich."""
