@@ -1,3 +1,4 @@
+import difflib
 import logging
 import os
 import pathlib
@@ -191,11 +192,26 @@ class RichImg:
             log_msg = f"{pct_change:.1f}% change"
 
             # Regex on file diff to skip
-            if self.skip_change_regex:
+            if self.skip_change_regex or True:
                 # TODO: Use Python diff library to do this. Example CLI command:
                 # diff old_file new_file --text --suppress-common-lines -y
+                diff = difflib.Differ()
+
+                # TODO: Need to be able to suppress bytes we don't understand (as diff CLI seems to)
+                diff_results = diff.compare(
+                    new_file.read_text(errors="ignore").splitlines(),
+                    old_file.read_text(errors="ignore").splitlines(),
+                )
+                for d in diff_results:
+                    if d.startswith("-"):
+                        print(d)
+                    if "/CreationDate" in d:
+                        print(d)
+
                 ignore_regex_match = False
-                log_msg += ", {} skip-change-regex".format("matched" if ignore_regex_match else "didn't match")
+                log_msg += ", {} against skip-change-regex".format(
+                    "full match" if ignore_regex_match else "partial match"
+                )
 
         if create_file:
             self.num_img_saved += 1
