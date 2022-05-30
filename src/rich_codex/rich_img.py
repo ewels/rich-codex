@@ -107,13 +107,12 @@ class RichImg:
                 self.aborted = True
                 return False
 
-        log.debug(f"Running command '{self.cmd}'")
         if self.title == "":
             self.title = self.cmd
 
         # Run the command with a fake tty to try to get colours
         if self.use_pty:
-            log.debug("Running with pty")
+            log.debug(f"Running command '{self.cmd}' with pty")
             # https://stackoverflow.com/a/61724722/713980
             output_arr = []
 
@@ -128,7 +127,7 @@ class RichImg:
 
         # Run the command without messing with ttys
         else:
-            log.debug("Running with subprocess")
+            log.debug(f"Running command '{self.cmd}' with subprocess")
             process = subprocess.Popen(
                 self.cmd,
                 stdout=subprocess.PIPE,
@@ -200,14 +199,10 @@ class RichImg:
 
         if create_file:
             self.num_img_saved += 1
-            action = "Saved"
-            style = ""
+            log.info(f"Saved: '{old_fn}' ({log_msg})")
         else:
             self.num_img_skipped += 1
-            action = "Skipped"
-            style = "[dim]"
-
-        log.info(f"{style}{action}: '{old_fn}' ({log_msg})")
+            log.debug(f"[dim]Skipped: '{old_fn}' ({log_msg})")
 
         return create_file
 
@@ -224,24 +219,23 @@ class RichImg:
         png_img = None
         pdf_img = None
         for filename in self.img_paths:
-            log.debug(f"Saving [magenta]{filename}")
 
             # Make directories if necessary
             pathlib.Path(filename).parent.mkdir(parents=True, exist_ok=True)
 
             # If already made this image, copy it from the last destination
             if filename.lower().endswith(".png") and png_img is not None:
-                log.debug(f"Copying existing file '{png_img}' to '{filename}'")
+                log.debug(f"Using '{png_img}' for '{filename}'")
                 if self._enough_image_difference(png_img, filename):
                     copyfile(png_img, filename)
                 continue
             if filename.lower().endswith(".pdf") and pdf_img is not None:
-                log.debug(f"Copying existing file '{pdf_img}' to '{filename}'")
+                log.debug(f"Using '{pdf_img}' for '{filename}'")
                 if self._enough_image_difference(pdf_img, filename):
                     copyfile(pdf_img, filename)
                 continue
             if filename.lower().endswith(".svg") and svg_img is not None:
-                log.debug(f"Copying existing file '{svg_img}' to '{filename}'")
+                log.debug(f"Using '{svg_img}' for '{filename}'")
                 if self._enough_image_difference(svg_img, filename):
                     copyfile(svg_img, filename)
                 continue
@@ -259,9 +253,9 @@ class RichImg:
 
             # Save the SVG image if requested
             if filename.lower().endswith(".svg"):
-                if self._enough_image_difference(svg_tmp_filename, svg_tmp_filename):
-                    copyfile(svg_tmp_filename, svg_tmp_filename)
-                    svg_img = svg_tmp_filename
+                if self._enough_image_difference(svg_tmp_filename, filename):
+                    copyfile(svg_tmp_filename, filename)
+                svg_img = filename
 
             # Lazy-load PNG / PDF libraries if needed
             if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
@@ -308,5 +302,3 @@ class RichImg:
             # Delete temprary files
             pathlib.Path(svg_tmp_filename).unlink
             pathlib.Path(tmp_filename).unlink
-
-        return len(self.img_paths)

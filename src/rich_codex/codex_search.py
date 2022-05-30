@@ -45,6 +45,8 @@ class CodexSearch:
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.rich_imgs = []
+        self.num_img_saved = 0
+        self.num_img_skipped = 0
 
         # Look in .gitignore to add to search_exclude
         try:
@@ -178,8 +180,8 @@ class CodexSearch:
 
     def save_all_images(self):
         """Save the images that we have collected."""
-        num_images = 0
         for img_obj in self.rich_imgs:
             img_obj.get_output()
-            num_images += img_obj.save_images()
-        return num_images
+            img_obj.save_images()
+            self.num_img_saved += img_obj.num_img_saved
+            self.num_img_skipped += img_obj.num_img_skipped

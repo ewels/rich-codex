@@ -155,7 +155,6 @@ def main(
     no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
     terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
-    num_images = 0
 
     if no_confirm:
         log.debug("Skipping confirmation of commands")
@@ -221,7 +220,9 @@ def main(
         img_obj.img_paths = img_paths.splitlines()
         if img_obj.confirm_command():
             img_obj.get_output()
-            num_images = img_obj.save_images()
+            img_obj.save_images()
+            num_saved_images = img_obj.num_img_saved
+            num_skipped_images = img_obj.num_img_skipped
 
     # Search files for codex strings
     if no_search:
@@ -241,11 +242,15 @@ def main(
         codex_obj.search_files()
         codex_obj.collapse_duplicates()
         codex_obj.confirm_commands()
-        num_images = codex_obj.save_all_images()
+        codex_obj.save_all_images()
+        num_saved_images = codex_obj.num_img_saved
+        num_skipped_images = codex_obj.num_img_skipped
 
-    if num_images > 0:
-        log.info(f"Saved {num_images} images ✨")
-    else:
+    if num_skipped_images > 0:
+        log.info(f"[dim]Skipped {num_skipped_images} images 🤫")
+    if num_saved_images > 0:
+        log.info(f"Saved {num_saved_images} images ✨")
+    if num_skipped_images == 0 and num_saved_images == 0:
         log.warning("Couldn't find anything to do 🙄")
 
 
