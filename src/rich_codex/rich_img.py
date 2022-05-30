@@ -7,6 +7,7 @@ import subprocess
 from shutil import copyfile
 from tempfile import mkstemp
 
+from Levenshtein import ratio
 from rich.ansi import AnsiDecoder
 from rich.console import Console
 from rich.prompt import Confirm
@@ -35,8 +36,18 @@ class RichImg:
     Objects from this class are typically used once per screenshot.
     """
 
-    def __init__(self, terminal_width=None, terminal_theme=None, use_pty=False, console=None):
+    def __init__(
+        self,
+        min_pct_diff=0,
+        skip_change_regex=None,
+        terminal_width=None,
+        terminal_theme=None,
+        use_pty=False,
+        console=None,
+    ):
         """Initialise the RichImg object with core console options."""
+        self.min_pct_diff = min_pct_diff
+        self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
         self.use_pty = use_pty
@@ -54,6 +65,8 @@ class RichImg:
         self.snippet = None
         self.snippet_syntax = None
         self.img_paths = []
+        self.num_img_saved = 0
+        self.num_img_skipped = 0
         self.no_confirm = False
         self.aborted = False
 
@@ -161,6 +174,43 @@ class RichImg:
         else:
             log.debug("Tried to get output with no command or snippet")
 
+    def _enough_image_difference(self, new_fn, old_fn):
+        new_file = pathlib.Path(new_fn)
+        old_file = pathlib.Path(old_fn)
+        create_file = True
+        log_msg = ""
+
+        # Target file doesn't exist yet, nothing to compare against
+        if not new_file.exists:
+            log_msg = "new image"
+
+        else:
+            # Percentage change in file
+            pct_change = (1 - ratio(new_file.read_bytes(), old_file.read_bytes())) * 100.0
+            if pct_change <= self.min_pct_diff:
+                create_file = False
+            log_msg = f"{pct_change:.1f}% change"
+
+            # Regex on file diff to skip
+            if self.skip_change_regex:
+                # TODO: Use Python diff library to do this. Example CLI command:
+                # diff old_file new_file --text --suppress-common-lines -y
+                ignore_regex_match = False
+                log_msg += ", {} skip-change-regex".format("matched" if ignore_regex_match else "didn't match")
+
+        if create_file:
+            self.num_img_saved += 1
+            action = "Saved"
+            style = ""
+        else:
+            self.num_img_skipped += 1
+            action = "Skipped"
+            style = "[dim]"
+
+        log.info(f"{style}{action}: '{old_fn}' ({log_msg})")
+
+        return create_file
+
     def save_images(self):
         """Save the images to the specified filenames."""
         if self.aborted:
@@ -173,7 +223,6 @@ class RichImg:
         svg_img = None
         png_img = None
         pdf_img = None
-        tmp_svg = None
         for filename in self.img_paths:
             log.debug(f"Saving [magenta]{filename}")
 
@@ -183,30 +232,36 @@ class RichImg:
             # If already made this image, copy it from the last destination
             if filename.lower().endswith(".png") and png_img is not None:
                 log.debug(f"Copying existing file '{png_img}' to '{filename}'")
-                copyfile(png_img, filename)
+                if self._enough_image_difference(png_img, filename):
+                    copyfile(png_img, filename)
                 continue
             if filename.lower().endswith(".pdf") and pdf_img is not None:
                 log.debug(f"Copying existing file '{pdf_img}' to '{filename}'")
-                copyfile(pdf_img, filename)
+                if self._enough_image_difference(pdf_img, filename):
+                    copyfile(pdf_img, filename)
                 continue
             if filename.lower().endswith(".svg") and svg_img is not None:
                 log.debug(f"Copying existing file '{svg_img}' to '{filename}'")
-                copyfile(svg_img, filename)
+                if self._enough_image_difference(svg_img, filename):
+                    copyfile(svg_img, filename)
                 continue
 
             # Set filenames
-            svg_filename = filename
+            svg_tmp_filename = mkstemp()[1]
+            tmp_filename = mkstemp()[1]
 
             # We always generate an SVG first
             if svg_img is None:
-                if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
-                    svg_filename = mkstemp(suffix=".svg")[1]
-                    tmp_svg = svg_filename
-                self.capture_console.save_svg(svg_filename, title=self.title)
-                svg_img = svg_filename
+                self.capture_console.save_svg(svg_tmp_filename, title=self.title)
             else:
                 # Use already-generated SVG
-                svg_filename = svg_img
+                svg_tmp_filename = svg_img
+
+            # Save the SVG image if requested
+            if filename.lower().endswith(".svg"):
+                if self._enough_image_difference(svg_tmp_filename, svg_tmp_filename):
+                    copyfile(svg_tmp_filename, svg_tmp_filename)
+                    svg_img = svg_tmp_filename
 
             # Lazy-load PNG / PDF libraries if needed
             if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
@@ -226,30 +281,32 @@ class RichImg:
                     )
                     continue
 
-            # Convert to PNG if requested
-            if filename.lower().endswith(".png"):
-                log.debug(f"Converting SVG '{svg_filename}' to PNG '{filename}'")
-                svg2png(
-                    file_obj=open(svg_filename, "rb"),
-                    write_to=filename,
-                    dpi=300,
-                    output_width=4000,
-                )
-                png_img = filename
+                # Convert to PNG if requested
+                if filename.lower().endswith(".png"):
+                    log.debug(f"Converting SVG '{svg_tmp_filename}' to PNG '{filename}'")
+                    svg2png(
+                        file_obj=open(svg_tmp_filename, "rb"),
+                        write_to=tmp_filename,
+                        dpi=300,
+                        output_width=4000,
+                    )
+                    if self._enough_image_difference(tmp_filename, filename):
+                        copyfile(filename, tmp_filename)
+                        png_img = filename
 
-            # Convert to PDF if requested
-            if filename.lower().endswith(".pdf"):
-                log.debug(f"Converting SVG '{svg_filename}' to PDF '{filename}'")
-                svg2pdf(
-                    file_obj=open(svg_filename, "rb"),
-                    write_to=filename,
-                )
-                pdf_img = filename
+                # Convert to PDF if requested
+                if filename.lower().endswith(".pdf"):
+                    log.debug(f"Converting SVG '{svg_tmp_filename}' to PDF '{filename}'")
+                    svg2pdf(
+                        file_obj=open(svg_tmp_filename, "rb"),
+                        write_to=tmp_filename,
+                    )
+                    if self._enough_image_difference(tmp_filename, filename):
+                        copyfile(filename, tmp_filename)
+                        pdf_img = filename
 
-        # Clean up temporary SVG
-        print(tmp_svg)
-        if tmp_svg is not None:
-            log.debug(f"Removing temporary SVG '{tmp_svg}'")
-            os.remove(tmp_svg)
+            # Delete temprary files
+            pathlib.Path(svg_tmp_filename).unlink
+            pathlib.Path(tmp_filename).unlink
 
         return len(self.img_paths)

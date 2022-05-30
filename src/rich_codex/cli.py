@@ -74,6 +74,21 @@ log = logging.getLogger()
     help="Set to skip confirmation prompt before running commands",
 )
 @click.option(
+    "--min-pct-diff",
+    envvar="MIN_PCT_DIFF",
+    type=float,
+    default=0,
+    show_envvar=True,
+    show_default=True,
+    help="Minimum file percentage change required to update image",
+)
+@click.option(
+    "--skip-change-regex",
+    envvar="SKIP_CHANGE_REGEX",
+    show_envvar=True,
+    help="Skip image update if file changes match regex",
+)
+@click.option(
     "--terminal-width",
     envvar="TERMINAL_WIDTH",
     show_envvar=True,
@@ -126,6 +141,8 @@ def main(
     img_paths,
     configs,
     no_confirm,
+    min_pct_diff,
+    skip_change_regex,
     terminal_width,
     terminal_theme,
     use_pty,
@@ -191,7 +208,7 @@ def main(
 
     # Generate image from a supplied command / snippet
     if command or snippet:
-        img_obj = rich_img.RichImg(terminal_width, terminal_theme, use_pty, console)
+        img_obj = rich_img.RichImg(min_pct_diff, skip_change_regex, terminal_width, terminal_theme, use_pty, console)
         img_obj.no_confirm = no_confirm
         if command:
             log.info(f"Command: [white on black] {command} [/]")
@@ -211,7 +228,15 @@ def main(
         log.info("Skipping file search")
     else:
         codex_obj = codex_search.CodexSearch(
-            search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console
+            search_include,
+            search_exclude,
+            no_confirm,
+            min_pct_diff,
+            skip_change_regex,
+            terminal_width,
+            terminal_theme,
+            use_pty,
+            console,
         )
         codex_obj.search_files()
         codex_obj.collapse_duplicates()

@@ -7,6 +7,7 @@ setup(
         # "rich-click>=1.5",
         "rich-click @ git+https://github.com/ewels/rich-click@main#egg=rich-click",
         "importlib-metadata; python_version < '3.8'",
+        "levenshtein>=0.18.1",
     ],
     extras_require={
         "cairo": "CairoSVG>=2.5.2",

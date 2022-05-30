@@ -20,13 +20,26 @@ class CodexSearch:
     needed to generate screenshots.
     """
 
-    def __init__(self, search_include, search_exclude, no_confirm, terminal_width, terminal_theme, use_pty, console):
+    def __init__(
+        self,
+        search_include,
+        search_exclude,
+        no_confirm,
+        min_pct_diff,
+        skip_change_regex,
+        terminal_width,
+        terminal_theme,
+        use_pty,
+        console,
+    ):
         """Initialize the search object."""
         self.search_include = ["**/*.md"] if search_include is None else self._clean_list(search_include.splitlines())
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
             self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
         self.no_confirm = no_confirm
+        self.min_pct_diff = min_pct_diff
+        self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
         self.terminal_theme = terminal_theme
         self.use_pty = use_pty
@@ -79,10 +92,12 @@ class CodexSearch:
                         m = img_match.groupdict()
 
                         log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
+                        min_pct_diff = local_config.get("MIN_PCT_DIFF", self.min_pct_diff)
+                        skip_change_regex = local_config.get("SKIP_CHANGE_REGEX", self.skip_change_regex)
                         t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
                         t_theme = local_config.get("TERMINAL_THEME", self.terminal_theme)
                         use_pty = local_config.get("USE_PTY", self.use_pty)
-                        img_obj = rich_img.RichImg(t_width, t_theme, use_pty)
+                        img_obj = rich_img.RichImg(min_pct_diff, skip_change_regex, t_width, t_theme, use_pty)
 
                         # Save the command
                         img_obj.cmd = m["cmd"]
