@@ -155,6 +155,7 @@ def main(
     no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
     terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
+    num_skipped_images = 0
 
     if no_confirm:
         log.debug("Skipping confirmation of commands")
