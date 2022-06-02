@@ -190,39 +190,44 @@ class RichImg:
 
         else:
             # Percentage change in file
+            # This method works even with entirely binary files, no decoding required
             pct_change = (1 - ratio(new_file.read_bytes(), old_file.read_bytes())) * 100.0
             if pct_change <= self.min_pct_diff:
                 create_file = False
             log_msg = f"{pct_change:.2f}% change"
 
-            # Regex on file diff to skip
-            skip_regexes = list(r for r in IGNORE_REGEXES)  # deep copy
-            if self.skip_change_regex:
-                skip_regexes.extend(self.skip_change_regex.splitlines())
+            # No point in looking for a diff if the files are identical
+            if pct_change > 0:
 
-            lost_lines = []
-            diff = difflib.Differ()
-            new_file_lines = new_file.read_text(errors="ignore").splitlines()
-            old_file_lines = old_file.read_text(errors="ignore").splitlines()
+                # Regex on file diff to skip
+                skip_regexes = list(r for r in IGNORE_REGEXES)  # deep copy
+                if self.skip_change_regex:
+                    skip_regexes.extend(self.skip_change_regex.splitlines())
 
-            # Only continue if we found something to diff with
-            if len(new_file_lines) > 0 or len(old_file_lines) > 0:
-                diff_result = diff.compare(new_file_lines, old_file_lines)
-                for d in diff_result:
-                    if d.startswith("-"):
-                        lost_lines.append(d)
+                new_file_lines = new_file.read_text(errors="ignore").splitlines()
+                old_file_lines = old_file.read_text(errors="ignore").splitlines()
 
-                # Only continue if there was some diff
-                if len(lost_lines) > 0:
-                    matched_lost_lines = []
-                    for skip_regex in skip_regexes:
-                        for line in lost_lines:
-                            if re.search(skip_regex, line):
-                                matched_lost_lines.append(line)
+                # Only continue if we found something to diff with
+                if len(new_file_lines) > 0 or len(old_file_lines) > 0:
+                    lost_lines = [
+                        d for d in difflib.Differ().compare(new_file_lines, old_file_lines) if d.startswith("-")
+                    ]
 
-                    log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
-                    if len(matched_lost_lines) == len(lost_lines):
-                        create_file = False
+                    # Only continue if there was some diff
+                    if len(lost_lines) > 0:
+                        matched_lost_lines = []
+                        for skip_regex in skip_regexes:
+                            for line in lost_lines:
+                                if re.search(skip_regex, line):
+                                    matched_lost_lines.append(line)
+
+                        log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
+                        if len(matched_lost_lines) == len(lost_lines):
+                            create_file = False
+                    else:
+                        log_msg += ", no diff found"
+                else:
+                    log_msg += ", no text to diff"
 
         if create_file:
             self.num_img_saved += 1
