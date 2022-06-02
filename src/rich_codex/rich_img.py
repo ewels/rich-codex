@@ -187,7 +187,7 @@ class RichImg:
         log_msg = ""
 
         # Target file doesn't exist yet, nothing to compare against
-        if not new_file.exists:
+        if not old_file.exists():
             log_msg = "new image"
 
         else:

@@ -227,8 +227,8 @@ def main(
             log.info(f"Snippet: [white on black] {log_snippet}... [/]")
             img_obj.snippet = snippet
             img_obj.snippet_syntax = snippet_syntax
-        img_obj.img_paths = img_paths.splitlines()
-        img_obj.clean_img_paths = clean_img_paths.splitlines()
+        img_obj.img_paths = img_paths.splitlines() if img_paths else []
+        img_obj.clean_img_paths = clean_img_paths.splitlines() if clean_img_paths else []
         if img_obj.confirm_command():
             img_obj.get_output()
             img_obj.save_images()
