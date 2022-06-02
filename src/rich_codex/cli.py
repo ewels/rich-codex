@@ -61,6 +61,12 @@ log = logging.getLogger()
     help="Path to image filenames if using 'command' or 'snippet'",
 )
 @click.option(
+    "--clean-img-paths",
+    envvar="CLEAN_IMG_PATHS",
+    show_envvar=True,
+    help="Remove any matching files that are not generated",
+)
+@click.option(
     "--configs",
     envvar="RC_CONFIGS",
     show_envvar=True,
@@ -139,6 +145,7 @@ def main(
     snippet,
     snippet_syntax,
     img_paths,
+    clean_img_paths,
     configs,
     no_confirm,
     min_pct_diff,
@@ -156,6 +163,8 @@ def main(
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
     terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
     num_skipped_images = 0
+    num_saved_images = 0
+    num_img_cleaned = 0
 
     if no_confirm:
         log.debug("Skipping confirmation of commands")
@@ -219,11 +228,14 @@ def main(
             img_obj.snippet = snippet
             img_obj.snippet_syntax = snippet_syntax
         img_obj.img_paths = img_paths.splitlines()
+        img_obj.clean_img_paths = clean_img_paths.splitlines()
         if img_obj.confirm_command():
             img_obj.get_output()
             img_obj.save_images()
+            img_obj.clean_images()
             num_saved_images = img_obj.num_img_saved
             num_skipped_images = img_obj.num_img_skipped
+            num_img_cleaned = img_obj.num_img_cleaned
 
     # Search files for codex strings
     if no_search:
@@ -251,6 +263,8 @@ def main(
         log.info(f"[dim]Skipped {num_skipped_images} images 🤫")
     if num_saved_images > 0:
         log.info(f"Saved {num_saved_images} images ✨")
+    if num_img_cleaned > 0:
+        log.info(f"Deleted {num_img_cleaned} images 🗑")
     if num_skipped_images == 0 and num_saved_images == 0:
         log.warning("Couldn't find anything to do 🙄")
 

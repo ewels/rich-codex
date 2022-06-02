@@ -31,16 +31,19 @@ jobs:
 
       - name: Generate images from markdown comments
         run: rich-codex
+        env:
+          CLEAN_IMG_PATHS: docs/img/*
 
       - name: Generate images from action command
         run: rich-codex
         env:
           NO_SEARCH: true
           COMMAND: cowsay "Taste the rainbow" | lolcat -S 100
+          CLEAN_IMG_PATHS: examples/action_command/*
           IMG_PATHS: |
-            examples/actions/cowsay-colours.svg
-            examples/actions/cowsay-colours.png
-            examples/actions/cowsay-colours.pdf
+            examples/action_command/cowsay-colours.svg
+            examples/action_command/cowsay-colours.png
+            examples/action_command/cowsay-colours.pdf
 
       - name: Generate images from action snippet
         run: rich-codex
@@ -59,14 +62,16 @@ jobs:
                 '__spec__': None,
                 'print': <function print at 0x1027fd4c0>,
             }
+          CLEAN_IMG_PATHS: examples/actions_snippet/*
           IMG_PATHS: |
-            examples/actions/rich-example.svg
-            examples/actions/rich-example.png
+            examples/actions_snippet/rich-example.svg
+            examples/actions_snippet/rich-example.png
 
       - name: Generate images from a YAML config
         run: rich-codex
         env:
           NO_SEARCH: true
+          CLEAN_IMG_PATHS: examples/yml_configs/*.{svg,png,pdf}
           RC_CONFIGS: examples/yml_configs/*.yml
 
       - name: Add and commit new images

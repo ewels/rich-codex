@@ -70,8 +70,10 @@ class RichImg:
         self.snippet = None
         self.snippet_syntax = None
         self.img_paths = []
+        self.clean_img_paths = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
+        self.num_img_cleaned = 0
         self.no_confirm = False
         self.aborted = False
 
@@ -334,3 +336,14 @@ class RichImg:
             # Delete temprary files
             pathlib.Path(svg_tmp_filename).unlink
             pathlib.Path(tmp_filename).unlink
+
+    def clean_images(self):
+        """Delete any images matching CLEAN_IMG_PATHS that were not generated.
+
+        Useful to remove existing files when a target filename is changed.
+        """
+        if len(self.clean_img_paths) == 0:
+            return
+
+        log.error("Cleaning images is not yet implemented")
+        pass
