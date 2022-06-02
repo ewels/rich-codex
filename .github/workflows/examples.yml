@@ -32,7 +32,9 @@ jobs:
       - name: Generate images from markdown comments
         run: rich-codex
         env:
-          CLEAN_IMG_PATHS: docs/img/*
+          CLEAN_IMG_PATHS: |
+            docs/img/*
+            examples/markdown_comments/img/*
 
       - name: Generate images from action command
         run: rich-codex
