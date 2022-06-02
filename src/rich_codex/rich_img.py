@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 import pty
+import re
 import shlex
 import subprocess
 from shutil import copyfile
@@ -29,6 +30,9 @@ RICH_IMG_ATTRS = [
 
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
+
+# Base list of diff regexes to ignore
+IGNORE_REGEXES = [r"/CreationDate"]
 
 
 class RichImg:
@@ -189,29 +193,36 @@ class RichImg:
             pct_change = (1 - ratio(new_file.read_bytes(), old_file.read_bytes())) * 100.0
             if pct_change <= self.min_pct_diff:
                 create_file = False
-            log_msg = f"{pct_change:.1f}% change"
+            log_msg = f"{pct_change:.2f}% change"
 
             # Regex on file diff to skip
-            if self.skip_change_regex or True:
-                # TODO: Use Python diff library to do this. Example CLI command:
-                # diff old_file new_file --text --suppress-common-lines -y
-                diff = difflib.Differ()
+            skip_regexes = list(r for r in IGNORE_REGEXES)  # deep copy
+            if self.skip_change_regex:
+                skip_regexes.extend(self.skip_change_regex.splitlines())
 
-                # TODO: Need to be able to suppress bytes we don't understand (as diff CLI seems to)
-                diff_results = diff.compare(
-                    new_file.read_text(errors="ignore").splitlines(),
-                    old_file.read_text(errors="ignore").splitlines(),
-                )
-                for d in diff_results:
+            lost_lines = []
+            diff = difflib.Differ()
+            new_file_lines = new_file.read_text(errors="ignore").splitlines()
+            old_file_lines = old_file.read_text(errors="ignore").splitlines()
+
+            # Only continue if we found something to diff with
+            if len(new_file_lines) > 0 or len(old_file_lines) > 0:
+                diff_result = diff.compare(new_file_lines, old_file_lines)
+                for d in diff_result:
                     if d.startswith("-"):
-                        print(d)
-                    if "/CreationDate" in d:
-                        print(d)
+                        lost_lines.append(d)
 
-                ignore_regex_match = False
-                log_msg += ", {} against skip-change-regex".format(
-                    "full match" if ignore_regex_match else "partial match"
-                )
+                # Only continue if there was some diff
+                if len(lost_lines) > 0:
+                    matched_lost_lines = []
+                    for skip_regex in skip_regexes:
+                        for line in lost_lines:
+                            if re.search(skip_regex, line):
+                                matched_lost_lines.append(line)
+
+                    log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
+                    if len(matched_lost_lines) == len(lost_lines):
+                        create_file = False
 
         if create_file:
             self.num_img_saved += 1
@@ -301,7 +312,7 @@ class RichImg:
                         output_width=4000,
                     )
                     if self._enough_image_difference(tmp_filename, filename):
-                        copyfile(filename, tmp_filename)
+                        copyfile(tmp_filename, filename)
                         png_img = filename
 
                 # Convert to PDF if requested
@@ -312,7 +323,7 @@ class RichImg:
                         write_to=tmp_filename,
                     )
                     if self._enough_image_difference(tmp_filename, filename):
-                        copyfile(filename, tmp_filename)
+                        copyfile(tmp_filename, filename)
                         pdf_img = filename
 
             # Delete temprary files
