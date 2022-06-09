@@ -7,7 +7,7 @@ import re
 import shlex
 import subprocess
 from shutil import copyfile
-from tempfile import mkstemp
+from tempfile import gettempdir, mkstemp
 
 from Levenshtein import ratio
 from rich.ansi import AnsiDecoder
@@ -274,11 +274,11 @@ class RichImg:
                 continue
 
             # Set filenames
-            svg_tmp_filename = mkstemp()[1]
             tmp_filename = mkstemp()[1]
 
             # We always generate an SVG first
             if svg_img is None:
+                svg_tmp_filename = mkstemp()[1]
                 self.capture_console.save_svg(svg_tmp_filename, title=self.title)
             else:
                 # Use already-generated SVG
@@ -333,5 +333,11 @@ class RichImg:
                         pdf_img = filename
 
             # Delete temprary files
-            pathlib.Path(svg_tmp_filename).unlink()
-            pathlib.Path(tmp_filename).unlink()
+            tmp_path = pathlib.Path(tmp_filename)
+            if tmp_path.parent == gettempdir():
+                tmp_path.unlink()
+
+        # Delete temporary SVG file - after loop as can be reused
+        tmp_svg_path = pathlib.Path(svg_tmp_filename)
+        if tmp_svg_path.parent == gettempdir():
+            tmp_svg_path.unlink()
