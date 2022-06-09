@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.pretty import pretty_repr
 
-from rich_codex import codex_search, rich_img
+from rich_codex import codex_search, rich_img, utils
 
 import rich_click as click
 
@@ -165,6 +165,8 @@ def main(
     num_skipped_images = 0
     num_saved_images = 0
     num_img_cleaned = 0
+    img_obj = None
+    codex_obj = None
 
     if no_confirm:
         log.debug("Skipping confirmation of commands")
@@ -228,11 +230,9 @@ def main(
             img_obj.snippet = snippet
             img_obj.snippet_syntax = snippet_syntax
         img_obj.img_paths = img_paths.splitlines() if img_paths else []
-        img_obj.clean_img_paths = clean_img_paths.splitlines() if clean_img_paths else []
         if img_obj.confirm_command():
             img_obj.get_output()
             img_obj.save_images()
-            img_obj.clean_images()
             num_saved_images = img_obj.num_img_saved
             num_skipped_images = img_obj.num_img_skipped
             num_img_cleaned = img_obj.num_img_cleaned
@@ -258,6 +258,10 @@ def main(
         codex_obj.save_all_images()
         num_saved_images = codex_obj.num_img_saved
         num_skipped_images = codex_obj.num_img_skipped
+
+    # Clean unrecognised images
+    if clean_img_paths:
+        utils.clean_images(clean_img_paths, img_obj, codex_obj)
 
     if num_skipped_images > 0:
         log.info(f"[dim]Skipped {num_skipped_images} images 🤫")

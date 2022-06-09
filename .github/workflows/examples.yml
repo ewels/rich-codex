@@ -23,12 +23,6 @@ jobs:
       - name: Install requirements
         run: pip install cowsay lolcat ".[cairo]"
 
-      # TODO: Need a method to remove old / renamed images still
-      # - name: Delete all existing images
-      #   run: |
-      #     rm -r examples/*/img/
-      #     rm -r docs/img
-
       - name: Generate images from markdown comments
         run: rich-codex
         env:
