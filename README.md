@@ -49,50 +49,18 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-
-      - name: Install rich-codex
-        run: pip install rich-codex
-
-      - name: Install your tools, whatever they are
+      - name: Install your custom tools
         run: pip install .
 
-      - name: Delete all existing images
-        run: rm -r docs/img/screengrabs
-
-      - name: Generate images from markdown comments
-        run: rich-codex
-
-      - name: Add and commit new images
-        run: |
-          git config --local user.name 'github-actions[bot]'
-          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-          git status
-          if [[ `git status --porcelain` ]]; then
-            git add **/*.svg
-            git commit -m "Generate new screengrabs with rich-codex"
-            git push
-          fi
+      - name: Generate terminal images with rich-codex
+        uses: ewels/rich-codex@v1
+        with:
+          commit_changes: "true"
 ```
 
-For a more extensive example, see [`.github/workflows/examples.yml`](.github/workflows/examples.yml) in this repository.
+For a more complex example, see [`.github/workflows/examples.yml`](.github/workflows/examples.yml) in this repository.
 
 > **NB:** For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
-
-### Actions with PNG / PDF outputs
-
-If you want to generate PNG or PDF images, you'll need to install the Fira-Code font and also the `cairo` rich-codex extras:
-
-```yaml
-- name: Install fonts
-  run: sudo apt install fonts-firacode
-
-- name: Install requirements
-  run: pip install "rich-codex[cairo]"
-```
 
 ## Command-line
 
@@ -136,7 +104,7 @@ At its simplest, the command-line tool runs without any arguments and recursivel
 rich-codex
 ```
 
-Behaviour can be customised on the command-line with environment variables, see `rich-codex --help`.
+Behaviour can be customised with command-line flags or by setting environment variables, see `rich-codex --help`.
 
 #### Requirements for PNG / PDF outputs
 

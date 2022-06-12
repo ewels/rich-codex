@@ -1,4 +1,13 @@
-# Container image that runs your code
+##################################################################
+#
+# NOTE: This image does not contain your custom software!
+#
+# Screenshots generated from commands will likely not work.
+# Create your own Docker image based on this one or use this
+# purely for code snippets.
+#
+##################################################################
+
 FROM python:3.10-alpine
 
 # Install Cairo for SVG -> PNG / PDF conversion

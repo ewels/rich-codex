@@ -8,10 +8,10 @@ branding:
   color: "yellow"
 
 inputs:
-  include:
+  search_include:
     description: Glob patterns to search for rich-codex comments
     required: false
-  exclude:
+  search_exclude:
     description: Glob patterns to exclude from search for rich-codex comments
     required: false
   no_search:
@@ -29,11 +29,17 @@ inputs:
   img_paths:
     description: Path to image filenames if using 'command' or 'snippet'
     required: false
-  configs:
+  clean_img_paths:
+    description: Remove any matching files that are not generated
+    required: false
+  rc_configs:
     description: Paths to YAML config files
-    default: |
-      .rich_codex.yml
-      .github/rich_codex.yml
+    required: false
+  min_pct_diff:
+    description: Minimum file percentage change required to update image
+    required: false
+  skip_change_regex:
+    description: Skip image update if file changes match regex
     required: false
   width:
     description: Width of the terminal
@@ -41,30 +47,78 @@ inputs:
   theme:
     description: Colour theme
     required: false
-
-# echo "::set-output name=<output name>::<value>"
-outputs:
-  images:
-    description: JSON array of all generated images
-  svgs:
-    description: JSON array of all generated SVG files
-  pngs:
-    description: JSON array of all generated PNG files
-  pdfs:
-    description: JSON array of all generated PDF files
+  use_pty:
+    description: Use a pseudo-terminal for commands (may capture coloured output)
+    required: false
+  log_verbose:
+    description: Print verbose output to the console.
+    required: false
+  commit_changes:
+    description: Automatically commit changes to the repository
+    required: false
+  error_changes:
+    description: Exit with an error if changes are found (Ignored if 'commit_changes' is true)
+    default: "true"
+    required: false
 
 runs:
-  using: "docker"
-  image: Dockerfile
-  env:
-    SEARCH_INCLUDE: ${{ inputs.include }}
-    SEARCH_EXCLUDE: ${{ inputs.exclude }}
-    NO_SEARCH: ${{ inputs.no_search }}
-    COMMAND: ${{ inputs.command }}
-    SNIPPET: ${{ inputs.snippet }}
-    SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
-    IMG_PATHS: ${{ inputs.img_paths }}
-    RC_CONFIGS: ${{ inputs.config }}
-    TERMINAL_WIDTH: ${{ inputs.width }}
-    TERMINAL_THEME: ${{ inputs.theme }}
-    NO_CONFIRM: "true"
+  using: "composite"
+  steps:
+    - name: Install fonts
+      run: sudo apt install fonts-firacode
+      shell: bash
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+
+    - name: Install rich-codex
+      run: pip install "rich-codex.[cairo]"
+      shell: bash
+
+    - name: Run rich-codex
+      run: rich-codex
+      shell: bash
+      env:
+        SEARCH_INCLUDE: ${{ inputs.search_include }}
+        SEARCH_EXCLUDE: ${{ inputs.search_exclude }}
+        NO_SEARCH: ${{ inputs.no_search }}
+        COMMAND: ${{ inputs.command }}
+        SNIPPET: ${{ inputs.snippet }}
+        SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
+        IMG_PATHS: ${{ inputs.img_paths }}
+        CLEAN_IMG_PATHS: ${{ inputs.clean_img_paths }}
+        RC_CONFIGS: ${{ inputs.rc_configs }}
+        MIN_PCT_DIFF: ${{ inputs.min_pct_diff }}
+        SKIP_CHANGE_REGEX: ${{ inputs.skip_change_regex }}
+        TERMINAL_WIDTH: ${{ inputs.width }}
+        TERMINAL_THEME: ${{ inputs.theme }}
+        USE_PTY: ${{ inputs.use_pty }}
+        LOG_VERBOSE: ${{ inputs.log_verbose }}
+        NO_CONFIRM: "true"
+
+    - name: Add and commit new images
+      shell: bash
+      run: |
+        git config --local user.name 'github-actions[bot]'
+        git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+        git status
+        if [[ `git status --porcelain` ]]; then
+          echo "💥 Found changes in the rich-codex images!"
+          if [[ ${{ inputs.commit_changes }} ]]; then
+            git add .
+            git commit -m "Generate new screengrabs with rich-codex"
+            git push
+          elif [[ ${{ inputs.error_changes }} ]]; then
+            echo "🤖 Tip: Use 'commit_changes' to automatically commit them next time."
+            (exit 1)
+          fi
+        fi
+
+    - name: Upload sync log file artifact
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: Log files
+        path: rich_codex_*.log
