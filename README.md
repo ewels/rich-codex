@@ -129,7 +129,9 @@ You can then pass environment variables with the `-e` flag to customise behaviou
 
 ## Generating images
 
-### Markdown images
+### Markdown
+
+#### Running commands
 
 If you write markdown with images that contain _just_ a `backtick command` as the alt-text, rich-codex will find them.
 
@@ -169,13 +171,58 @@ For example:
 
 <!-- prettier-ignore-end -->
 
-### Markdown comments
+#### Code snippets
 
-_coming soon_
+In addition to running commands, you can format code blocks or "snippets".
+
+To do this, make the `<!-- RICH-CODEX` code comment multi-line. Anything on subsequent lines before the closing `-->` will be treated as the snippet. Then follow the code comment with a markdown image tag (again, the filename will be taken for the generated image).
+
+Use `SNIPPET_SYNTAX` to define a language to format in. Syntax highlightin defaults to JSON if the snippet is valid JSON, and is otherwise uncoloured.
+All other key-value pairs above also work for snippets.
+
+For example:
+
+<!-- prettier-ignore-start -->
+
+```markdown
+<!-- RICH-CODEX SNIPPET_SYNTAX=python TERMINAL_WIDTH=80
+>>> print("[italic red]Hello[/italic red] World!", locals())
+Hello World!
+{
+    '__annotations__': {},
+    '__builtins__': <module 'builtins' (built-in)>,
+    '__doc__': None,
+    '__loader__': <class '_frozen_importlib.BuiltinImporter'>,
+    '__name__': '__main__',
+    '__package__': None,
+    '__spec__': None,
+    'print': <function print at 0x1027fd4c0>,
+}
+-->
+![my snippet](docs/img/example-snippet.svg)
+```
+
+<!-- RICH-CODEX SNIPPET_SYNTAX=python TERMINAL_WIDTH=80
+>>> print("[italic red]Hello[/italic red] World!", locals())
+Hello World!
+{
+    '__annotations__': {},
+    '__builtins__': <module 'builtins' (built-in)>,
+    '__doc__': None,
+    '__loader__': <class '_frozen_importlib.BuiltinImporter'>,
+    '__name__': '__main__',
+    '__package__': None,
+    '__spec__': None,
+    'print': <function print at 0x1027fd4c0>,
+}
+-->
+![my snippet](docs/img/example-snippet.svg)
+
+<!-- prettier-ignore-end -->
 
 ### Command-line / action inputs
 
-You can generate images by providing a command or snippet as a direct input to the tool.
+You can generate images by providing a command or snippet directly to the CLI at run time.
 
 You need the following command line flags / environment variables / GitHub Action inputs
 

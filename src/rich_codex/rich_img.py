@@ -44,6 +44,7 @@ class RichImg:
 
     def __init__(
         self,
+        snippet_syntax=None,
         min_pct_diff=0,
         skip_change_regex=None,
         terminal_width=None,
@@ -52,6 +53,7 @@ class RichImg:
         console=None,
     ):
         """Initialise the RichImg object with core console options."""
+        self.snippet_syntax = snippet_syntax
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
@@ -69,7 +71,6 @@ class RichImg:
         )
         self.cmd = None
         self.snippet = None
-        self.snippet_syntax = None
         self.img_paths = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
@@ -148,13 +149,11 @@ class RichImg:
         for line in decoder.decode(output):
             self.capture_console.print(line)
 
-    def format_snippetg(self):
+    def format_snippet(self):
         """Take a text snippet and format it using rich."""
         if self.snippet is None:
             log.debug("Tried to format snippet with no snippet")
             return
-
-        log.info("Formatting snippet")
 
         # JSON is a special case, use rich function
         try:
@@ -175,10 +174,10 @@ class RichImg:
         """Either pipe command or format snippet, depending on what is set."""
         if self.cmd is not None:
             self.pipe_command()
-        elif self.snippet is None:
+        elif self.snippet is not None:
             self.format_snippet()
         else:
-            log.debug("Tried to get output with no command or snippet")
+            log.warning("Tried to get output with no command or snippet")
 
     def _enough_image_difference(self, new_fn, old_fn):
         new_file = pathlib.Path(new_fn)

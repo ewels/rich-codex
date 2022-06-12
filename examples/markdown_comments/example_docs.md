@@ -19,10 +19,9 @@ If you want rich-click to ignore an image, use a comment with `SKIP=true`
 <!-- RICH-CODEX TERMINAL_THEME=MONOKAI -->
 ![`rich-codex --help`](img/rich-codex-help-narrow.svg)
 
-As well as commands, the action can take code snippets, which are auto-formatted by rich-cli:
+As well as commands, the action can take code snippets. Just make the `<!-- RICH-CODEX` code multi-line. Anything on subsequent lines before the closing `-->` will be treated as the snippet.
 
-<!-- rich-codex code img/example-json.svg
----
+<!-- RICH-CODEX
 {"menu": {
   "id": "file", "value": "File",
   "popup": {
@@ -34,4 +33,18 @@ As well as commands, the action can take code snippets, which are auto-formatted
   }
 }}
 -->
-![json-snippet](img/example-json.svg)
+![my snippet](img/example-json.svg)
+
+Rich-codex will try to format JSON automatically, but other languages must be specified using `SNIPPET_SYNTAX`:
+
+<!-- RICH-CODEX TERMINAL_WIDTH=70 SNIPPET_SYNTAX=python
+log.debug(f"Running command '{self.cmd}' with subprocess")
+process = subprocess.Popen(
+    self.cmd,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    shell=True,  # Needed for pipes
+)
+output = process.stdout.read().decode("utf-8")
+-->
+![](img/example-python.svg)

@@ -246,6 +246,7 @@ def main(
             search_include,
             search_exclude,
             no_confirm,
+            snippet_syntax,
             min_pct_diff,
             skip_change_regex,
             terminal_width,

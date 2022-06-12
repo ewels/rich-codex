@@ -25,6 +25,7 @@ class CodexSearch:
         search_include,
         search_exclude,
         no_confirm,
+        snippet_syntax,
         min_pct_diff,
         skip_change_regex,
         terminal_width,
@@ -38,6 +39,7 @@ class CodexSearch:
         if search_exclude is not None:
             self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
         self.no_confirm = no_confirm
+        self.snippet_syntax = snippet_syntax
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
@@ -78,31 +80,75 @@ class CodexSearch:
             log.info(f"Searching {len(search_files)} files")
 
         # eg. <!-- RICH-CODEX TERMINAL_WIDTH=60 -->
-        config_comment_re = re.compile(r"<!\-\-\s*RICH-CODEX\s+(?P<config_str>.*(?!-->)\w)+\s*\-\->")
+        # eg. <!-- RICH-CODEX
+        config_comment_re = re.compile(r"<!\-\-\s*RICH-CODEX\s*(?P<config_str>.*(?!-->)\w)*\s*(?P<end_comment>\-\->)?")
 
         # eg. ![`rich --help`](rich-cli-help.svg)
         img_cmd_re = re.compile(r"!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
 
+        # eg. ![custom text](img/example.svg)
+        # eg. ![](img/example-named.svg)
+        img_snippet_re = re.compile(r"!\[.*\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
+
         local_config = {}
+        num_commands = 0
+        num_snippets = 0
         for file in search_files:
             with open(file, "r") as fh:
+                line_number = 0
+                in_snippet = False
+                snippet = ""
                 for line in fh:
+                    line_number += 1
 
-                    # Look for images first, in case we have a local config
-                    img_match = img_cmd_re.match(line)
-                    if img_match and not local_config.get("SKIP"):
-                        m = img_match.groupdict()
+                    # Save snippet if we're in a snippet block
+                    if in_snippet:
+                        if line.strip() == "-->":
+                            in_snippet = False
+                        else:
+                            snippet += line
+                        continue
+
+                    # Look for images, in case we have a local config
+                    img_cmd_match = img_cmd_re.match(line)
+                    img_match = img_snippet_re.match(line)
+                    if (img_cmd_match or img_match) and not local_config.get("SKIP"):
+
+                        # Use the results from either a command or snippet match
+                        if img_cmd_match:
+                            m = img_cmd_match.groupdict()
+                        elif img_match:
+                            # Check that we actually have a snippet ready
+                            if not len(snippet):
+                                log.debug(
+                                    f"Found image tag but no snippet or command: [magenta]{file}[cyan]:L{line_number}"
+                                )  # noqa: E501
+                                continue
+                            m = img_match.groupdict()
 
                         log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
+                        snippet_syntax = local_config.get("SNIPPET_SYNTAX", self.snippet_syntax)
                         min_pct_diff = local_config.get("MIN_PCT_DIFF", self.min_pct_diff)
                         skip_change_regex = local_config.get("SKIP_CHANGE_REGEX", self.skip_change_regex)
                         t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
                         t_theme = local_config.get("TERMINAL_THEME", self.terminal_theme)
                         use_pty = local_config.get("USE_PTY", self.use_pty)
-                        img_obj = rich_img.RichImg(min_pct_diff, skip_change_regex, t_width, t_theme, use_pty)
+                        img_obj = rich_img.RichImg(
+                            snippet_syntax, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty
+                        )
 
                         # Save the command
-                        img_obj.cmd = m["cmd"]
+                        if img_cmd_match:
+                            img_obj.cmd = m["cmd"]
+                            num_commands += 1
+
+                        # Save the snippet
+                        elif img_match:
+                            img_obj.snippet = snippet
+                            num_snippets += 1
+
+                        # Reset the snippet, if there was one
+                        snippet = ""
 
                         # Save the image path
                         img_path = pathlib.Path(file).parent / pathlib.Path(m["img_path"].strip())
@@ -123,10 +169,22 @@ class CodexSearch:
                     config_match = config_comment_re.match(line)
                     if config_match:
                         m = config_match.groupdict()
-                        for config_part in m.get("config_str", "").split():
-                            if "=" in config_part:
-                                key, value = config_part.split("=", 1)
-                                local_config[key] = value
+
+                        # If we don't end the comment on this line, must be a snippet
+                        if m.get("end_comment") != "-->":
+                            in_snippet = True
+
+                        # Parse config keypairs
+                        if m.get("config_str") is not None:
+                            for config_part in m["config_str"].split():
+                                if "=" in config_part:
+                                    key, value = config_part.split("=", 1)
+                                    local_config[key] = value
+
+        if num_commands > 0:
+            log.info(f"Found {num_commands} commands")
+        if num_snippets > 0:
+            log.info(f"Found {num_snippets} snippets")
 
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
