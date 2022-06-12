@@ -68,27 +68,11 @@ In addition to the GitHub Action, rich-codex is also a stand-alone command line 
 
 You are welcome to use it locally, for example when first writing new documentation and generating initial images to check their output.
 
-> ⚠️ **Warning** ⚠️
-> Please remember that rich-codex is designed to _run_ arbitrary commands that it finds within documentation for your project.
-> As such, it should be considered a fairly risky piece of software. You alone are responsible for any damage you cause to your computer! 🙃
-> Running rich-codex entirely within GitHub Actions is recommended, as any damage it can cause as it doesn't really matter if it wipes the hard disk there.
-
-### Docker image
-
-There is a docker image for running rich-codex, however - note that if you're trying to run commands, they will likely not be available in the container! So this is best used for code snippets or common linux tools. Alternatively, you can build your own docker image using this as a base, with additional dependencies installed.
-
-To run, a typical command would be:
-
-```bash
-docker run -i -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
-```
-
-- The `-i` flag enables stdin so that you can confirm running commands (alternatively, use `--no-confirm` at the end)
-- The `-v` argument tells Docker to bind your current working directory (`pwd`) to the same path inside the container, so that files created there will be saved to your local file system outside of the container.
-- `-w` sets the working directory in the container to this path, so that it's the same as your working directory outside of the container.
-- `-u` sets your local user account as the user inside the container, so that any files created have the correct ownership permissions.
-
-You can then pass environment variables with the `-e` flag to customise behaviour. See the usage instructions below for the available environment variables.
+> 💥⚠️ **Warning** ⚠️💥
+>
+> Please remember that rich-codex is designed to _**run arbitrary commands**_ that it finds within documentation for your project.
+>
+> You alone are responsible for any damage you cause to your computer! 🙃 Running rich-codex entirely within GitHub Actions is recommended 👍🏻
 
 ### Local installation
 
@@ -125,6 +109,23 @@ You'll then probably need some additional libraries, see the [Cairo documentatio
 Installation can be messy, so be prepared to do a bit of googling to get things to work. Remember that running rich-codex with the `-v` flag to get verbose logging can give you more information about what's going wrong (if anything).
 
 You'll also need Fira Code installed, an open-licence font: [GitHub repo](https://github.com/tonsky/FiraCode) / [Google Fonts](https://fonts.google.com/specimen/Fira+Code).
+
+### Docker image
+
+There is a docker image for running rich-codex, however - note that if you're trying to run commands, they will likely not be available in the container! So this is best used for code snippets or common linux tools. Alternatively, you can build your own docker image using this as a base, with additional dependencies installed.
+
+To run, a typical command would be:
+
+```bash
+docker run -i -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
+```
+
+- The `-i` flag enables stdin so that you can confirm running commands (alternatively, use `--no-confirm` at the end)
+- The `-v` argument tells Docker to bind your current working directory (`pwd`) to the same path inside the container, so that files created there will be saved to your local file system outside of the container.
+- `-w` sets the working directory in the container to this path, so that it's the same as your working directory outside of the container.
+- `-u` sets your local user account as the user inside the container, so that any files created have the correct ownership permissions.
+
+You can then pass environment variables with the `-e` flag to customise behaviour. See the usage instructions below for the available environment variables.
 
 ## Generating images
 
