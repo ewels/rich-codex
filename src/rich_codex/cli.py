@@ -189,6 +189,7 @@ def main(
             show_time=False,
             markup=True,
             rich_tracebacks=True,
+            show_path=False,
             tracebacks_suppress=[click],
         )
     )
