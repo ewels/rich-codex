@@ -9,6 +9,7 @@ import subprocess
 from shutil import copyfile
 from tempfile import gettempdir, mkstemp
 
+import rich.terminal_theme
 from Levenshtein import ratio
 from rich.ansi import AnsiDecoder
 from rich.console import Console
@@ -247,6 +248,18 @@ class RichImg:
             log.warning("Tried to save images with no paths")
             return
 
+        # Set up theme
+        terminal_theme = None
+        if self.terminal_theme is not None:
+            try:
+                terminal_theme = getattr(rich.terminal_theme, self.terminal_theme)
+            except AttributeError:
+                log.error(
+                    "[red]Theme '{}' not found![/] Falling back to default for [magenta]{}".format(
+                        self.terminal_theme, ", ".join(self.img_paths)
+                    )
+                )
+
         # Save image as requested with $IMG_PATHS
         svg_img = None
         png_img = None
@@ -279,7 +292,7 @@ class RichImg:
             # We always generate an SVG first
             if svg_img is None:
                 svg_tmp_filename = mkstemp()[1]
-                self.capture_console.save_svg(svg_tmp_filename, title=self.title)
+                self.capture_console.save_svg(svg_tmp_filename, title=self.title, theme=terminal_theme)
             else:
                 # Use already-generated SVG
                 svg_tmp_filename = svg_img
