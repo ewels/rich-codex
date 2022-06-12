@@ -220,7 +220,9 @@ def main(
 
     # Generate image from a supplied command / snippet
     if command or snippet:
-        img_obj = rich_img.RichImg(min_pct_diff, skip_change_regex, terminal_width, terminal_theme, use_pty, console)
+        img_obj = rich_img.RichImg(
+            snippet_syntax, min_pct_diff, skip_change_regex, terminal_width, terminal_theme, use_pty, console
+        )
         img_obj.no_confirm = no_confirm
         if command:
             log.info(f"Command: [white on black] {command} [/]")
@@ -229,7 +231,6 @@ def main(
             log_snippet = snippet[0:30].replace("\n", " ")
             log.info(f"Snippet: [white on black] {log_snippet}... [/]")
             img_obj.snippet = snippet
-            img_obj.snippet_syntax = snippet_syntax
         img_obj.img_paths = img_paths.splitlines() if img_paths else []
         if img_obj.confirm_command():
             img_obj.get_output()

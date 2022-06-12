@@ -249,7 +249,7 @@ class RichImg:
 
         # Set up theme
         terminal_theme = None
-        if self.terminal_theme and type(self.terminal_theme) is str:
+        if self.terminal_theme:
             try:
                 terminal_theme = getattr(rich.terminal_theme, self.terminal_theme)
             except AttributeError:
