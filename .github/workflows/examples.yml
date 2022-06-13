@@ -1,4 +1,4 @@
-name: Generate rich-codex example images
+name: Create example images
 on: [push]
 
 env:
