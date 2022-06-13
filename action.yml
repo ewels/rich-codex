@@ -9,7 +9,7 @@ branding:
 
 inputs:
   search_include:
-    description: Glob patterns to search for rich-codex comments
+    description: Glob patterns to files in which to search for rich-codex comments
     required: false
   search_exclude:
     description: Glob patterns to exclude from search for rich-codex comments

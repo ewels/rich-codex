@@ -1,26 +1,56 @@
 # rich-codex ⚡️📖⚡️
 
-### A [GitHub Action](#github-action) and [command-line tool](#command-line) to generate screengrab images of a terminal window containing _command outputs_ or _code snippets_.
+A GitHub Action / command-line tool which generates screengrab images of a terminal window, containing _command outputs_ or _code snippets_.
 
 [![PyPI Version](https://img.shields.io/pypi/v/rich-codex.svg?style=flat-square)](https://pypi.python.org/pypi/multiqc/)
 [![Docker](https://img.shields.io/docker/automated/ewels/rich-codex.svg?style=flat-square)](https://hub.docker.com/r/ewels/multiqc/)
 
+## Introduction
+
+Rich-click searches markdown code for image embeds with commands or code snippets. It runs these commands and saves a terminal screen-grab at the embedded path.
+
+Typical use cases:
+
+- 📷 Example CLI tool outputs that _automatically stay in sync with your package_
+- ♻️ Syntax-highlighted code snippets that are always up to date with your `examples/`
+- 🤩 Fast and simple images for your docs with minimal setup
+
+## Quickstart
+
+1. 📖 Write some markdown docs, use an image tag with a backtick command inside:
+   ```markdown
+   ![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat.svg)
+   ```
+2. 🤖 Add a GitHub Action to automatically run the command, generate the image and commit to the repo:
+
+   ```yaml
+   on: [push]
+   jobs:
+     rich_codex:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v3
+
+         - name: Install your custom tools
+           run: pip install lolcat
+
+         - name: Generate terminal images with rich-codex
+           uses: ewels/rich-codex@v1
+           with:
+             commit_changes: "true"
+   ```
+
+3. 🌈 Enjoy reading your documentation ![My cat rainbow](docs/img/cat.svg)
+
 ## How it works
 
-rich-codex is a command-line tool that you can via a **GitHub action** or as a **command line tool**. It works with any markdown, including GitHub READMEs.
+Rich-codex is a command-line tool that you can via a **GitHub action** or as a **command line tool**. It works with any markdown (including GitHub READMEs).
 
-It collects either commands or code snippets, together with output filenames and configuration options. Commands are run in a subprocess and the standard output & standard error collected. These are then rendered as an image using [Textualize/rich](https://github.com/textualize/rich). For example:
+It collects either commands or code snippets, together with output filenames and configuration options. Commands are run in a subprocess and the standard output & standard error collected. These are then rendered as an image using [Textualize/rich](https://github.com/textualize/rich).
 
-![`rich-codex --help`](docs/img/rich-codex-help.svg)
+> Rich-codex creates the images that your markdown docs expect. It doesn't require a HTML build-step and doesn't make any changes to your markdown or its output. As such, it's compatible with _**any documentation engine**_, including rendering markdown on [github.com](https://github.com).
 
-Rich-codex creates the images that your markdown docs expect. It doesn't require a HTML build-step and doesn't make any changes to your markdown or its output. As such, it's compatible with _**any documentation engine**_, including rendering markdown on [github.com](https://github.com).
-
-Typical use cases include:
-
-- 📷 Example outputs that _automatically stay in sync with your package_
-- ✨ Awesome looking code examples that match your docs
-
-Rich-codex needs **Inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
+Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
 
 - 🖼 [Markdown images](#markdown-images)
   - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](docs/img/rich-codex-help.svg) ``
@@ -36,7 +66,8 @@ Images can be generated as SVG, PNG or PDF (detected by filename extension).
 ## GitHub Action
 
 Rich-codex was primarily designed to run automatically with GitHub actions, to keep your screenshots up to date for you.
-Once the action generates images, it's up to you to use them however you like in the rest of your workflow.
+
+If there are changes to the images, the action can exit with an error (default) or automatically commit the updates.
 
 A very simple example is shown below. This action looks for rich-codex content in the repo, generates the images and then creates and pushes a new commit with any changes.
 
@@ -60,7 +91,7 @@ jobs:
 
 For a more complex example, see [`.github/workflows/examples.yml`](.github/workflows/examples.yml) in this repository.
 
-> **NB:** For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
+> ❗️ **Note:** For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
 
 ## Command-line
 
@@ -88,7 +119,9 @@ At its simplest, the command-line tool runs without any arguments and recursivel
 rich-codex
 ```
 
-Behaviour can be customised with command-line flags or by setting environment variables, see `rich-codex --help`.
+Behaviour can be customised with command-line flags or by setting environment variables, see `rich-codex --help`:
+
+![`rich-codex --help`](docs/img/rich-codex-help.svg)
 
 #### Requirements for PNG / PDF outputs
 
@@ -138,14 +171,20 @@ If you write markdown with images that contain _just_ a `backtick command` as th
 For example, the following markdown will generate `docs/img/rich-codex-help.svg` (the image shown above) based on the output of the command `rich-codex --help`:
 
 ```markdown
-This is getting meta!
+Wow, this documentation is really getting meta!
 ![`rich-codex --help`](docs/img/rich-codex-help.svg)
 ```
 
-> Note that this particular output is generated by the [rich-click](https://github.com/ewels/rich-click) package.
-> This supports environment variables for setting terminal width, so I set `TERMINAL_WIDTH=120`
+![`rich-codex --help`](docs/img/rich-codex-help.svg)
 
-You can also add title text in quotes after the filename, which will be used in the top menu bar of the screenshot terminal.
+You can also add [title text](https://daringfireball.net/projects/markdown/syntax#img) in quotes after the filename, which will be used in the top menu bar of the screenshot terminal.
+
+```markdown
+You don't always want people to see the exact command you used, after all.
+![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat-title.svg "All the colours 😻")
+```
+
+![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat-title.svg "All the colours 😻")
 
 Finally, you can use a HTML comment in a line above the image to set config attributes for this image only.
 The comment should begin with `RICH-CODEX` and then have `KEY=VALUE` pairs. Available configs are:
@@ -162,11 +201,11 @@ For example:
 <!-- prettier-ignore-start -->
 
 ```markdown
-<!-- RICH-CODEX TERMINAL_WIDTH=60 -->
+<!-- RICH-CODEX TERMINAL_WIDTH=60 TERMINAL_THEME=MONOKAI -->
 ![`cowsay "Taste the rainbow" | lolcat -S 100`](docs/img/taste-the-rainbow.svg "Taste the rainbow")
 ```
 
-<!-- RICH-CODEX TERMINAL_WIDTH=60 -->
+<!-- RICH-CODEX TERMINAL_WIDTH=60 TERMINAL_THEME=MONOKAI -->
 ![`cowsay "Taste the rainbow" | lolcat -S 100`](docs/img/taste-the-rainbow.svg "Taste the rainbow")
 
 <!-- prettier-ignore-end -->
@@ -175,10 +214,11 @@ For example:
 
 In addition to running commands, you can format code blocks or "snippets".
 
-To do this, make the `<!-- RICH-CODEX` code comment multi-line. Anything on subsequent lines before the closing `-->` will be treated as the snippet. Then follow the code comment with a markdown image tag (again, the filename will be taken for the generated image).
+To do this, make the `<!-- RICH-CODEX` code comment multi-line. Config key-pairs stay on the first line and anything on subsequent lines before the closing `-->` will be treated as the snippet. Then follow the code comment with a markdown image tag (again, the filename will be taken for the generated image).
 
-Use `SNIPPET_SYNTAX` to define a language to format in. Syntax highlightin defaults to JSON if the snippet is valid JSON, and is otherwise uncoloured.
-All other key-value pairs above also work for snippets.
+> The alt-text for the markdown image embed doesn't matter for snippets. However, if it has a command in backticks then this will take priority over the snippet.
+
+Use `SNIPPET_SYNTAX` to define a language to format in. Syntax highlightin defaults to JSON if the snippet is valid JSON, and is otherwise uncoloured. All other key-value pairs above also work for snippets.
 
 For example:
 
@@ -234,61 +274,29 @@ You need the following command line flags / environment variables / GitHub Actio
 
 ### YAML config files
 
-_coming soon_
+_Under construction, coming soon.._
 
 ## Reference docs
 
 ### GitHub Action Inputs
 
-#### `include`
-
-Files to search for rich-codex comments.
-
-#### `exclude`
-
-Files to exclude from search for rich-codex comments.
-
-#### `command`
-
-Command to run.
-
-#### `snippet`
-
-Literal code snippet to render.
-
-#### `img_paths`
-
-Path to image filenames if using 'command' or 'snippet'.
-
-#### `configs`
-
-Paths to YAML config files.
-
-#### `width`
-
-Width of the terminal.
-
-#### `theme`
-
-Colour theme.
-
-### GitHub Action Outputs
-
-#### `images`
-
-JSON array of all generated images.
-
-#### `svgs`
-
-JSON array of all generated SVG files.
-
-#### `pngs`
-
-JSON array of all generated PNG files.
-
-#### `pdfs`
-
-JSON array of all generated PDF files.
+- `search_include`: Glob patterns to files in which to search for rich-codex comments
+- `search_exclude`: Glob patterns to exclude from search for rich-codex comments
+- `no_search`: Set to 'true' to disable searching for rich-codex comments
+- `command`: Specify a command to run to capture output
+- `snippet`: Literal code snippet to render
+- `snippet_syntax`: Language to use for snippet sytax highlighting
+- `img_paths`: Path to image filenames if using 'command' or 'snippet'
+- `clean_img_paths`: Remove any matching files that are not generated
+- `rc_configs`: Paths to YAML config files
+- `min_pct_diff`: Minimum file percentage change required to update image
+- `skip_change_regex`: Skip image update if file changes match regex
+- `width`: Width of the terminal
+- `theme`: Colour theme
+- `use_pty`: Use a pseudo-terminal for commands (may capture coloured output)
+- `log_verbose`: Print verbose output to the console.
+- `commit_changes`: Automatically commit changes to the repository
+- `error_changes`: Exit with an error if changes are found (Ignored if 'commit_changes' is true)
 
 ## Troubleshooting
 
