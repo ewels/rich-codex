@@ -6,7 +6,14 @@ Rich-codex was primarily designed to run automatically with GitHub actions, to k
 
 If there are changes to the images, the action can exit with an error (default) or automatically commit the updates.
 
-A very simple example is shown below. This action looks for rich-codex content in the repo, generates the images and then creates and pushes a new commit with any changes.
+<!-- prettier-ignore-start -->
+!!! info
+    For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
+<!-- prettier-ignore-end -->
+
+## Example workflow
+
+This action looks for rich-codex content in the repo. It removes any SVG files found in `docs/img/` that don't match the outputs and generates the updated images. If there have been any changes, it pushes a new commit with the updated images.
 
 ```yaml
 on: [push]
@@ -24,14 +31,10 @@ jobs:
         uses: ewels/rich-codex@v1
         with:
           commit_changes: "true"
+          clean_img_paths: docs/img/*.svg
 ```
 
 For a more complex example, see [`.github/workflows/examples.yml`](.github/workflows/examples.yml) in this repository.
-
-<!-- prettier-ignore-start -->
-!!! info
-    For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
-<!-- prettier-ignore-end -->
 
 ## GitHub Action Inputs
 
