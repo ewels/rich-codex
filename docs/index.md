@@ -2,8 +2,6 @@
 
 A GitHub Action / command-line tool which generates screengrab images of a terminal window, containing _command outputs_ or _code snippets_.
 
-> ### 📚 Documentation: https://ewels.github.io/rich-codex/
-
 [![PyPI Version](https://img.shields.io/pypi/v/rich-codex.svg?style=flat-square)](https://pypi.python.org/pypi/multiqc/)
 [![Docker](https://img.shields.io/docker/automated/ewels/rich-codex.svg?style=flat-square)](https://hub.docker.com/r/ewels/multiqc/)
 
@@ -21,7 +19,7 @@ Typical use cases:
 
 1. 📖 Write some markdown docs, use an image tag with a backtick command inside:
    ```markdown
-   ![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat.svg)
+   ![`cat cat.txt | lolcat -S 1`](img/cat.svg)
    ```
 2. 🤖 Add a GitHub Action to automatically run the command, generate the image and commit to the repo:
 
@@ -42,7 +40,7 @@ Typical use cases:
              commit_changes: "true"
    ```
 
-3. 🌈 Enjoy reading your documentation ![My cat rainbow](docs/img/cat.svg)
+3. 🌈 Enjoy reading your documentation ![My cat rainbow](img/cat.svg)
 
 ## How it works
 
@@ -55,7 +53,7 @@ It collects either commands or code snippets, together with output filenames and
 Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
 
 - 🖼 [Markdown images](#markdown)
-  - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](docs/img/rich-codex-help.svg) ``
+  - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](img/rich-codex-help.svg) ``
 - 💬 [Markdown comments](#markdown)
   - Search markdown files for special HTML comments.
 - ➡️ [Command-line / action inputs](#command-line--action-inputs)
@@ -64,5 +62,3 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
   - Use one or more YAML config files for multiple images and more complex customisation.
 
 Images can be generated as SVG, PNG or PDF (detected by filename extension).
-
-> **Keep reading!** 👉 https://ewels.github.io/rich-codex/
