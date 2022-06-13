@@ -32,8 +32,8 @@ RICH_IMG_ATTRS = [
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
 
-# Base list of diff regexes to ignore
-IGNORE_REGEXES = [r"/CreationDate"]
+# Base list of diff regexes to ignore, split up by filetype suffix
+IGNORE_REGEXES = {".pdf": [r"/CreationDate"]}
 
 
 class RichImg:
@@ -201,34 +201,38 @@ class RichImg:
             if pct_change > 0:
 
                 # Regex on file diff to skip
-                skip_regexes = list(r for r in IGNORE_REGEXES)  # deep copy
+                skip_regexes = list(r for r in IGNORE_REGEXES.get(new_file.suffix, []))  # deep copy
                 if self.skip_change_regex:
                     skip_regexes.extend(self.skip_change_regex.splitlines())
+                if len(skip_regexes) > 0:
+                    new_file_lines = new_file.read_text(errors="ignore").splitlines()
+                    old_file_lines = old_file.read_text(errors="ignore").splitlines()
+                    log.info("Checking diff")
 
-                new_file_lines = new_file.read_text(errors="ignore").splitlines()
-                old_file_lines = old_file.read_text(errors="ignore").splitlines()
+                    # Only continue if we found something to diff with
+                    if len(new_file_lines) > 0 or len(old_file_lines) > 0:
+                        log.info("starting..")
+                        diffs = difflib.Differ().compare(new_file_lines, old_file_lines)
+                        log.info("generated diff ")
+                        log.info(f"len: {len(list(diffs))}")
+                        lost_lines = [d for d in diffs if d.startswith("-")]
 
-                # Only continue if we found something to diff with
-                if len(new_file_lines) > 0 or len(old_file_lines) > 0:
-                    lost_lines = [
-                        d for d in difflib.Differ().compare(new_file_lines, old_file_lines) if d.startswith("-")
-                    ]
+                        # Only continue if there was some diff
+                        log.info(f"Found {lost_lines} lines")
+                        if len(lost_lines) > 0:
+                            matched_lost_lines = []
+                            for skip_regex in skip_regexes:
+                                for line in lost_lines:
+                                    if re.search(skip_regex, line):
+                                        matched_lost_lines.append(line)
 
-                    # Only continue if there was some diff
-                    if len(lost_lines) > 0:
-                        matched_lost_lines = []
-                        for skip_regex in skip_regexes:
-                            for line in lost_lines:
-                                if re.search(skip_regex, line):
-                                    matched_lost_lines.append(line)
-
-                        log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
-                        if len(matched_lost_lines) == len(lost_lines):
-                            create_file = False
+                            log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
+                            if len(matched_lost_lines) == len(lost_lines):
+                                create_file = False
+                        else:
+                            log_msg += ", no diff found"
                     else:
-                        log_msg += ", no diff found"
-                else:
-                    log_msg += ", no text to diff"
+                        log_msg += ", no text to diff"
 
         if create_file:
             self.num_img_saved += 1

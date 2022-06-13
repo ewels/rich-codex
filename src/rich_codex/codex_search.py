@@ -81,14 +81,16 @@ class CodexSearch:
 
         # eg. <!-- RICH-CODEX TERMINAL_WIDTH=60 -->
         # eg. <!-- RICH-CODEX
-        config_comment_re = re.compile(r"<!\-\-\s*RICH-CODEX\s*(?P<config_str>.*(?!-->)\w)*\s*(?P<end_comment>\-\->)?")
+        config_comment_re = re.compile(
+            r"\s*<!\-\-\s*RICH-CODEX\s*(?P<config_str>.*(?!-->)\w)*\s*(?P<end_comment>\-\->)?"
+        )
 
         # eg. ![`rich --help`](rich-cli-help.svg)
-        img_cmd_re = re.compile(r"!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
+        img_cmd_re = re.compile(r"\s*!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
 
         # eg. ![custom text](img/example.svg)
         # eg. ![](img/example-named.svg)
-        img_snippet_re = re.compile(r"!\[.*\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
+        img_snippet_re = re.compile(r"\s*!\[.*\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
 
         local_config = {}
         num_commands = 0
