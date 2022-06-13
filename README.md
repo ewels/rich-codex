@@ -5,7 +5,7 @@ A GitHub Action / command-line tool which generates screengrab images of a termi
 [![PyPI Version](https://img.shields.io/pypi/v/rich-codex.svg?style=flat-square)](https://pypi.python.org/pypi/multiqc/)
 [![Docker](https://img.shields.io/docker/automated/ewels/rich-codex.svg?style=flat-square)](https://hub.docker.com/r/ewels/multiqc/)
 
-## Introduction
+## <a name='Introduction'></a>Introduction
 
 Rich-click searches markdown code for image embeds with commands or code snippets. It runs these commands and saves a terminal screen-grab at the embedded path.
 
@@ -15,7 +15,7 @@ Typical use cases:
 - ♻️ Syntax-highlighted code snippets that are always up to date with your `examples/`
 - 🤩 Fast and simple images for your docs with minimal setup
 
-## Quickstart
+## <a name='Quickstart'></a>Quickstart
 
 1. 📖 Write some markdown docs, use an image tag with a backtick command inside:
    ```markdown
@@ -42,7 +42,37 @@ Typical use cases:
 
 3. 🌈 Enjoy reading your documentation ![My cat rainbow](docs/img/cat.svg)
 
-## How it works
+<!-- vscode-markdown-toc -->
+
+- [Introduction](#Introduction)
+- [Quickstart](#Quickstart)
+- [How it works](#Howitworks)
+- [GitHub Action](#GitHubAction)
+- [Command-line](#Command-line)
+  - [Local installation](#Localinstallation)
+  - [Docker image](#Dockerimage)
+- [Generating images](#Generatingimages)
+  - [Markdown](#Markdown)
+  - [Command-line / action inputs](#Command-lineactioninputs)
+  - [YAML config files](#YAMLconfigfiles)
+- [Avoiding superfluous changes](#Avoidingsuperfluouschanges)
+  - [Percentage change in file contents](#Percentagechangeinfilecontents)
+  - [Regular expression matches](#Regularexpressionmatches)
+- [Safety](#Safety)
+  - [Prompts for commands](#Promptsforcommands)
+  - [Banned commands](#Bannedcommands)
+- [Reference docs](#Referencedocs)
+  - [GitHub Action Inputs](#GitHubActionInputs)
+- [Troubleshooting](#Troubleshooting)
+  - [Output has no colour](#Outputhasnocolour)
+
+<!-- vscode-markdown-toc-config
+	numbering=false
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
+## <a name='Howitworks'></a>How it works
 
 Rich-codex is a command-line tool that you can via a **GitHub action** or as a **command line tool**. It works with any markdown (including GitHub READMEs).
 
@@ -52,18 +82,18 @@ It collects either commands or code snippets, together with output filenames and
 
 Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
 
-- 🖼 [Markdown images](#markdown-images)
+- 🖼 [Markdown images](#markdown)
   - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](docs/img/rich-codex-help.svg) ``
-- 💬 [Markdown comments](#markdown-comments)
+- 💬 [Markdown comments](#markdown)
   - Search markdown files for special HTML comments.
-- ➡️ [Command-line / action inputs](#command-line-action-inputs)
+- ➡️ [Command-line / action inputs](#command-line--action-inputs)
   - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](#yaml-config-files)
   - Use one or more YAML config files for multiple images and more complex customisation.
 
 Images can be generated as SVG, PNG or PDF (detected by filename extension).
 
-## GitHub Action
+## <a name='GitHubAction'></a>GitHub Action
 
 Rich-codex was primarily designed to run automatically with GitHub actions, to keep your screenshots up to date for you.
 
@@ -89,11 +119,13 @@ jobs:
           commit_changes: "true"
 ```
 
+See the [Reference Docs](#github-action-inputs) below for a description of all customisation inputs available.
+
 For a more complex example, see [`.github/workflows/examples.yml`](.github/workflows/examples.yml) in this repository.
 
 > ❗️ **Note:** For GitHub Actions to push commits to your repository, you'll need to set _Workflow permissions_ to _Read and write permissions_ under _Actions_ -> _General_ in the repo settings. See the [GitHub docs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions).
 
-## Command-line
+## <a name='Command-line'></a>Command-line
 
 In addition to the GitHub Action, rich-codex is also a stand-alone command line tool.
 
@@ -105,7 +137,7 @@ You are welcome to use it locally, for example when first writing new documentat
 >
 > You alone are responsible for any damage you cause to your computer! 🙃 Running rich-codex entirely within GitHub Actions is recommended 👍🏻
 
-### Local installation
+### <a name='Localinstallation'></a>Local installation
 
 You can install `rich-codex` from the [Python Package Index (PyPI)](https://pypi.org/project/rich-codex/) with `pip` or equivalent.
 
@@ -123,7 +155,7 @@ Behaviour can be customised with command-line flags or by setting environment va
 
 ![`rich-codex --help`](docs/img/rich-codex-help.svg)
 
-#### Requirements for PNG / PDF outputs
+#### <a name='RequirementsforPNGPDFoutputs'></a>Requirements for PNG / PDF outputs
 
 If you wish to generate `PNG` or `PDF` images (not just `SVG`) then there are a few additional requirements. Conversion is done using [CairoSVG](https://cairosvg.org/). First, install rich-click with the `cairo` [extra](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-setuptools-extras):
 
@@ -143,7 +175,7 @@ Installation can be messy, so be prepared to do a bit of googling to get things 
 
 You'll also need Fira Code installed, an open-licence font: [GitHub repo](https://github.com/tonsky/FiraCode) / [Google Fonts](https://fonts.google.com/specimen/Fira+Code).
 
-### Docker image
+### <a name='Dockerimage'></a>Docker image
 
 There is a docker image for running rich-codex, however - note that if you're trying to run commands, they will likely not be available in the container! So this is best used for code snippets or common linux tools. Alternatively, you can build your own docker image using this as a base, with additional dependencies installed.
 
@@ -160,11 +192,11 @@ docker run -i -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
 
 You can then pass environment variables with the `-e` flag to customise behaviour. See the usage instructions below for the available environment variables.
 
-## Generating images
+## <a name='Generatingimages'></a>Generating images
 
-### Markdown
+### <a name='Markdown'></a>Markdown
 
-#### Running commands
+#### <a name='Runningcommands'></a>Running commands
 
 If you write markdown with images that contain _just_ a `backtick command` as the alt-text, rich-codex will find them.
 
@@ -175,16 +207,25 @@ Wow, this documentation is really getting meta!
 ![`rich-codex --help`](docs/img/rich-codex-help.svg)
 ```
 
-![`rich-codex --help`](docs/img/rich-codex-help.svg)
+Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for convenience, so you can easily produce screenshots of files:
+
+```markdown
+![`rich src/rich_codex/rich_img.py --tail 20`](docs/img/rich-codex-snippet.svg)
+```
+
+![`rich src/rich_codex/rich_img.py --tail 20`](docs/img/rich-codex-snippet.svg)
+
+> 💡 Use the `--force-terminal` flag to keep colours in your screenshots
 
 You can also add [title text](https://daringfireball.net/projects/markdown/syntax#img) in quotes after the filename, which will be used in the top menu bar of the screenshot terminal.
+This can be useful when adding lots of command markup to get a good screenshot. For example:
 
 ```markdown
 You don't always want people to see the exact command you used, after all.
-![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat-title.svg "All the colours 😻")
+![`rich src/rich_codex/rich_img.py --tail 20 --force-terminal --max-width 120 --line-numbers --guides --panel rounded --panel-style magenta --theme monokai`](docs/img/rich-codex-snippet-title.svg "src / rich_codex / rich_img.py")
 ```
 
-![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat-title.svg "All the colours 😻")
+![long rich-cli command](docs/img/rich-codex-snippet-title.svg "src / rich_codex / rich_img.py")
 
 Finally, you can use a HTML comment in a line above the image to set config attributes for this image only.
 The comment should begin with `RICH-CODEX` and then have `KEY=VALUE` pairs. Available configs are:
@@ -210,7 +251,7 @@ For example:
 
 <!-- prettier-ignore-end -->
 
-#### Code snippets
+#### <a name='Codesnippets'></a>Code snippets
 
 In addition to running commands, you can format code blocks or "snippets".
 
@@ -260,7 +301,7 @@ Hello World!
 
 <!-- prettier-ignore-end -->
 
-### Command-line / action inputs
+### <a name='Command-lineactioninputs'></a>Command-line / action inputs
 
 You can generate images by providing a command or snippet directly to the CLI at run time.
 
@@ -272,13 +313,62 @@ You need the following command line flags / environment variables / GitHub Actio
 - And:
   - `--img_paths` / `$IMG_PATHS` / `img_paths`
 
-### YAML config files
+### <a name='YAMLconfigfiles'></a>YAML config files
 
 _Under construction, coming soon.._
 
-## Reference docs
+## <a name='Avoidingsuperfluouschanges'></a>Avoiding superfluous changes
 
-### GitHub Action Inputs
+You may find that your screenshots are changing every time you run rich-codex, even though no relevant changes have occured within your code. This could be because the screenshots include timestamps or some other live data.
+
+To avoid doubling your commit count with changes that you don't care about, rich-codex has two mechanisms which you can use to ignore changes:
+
+- ⚖️ Percentage change in file contents
+- 🔎 Regular expression matches
+
+### <a name='Percentagechangeinfilecontents'></a>Percentage change in file contents
+
+When you run rich-codex, any new images created will generate log messages that look like this:
+`Saved: 'docs/img/rich-codex-snippet-title.svg' (4.63% change)`.
+This percentage change is calculated using the [python-Levenshtein](https://github.com/ztane/python-Levenshtein) package, comparing the raw bytes of the two files.
+
+By default, any new files with 0.00% change will be ignored. If you find that you have screenshots changing by the same small percentage every time, you can raise this threshold by setting `--min-pct-diff` (cli) / `MIN_PCT_DIFF` (env var / markdown comment) / `min_pct_diff` (GitHub action input).
+
+For example, if a timestamp caused this file to change by 4.34% on every commit, those changes could be ignored as follows:
+
+```markdown
+<!-- RICH-CODEX MIN_PCT_DIFF=5 -->
+
+![`rich-codex --help`](docs/img/rich-codex-help.svg)
+```
+
+### <a name='Regularexpressionmatches'></a>Regular expression matches
+
+Percentage changes in files is quick and simple, but a little crude. If you prefer, you may be able to use regular expressions instead with `--skip-change-regex` (cli) / `SKIP_CHANGE_REGEX` (env var / markdown comment) / `skip_change_regex` (GitHub action input).
+
+If there is a > 0% change in files, a rich diff will be generated. Any diff lines matching the supplied regexes will be removed and if none remain, the changeset will be ignored.
+
+Rich-codex ships with one default, applied for PDF files: if the only change is a line with `"/CreationDate"` then the changeset will be ignored.
+
+> ⏱ Please note that generating diffs between file pairs can be very slow. Use with caution.
+
+## <a name='Safety'></a>Safety
+
+Reminder: rich-codex runs arbitrary commands found in documentation on your host system. You are responsible for ensuring that it does not do any damage.
+
+### <a name='Promptsforcommands'></a>Prompts for commands
+
+When rich-click runs interactively, it collects all commands to be run and presents these to you, the user. You then need to choose whether to run all commands, choose some or to ignore all of them.
+
+### <a name='Bannedcommands'></a>Banned commands
+
+As a very basic safety step, rich-click attempts to ignore any commands that start with the following: `rm`, `cp`, `mv`, `sudo`. This is to avoid accidentally messing with your local system.
+
+Please note that this is only for rough protection against accidents and would be easy for a malicious user to circumvent _(for example, putting these commands in a bash script and running that)_.
+
+## <a name='Referencedocs'></a>Reference docs
+
+### <a name='GitHubActionInputs'></a>GitHub Action Inputs
 
 - `search_include`: Glob patterns to files in which to search for rich-codex comments
 - `search_exclude`: Glob patterns to exclude from search for rich-codex comments
@@ -298,9 +388,9 @@ _Under construction, coming soon.._
 - `commit_changes`: Automatically commit changes to the repository
 - `error_changes`: Exit with an error if changes are found (Ignored if 'commit_changes' is true)
 
-## Troubleshooting
+## <a name='Troubleshooting'></a>Troubleshooting
 
-### Output has no colour
+### <a name='Outputhasnocolour'></a>Output has no colour
 
 By default, rich-codex runs commands in a Python `subprocess`. This is not an interactive termainal, and as such many command-line tools will disable coloured output.
 
