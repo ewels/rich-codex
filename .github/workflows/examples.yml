@@ -15,13 +15,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: "3.10"
+          python-version: 3.x
 
       - name: Install fonts
         run: sudo apt install fonts-firacode
 
       - name: Install requirements
-        run: pip install cowsay lolcat ".[cairo]"
+        run: pip install cowsay lolcat mkdocs-material ".[cairo]"
 
       - name: Generate images from markdown comments
         run: rich-codex
@@ -80,6 +80,9 @@ jobs:
             git commit -m "Generate new screengrabs with rich-codex"
             git push
           fi
+
+      - name: Build and deploy docs
+        run: mkdocs gh-deploy --force
 
       - name: Upload sync log file artifact
         if: ${{ always() }}
