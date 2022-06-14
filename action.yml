@@ -74,7 +74,7 @@ runs:
         python-version: 3.x
 
     - name: Install rich-codex
-      run: pip install "rich-codex.[cairo]"
+      run: pip install ".[cairo]"
       shell: bash
 
     - name: Run rich-codex
