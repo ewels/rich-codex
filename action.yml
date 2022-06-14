@@ -105,7 +105,7 @@ runs:
         git config --local user.name 'github-actions[bot]'
         git config --local user.email 'github-actions[bot]@users.noreply.github.com'
         git status
-        if [[ `git status --porcelain` ]]; then
+        if [[ `git status --porcelain > /dev/null` ]]; then
           echo "💥 Found changes in the rich-codex images!"
           if [[ ${{ inputs.commit_changes }} ]]; then
             git add .
