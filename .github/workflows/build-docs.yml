@@ -1,4 +1,4 @@
-name: Create example images
+name: Build images / docs
 on: [push]
 
 jobs:
