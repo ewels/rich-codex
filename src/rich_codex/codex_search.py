@@ -73,8 +73,13 @@ class CodexSearch:
             for search_file in Path.cwd().glob(pattern):
                 search_files.add(search_file.resolve())
         for pattern in self.search_exclude:
-            for exclude_file in Path.cwd().glob(pattern):
-                search_files.discard(exclude_file.resolve())
+            if pattern.endswith("/"):
+                pattern += "**/*"
+            try:
+                for exclude_file in Path.cwd().glob(pattern):
+                    search_files.discard(exclude_file.resolve())
+            except (ValueError, NotImplementedError):
+                pass
         if len(search_files) == 0:
             log.error("No files found to search")
         else:
