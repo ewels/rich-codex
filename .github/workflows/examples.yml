@@ -1,10 +1,6 @@
 name: Create example images
 on: [push]
 
-env:
-  TERMINAL_WIDTH: 120
-  LOG_SAVE: true
-
 jobs:
   rich_codex:
     runs-on: ubuntu-latest
@@ -17,76 +13,15 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Install fonts
-        run: sudo apt install fonts-firacode
+      - name: Install requirements for docs
+        run: pip install cowsay lolcat mkdocs-material
 
-      - name: Install requirements
-        run: pip install cowsay lolcat mkdocs-material ".[cairo]"
-
-      - name: Generate images from markdown comments
-        run: rich-codex
-        env:
-          CLEAN_IMG_PATHS: |
-            docs/img/*
-            examples/markdown_comments/img/*
-
-      - name: Generate images from action command
-        run: rich-codex
-        env:
-          NO_SEARCH: true
-          COMMAND: cowsay "Taste the rainbow" | lolcat -S 100
-          CLEAN_IMG_PATHS: examples/action_command/*
-          IMG_PATHS: |
-            examples/action_command/cowsay-colours.svg
-            examples/action_command/cowsay-colours.png
-            examples/action_command/cowsay-colours.pdf
-
-      - name: Generate images from action snippet
-        run: rich-codex
-        env:
-          NO_SEARCH: true
-          SNIPPET: |
-            >>> print("[italic red]Hello[/italic red] World!", locals())
-            Hello World!
-            {
-                '__annotations__': {},
-                '__builtins__': <module 'builtins' (built-in)>,
-                '__doc__': None,
-                '__loader__': <class '_frozen_importlib.BuiltinImporter'>,
-                '__name__': '__main__',
-                '__package__': None,
-                '__spec__': None,
-                'print': <function print at 0x1027fd4c0>,
-            }
-          CLEAN_IMG_PATHS: examples/actions_snippet/*
-          IMG_PATHS: |
-            examples/actions_snippet/rich-example.svg
-            examples/actions_snippet/rich-example.png
-
-      - name: Generate images from a YAML config
-        run: rich-codex
-        env:
-          NO_SEARCH: true
-          CLEAN_IMG_PATHS: examples/yml_configs/*.{svg,png,pdf}
-          RC_CONFIGS: examples/yml_configs/*.yml
-
-      - name: Add and commit new images
-        run: |
-          git config --local user.name 'github-actions[bot]'
-          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-          git status
-          if [[ `git status --porcelain` ]]; then
-            git add .
-            git commit -m "Generate new screengrabs with rich-codex"
-            git push
-          fi
+      - name: Generate terminal images with rich-codex
+        uses: ./ # Would normally be ewels/rich-codex@v1
+        with:
+          commit_changes: "true"
+          clean_img_paths: docs/img/*svg
+          terminal_width: "120"
 
       - name: Build and deploy docs
         run: mkdocs gh-deploy --force
-
-      - name: Upload sync log file artifact
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: Log files
-          path: rich_codex_*.log

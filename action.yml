@@ -41,10 +41,10 @@ inputs:
   skip_change_regex:
     description: Skip image update if file changes match regex
     required: false
-  width:
+  terminal_width:
     description: Width of the terminal
     required: false
-  theme:
+  terminal_theme:
     description: Colour theme
     required: false
   use_pty:
@@ -92,10 +92,11 @@ runs:
         RC_CONFIGS: ${{ inputs.rc_configs }}
         MIN_PCT_DIFF: ${{ inputs.min_pct_diff }}
         SKIP_CHANGE_REGEX: ${{ inputs.skip_change_regex }}
-        TERMINAL_WIDTH: ${{ inputs.width }}
-        TERMINAL_THEME: ${{ inputs.theme }}
+        TERMINAL_WIDTH: ${{ inputs.terminal_width }}
+        TERMINAL_THEME: ${{ inputs.terminal_theme }}
         USE_PTY: ${{ inputs.use_pty }}
         LOG_VERBOSE: ${{ inputs.log_verbose }}
+        LOG_SAVE: "true"
         NO_CONFIRM: "true"
 
     - name: Add and commit new images

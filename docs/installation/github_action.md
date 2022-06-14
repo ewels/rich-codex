@@ -49,8 +49,8 @@ For a more complex example, see [`.github/workflows/examples.yml`](https://githu
 - `rc_configs`: Paths to YAML config files
 - `min_pct_diff`: Minimum file percentage change required to update image
 - `skip_change_regex`: Skip image update if file changes match regex
-- `width`: Width of the terminal
-- `theme`: Colour theme
+- `terminal_width`: Width of the terminal
+- `terminal_theme`: Colour theme
 - `use_pty`: Use a pseudo-terminal for commands (may capture coloured output)
 - `log_verbose`: Print verbose output to the console.
 - `commit_changes`: Automatically commit changes to the repository

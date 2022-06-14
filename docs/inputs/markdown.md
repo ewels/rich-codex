@@ -68,13 +68,31 @@ In addition to running commands, you can format code blocks or "snippets".
 
 To do this, make the `<!-- RICH-CODEX` code comment multi-line. Config key-pairs stay on the first line and anything on subsequent lines before the closing `-->` will be treated as the snippet. Then follow the code comment with a markdown image tag (again, the filename will be taken for the generated image).
 
-> The alt-text for the markdown image embed doesn't matter for snippets. However, if it has a command in backticks then this will take priority over the snippet.
-
-Use `SNIPPET_SYNTAX` to define a language to format in. Syntax highlightin defaults to JSON if the snippet is valid JSON, and is otherwise uncoloured. All other key-value pairs above also work for snippets.
-
-For example:
-
 <!-- prettier-ignore-start -->
+
+!!! info
+    The alt-text for the markdown image embed doesn't matter for snippets. However, if it has a command in backticks then this will take priority over the snippet.
+
+Syntax highlighting defaults to JSON if the snippet is valid JSON, and is otherwise uncoloured:
+
+```markdown
+<!-- RICH-CODEX
+{"menu": {
+  "id": "file", "value": "File",
+  "popup": {
+    "menuitem": [
+      {"value": "New", "onclick": "CreateNewDoc()"},
+      {"value": "Open", "onclick": "OpenDoc()"},
+      {"value": "Close", "onclick": "CloseDoc()"}
+    ]
+  }
+}}
+-->
+![my JSON snippet](../img/example-json-snippet.svg)
+```
+![my snippet](../img/example-json-snippet.svg)
+
+For other code languages, use `SNIPPET_SYNTAX` to define which language to format in. For example:
 
 ```markdown
 <!-- RICH-CODEX SNIPPET_SYNTAX=python TERMINAL_WIDTH=80
@@ -91,23 +109,11 @@ Hello World!
     'print': <function print at 0x1027fd4c0>,
 }
 -->
-![my snippet](../img/example-snippet.svg)
+![](../img/example-python-snippet.svg)
 ```
+![](../img/example-python-snippet.svg)
 
-<!-- RICH-CODEX SNIPPET_SYNTAX=python TERMINAL_WIDTH=80
->>> print("[italic red]Hello[/italic red] World!", locals())
-Hello World!
-{
-    '__annotations__': {},
-    '__builtins__': <module 'builtins' (built-in)>,
-    '__doc__': None,
-    '__loader__': <class '_frozen_importlib.BuiltinImporter'>,
-    '__name__': '__main__',
-    '__package__': None,
-    '__spec__': None,
-    'print': <function print at 0x1027fd4c0>,
-}
--->
-![my snippet](../img/example-snippet.svg)
+!!! note
+    Note that all other key-value pairs above also work for snippets.
 
 <!-- prettier-ignore-end -->
