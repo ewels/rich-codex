@@ -9,15 +9,17 @@ Wow, this documentation is really getting meta!
 ![`rich-codex --help`](../img/rich-codex-help.svg)
 ```
 
+![`rich-codex --help`](../img/rich-codex-help.svg)
+
 ## Printing files
 
 Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for convenience, so you can easily produce screenshots of files with the `rich` command:
 
 ```markdown
-![`rich src/rich_codex/rich_img.py --tail 20`](../img/rich-codex-snippet.svg)
+![`rich ../../src/rich_codex/rich_img.py --tail 20`](../img/rich-codex-snippet.svg)
 ```
 
-![`rich src/rich_codex/rich_img.py --tail 20`](../img/rich-codex-snippet.svg)
+![`rich ../../src/rich_codex/rich_img.py --tail 20`](../img/rich-codex-snippet.svg)
 
 <!-- prettier-ignore-start -->
 !!! tip
@@ -31,7 +33,7 @@ This can be useful when adding lots of command markup to get a good screenshot. 
 
 ```markdown
 You don't always want people to see the exact command you used, after all.
-![`rich src/rich_codex/rich_img.py --tail 20 --force-terminal --width 120 --line-numbers --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
+![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --width 120 --line-numbers --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
 ```
 
 ![long rich-cli command](../img/rich-codex-snippet-title.svg "rich_img.py")
@@ -73,7 +75,7 @@ To do this, make the `<!-- RICH-CODEX` code comment multi-line. Config key-pairs
 !!! info
     The alt-text for the markdown image embed doesn't matter for snippets. However, if it has a command in backticks then this will take priority over the snippet.
 
-Syntax highlighting defaults to JSON if the snippet is valid JSON, and is otherwise uncoloured:
+If the snippet is valid JSON, it will be pretty-printed and coloured. Otherwise text will default to white.
 
 ```markdown
 <!-- RICH-CODEX
@@ -113,7 +115,7 @@ Hello World!
 ```
 ![](../img/example-python-snippet.svg)
 
-!!! note
+!!! hint
     Note that all other key-value pairs above also work for snippets.
 
 <!-- prettier-ignore-end -->
