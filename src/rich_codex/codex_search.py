@@ -1,6 +1,5 @@
 import logging
 import re
-from glob import glob
 from pathlib import Path
 
 from rich.console import Console
@@ -71,9 +70,11 @@ class CodexSearch:
         """Search through a set of files for codex strings."""
         search_files = set()
         for pattern in self.search_include:
-            search_files |= set(glob(pattern, recursive=True))
+            for search_file in Path.cwd().glob(pattern):
+                search_files.add(search_file.resolve())
         for pattern in self.search_exclude:
-            search_files = search_files - set(glob(pattern, recursive=True))
+            for exclude_file in Path.cwd().glob(pattern):
+                search_files.remove(exclude_file.resolve())
         if len(search_files) == 0:
             log.error("No files found to search")
         else:
