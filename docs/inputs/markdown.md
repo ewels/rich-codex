@@ -5,7 +5,6 @@ If you write markdown with images that contain _just_ a `backtick command` as th
 For example, the following markdown will generate `../img/rich-codex-help.svg` (the image shown above) based on the output of the command `rich-codex --help`:
 
 ```markdown
-Wow, this documentation is really getting meta!
 ![`rich-codex --help`](../img/rich-codex-help.svg)
 ```
 
@@ -16,10 +15,10 @@ Wow, this documentation is really getting meta!
 Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for convenience, so you can easily produce screenshots of files with the `rich` command:
 
 ```markdown
-![`rich ../../src/rich_codex/rich_img.py --tail 20`](../img/rich-codex-snippet.svg)
+![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 ```
 
-![`rich ../../src/rich_codex/rich_img.py --tail 20`](../img/rich-codex-snippet.svg)
+![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 
 <!-- prettier-ignore-start -->
 !!! tip
