@@ -1,14 +1,34 @@
 site_name: rich-codex
+repo_url: https://github.com/ewels/rich-codex
+
 theme:
   name: material
   icon:
     logo: octicons/book-16
+    repo: fontawesome/brands/github
   palette:
-    scheme: slate
-    primary: indigo
-    accent: indigo
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Noto Sans
   features:
+    - navigation.instant
     - navigation.sections
+
 nav:
   - Home: index.md
   - Installation:
@@ -23,6 +43,7 @@ nav:
       - advanced/ignoring_changes.md
       - advanced/safety.md
       - advanced/troubleshooting.md
+
 markdown_extensions:
   - admonition
   - pymdownx.highlight:

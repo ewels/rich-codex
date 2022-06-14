@@ -34,7 +34,7 @@ jobs:
           clean_img_paths: docs/img/*.svg
 ```
 
-For a more complex example, see [`.github/workflows/examples.yml`](.github/workflows/examples.yml) in this repository.
+For a more complex example, see [`.github/workflows/examples.yml`](https://github.com/ewels/rich-codex/blob/main/.github/workflows/examples.yml) in this repository.
 
 ## GitHub Action Inputs
 
