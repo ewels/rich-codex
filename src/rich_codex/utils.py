@@ -1,5 +1,4 @@
 import logging
-from glob import glob
 from pathlib import Path
 
 log = logging.getLogger("rich-codex")
@@ -14,32 +13,37 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
 
     if len(clean_img_patterns) == 0:
         log.debug("[dim]Nothing found to clean in 'clean_img_paths'")
-        return
+        return 0
 
     # Search glob patterns for images
     all_img_paths = set()
     for pattern in clean_img_patterns:
-        all_img_paths |= set(glob(pattern, recursive=True))
+        for matched_path in Path.cwd().glob(pattern):
+            all_img_paths.add(matched_path.resolve())
     if len(all_img_paths) == 0:
         log.debug("[dim]No files found matching 'clean_img_paths' glob patterns")
-        return
+        return 0
 
     # Collect list of generated images
-    known_img_paths = []
+    known_img_paths = set()
     if img_obj:
-        known_img_paths.extend(img_obj.img_paths)
+        for img_path in img_obj.img_paths:
+            known_img_paths.add(Path(img_path).resolve())
     if codex_obj:
         for img in codex_obj.rich_imgs:
-            known_img_paths.extend(img.img_paths)
+            for img_path in img.img_paths:
+                known_img_paths.add(Path(img_path).resolve())
 
     # Paths found by glob that weren't generated
-    clean_img_paths = all_img_paths - set(known_img_paths)
+    clean_img_paths = all_img_paths - known_img_paths
     if len(clean_img_paths) == 0:
         log.debug("[dim]All files found matching 'clean_img_paths' were generated in this run. Nothing to clean.")
-        return
+        return 0
 
     for path in clean_img_paths:
-        log.debug(f"Deleting '{path}'")
-        Path(path).unlink()
+        path_to_delete = Path(path).resolve()
+        path_relative = path_to_delete.relative_to(Path.cwd())
+        log.info(f"Deleting '{path_relative}'")
+        path_to_delete.unlink()
 
-    log.info(f"Deleted {len(clean_img_paths)} images matching 'clean_img_paths' that were unaccounted for 💥")
+    return len(clean_img_paths)

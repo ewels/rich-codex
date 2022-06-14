@@ -74,7 +74,6 @@ class RichImg:
         self.img_paths = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
-        self.num_img_cleaned = 0
         self.no_confirm = False
         self.aborted = False
 
@@ -193,7 +192,7 @@ class RichImg:
             # Percentage change in file
             # This method works even with entirely binary files, no decoding required
             pct_change = (1 - ratio(new_file.read_bytes(), old_file.read_bytes())) * 100.0
-            if pct_change <= self.min_pct_diff:
+            if pct_change <= float(self.min_pct_diff):
                 create_file = False
             log_msg = f"{pct_change:.2f}% change"
 

@@ -237,7 +237,6 @@ def main(
             img_obj.save_images()
             num_saved_images = img_obj.num_img_saved
             num_skipped_images = img_obj.num_img_skipped
-            num_img_cleaned = img_obj.num_img_cleaned
 
     # Search files for codex strings
     if no_search:
@@ -264,14 +263,14 @@ def main(
 
     # Clean unrecognised images
     if clean_img_paths:
-        utils.clean_images(clean_img_paths, img_obj, codex_obj)
+        num_img_cleaned = utils.clean_images(clean_img_paths, img_obj, codex_obj)
 
     if num_skipped_images > 0:
         log.info(f"[dim]Skipped {num_skipped_images} images 🤫")
     if num_saved_images > 0:
         log.info(f"Saved {num_saved_images} images ✨")
     if num_img_cleaned > 0:
-        log.info(f"Deleted {num_img_cleaned} images 🗑")
+        log.info(f"Deleted {num_img_cleaned} images 💥")
     if num_skipped_images == 0 and num_saved_images == 0:
         log.warning("Couldn't find anything to do 🙄")
 
