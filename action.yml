@@ -102,11 +102,12 @@ runs:
     - name: Add and commit new images
       shell: bash
       run: |
+        echo "::group::Pushing any changes found"
         git config --local user.name 'github-actions[bot]'
         git config --local user.email 'github-actions[bot]@users.noreply.github.com'
         git status
         if [[ `git status --porcelain > /dev/null` ]]; then
-          echo "💥 Found changes in the rich-codex images!"
+          echo "💥 Found some changes from running rich-codex!"
           if [[ ${{ inputs.commit_changes }} ]]; then
             git add .
             git commit -m "Generate new screengrabs with rich-codex"
@@ -115,7 +116,10 @@ runs:
             echo "🤖 Tip: Use 'commit_changes' to automatically commit them next time."
             (exit 1)
           fi
+        else
+          echo "🤫 No changes from rich-codex found!"
         fi
+        echo "::endgroup::"
 
     - name: Upload sync log file artifact
       if: ${{ always() }}
