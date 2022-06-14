@@ -74,7 +74,7 @@ class CodexSearch:
                 search_files.add(search_file.resolve())
         for pattern in self.search_exclude:
             for exclude_file in Path.cwd().glob(pattern):
-                search_files.remove(exclude_file.resolve())
+                search_files.discard(exclude_file.resolve())
         if len(search_files) == 0:
             log.error("No files found to search")
         else:

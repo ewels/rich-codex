@@ -65,7 +65,7 @@ runs:
   using: "composite"
   steps:
     - name: Install fonts
-      run: sudo apt install -qq fonts-firacode
+      run: sudo apt -qq install fonts-firacode
       shell: bash
 
     - name: Set up Python
