@@ -1,7 +1,7 @@
 import logging
-import pathlib
 import re
 from glob import glob
+from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
@@ -153,8 +153,8 @@ class CodexSearch:
                         snippet = ""
 
                         # Save the image path
-                        img_path = pathlib.Path(file).parent / pathlib.Path(m["img_path"].strip())
-                        img_obj.img_paths = [str(img_path)]
+                        img_path = Path(file).parent / Path(m["img_path"].strip())
+                        img_obj.img_paths = [str(img_path.resolve())]
 
                         # Save the title if set
                         if m["title"]:

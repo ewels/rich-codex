@@ -1,11 +1,11 @@
 import difflib
 import logging
 import os
-import pathlib
 import pty
 import re
 import shlex
 import subprocess
+from pathlib import Path
 from shutil import copyfile
 from tempfile import gettempdir, mkstemp
 
@@ -180,8 +180,8 @@ class RichImg:
             log.warning("Tried to get output with no command or snippet")
 
     def _enough_image_difference(self, new_fn, old_fn):
-        new_file = pathlib.Path(new_fn)
-        old_file = pathlib.Path(old_fn)
+        new_file = Path(new_fn)
+        old_file = Path(old_fn)
         create_file = True
         log_msg = ""
 
@@ -234,12 +234,13 @@ class RichImg:
                     else:
                         log_msg += ", no text to diff"
 
+        old_fn_relative = Path(old_fn).relative_to(Path.cwd())
         if create_file:
             self.num_img_saved += 1
-            log.info(f"Saved: '{old_fn}' ({log_msg})")
+            log.info(f"Saved: '{old_fn_relative}' ({log_msg})")
         else:
             self.num_img_skipped += 1
-            log.debug(f"[dim]Skipped: '{old_fn}' ({log_msg})")
+            log.debug(f"[dim]Skipped: '{old_fn_relative}' ({log_msg})")
 
         return create_file
 
@@ -270,7 +271,7 @@ class RichImg:
         for filename in self.img_paths:
 
             # Make directories if necessary
-            pathlib.Path(filename).parent.mkdir(parents=True, exist_ok=True)
+            Path(filename).parent.mkdir(parents=True, exist_ok=True)
 
             # If already made this image, copy it from the last destination
             if filename.lower().endswith(".png") and png_img is not None:
@@ -349,11 +350,11 @@ class RichImg:
                         pdf_img = filename
 
             # Delete temprary files
-            tmp_path = pathlib.Path(tmp_filename)
-            if tmp_path.parent == gettempdir():
+            tmp_path = Path(tmp_filename)
+            if tmp_path.is_relative_to(gettempdir()):
                 tmp_path.unlink()
 
         # Delete temporary SVG file - after loop as can be reused
-        tmp_svg_path = pathlib.Path(svg_tmp_filename)
-        if tmp_svg_path.parent == gettempdir():
+        tmp_svg_path = Path(svg_tmp_filename)
+        if tmp_svg_path.is_relative_to(gettempdir()):
             tmp_svg_path.unlink()
