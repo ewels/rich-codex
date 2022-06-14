@@ -65,7 +65,7 @@ runs:
   using: "composite"
   steps:
     - name: Install fonts
-      run: sudo apt install fonts-firacode
+      run: sudo apt install -qq fonts-firacode
       shell: bash
 
     - name: Set up Python
@@ -74,7 +74,7 @@ runs:
         python-version: 3.x
 
     - name: Install rich-codex
-      run: pip install ".[cairo]"
+      run: pip install -qqq ".[cairo]"
       shell: bash
 
     - name: Run rich-codex
