@@ -69,6 +69,7 @@ class RichImg:
             record=True,
             width=int(terminal_width) if terminal_width else None,
         )
+        self.cwd = Path.cwd()
         self.cmd = None
         self.snippet = None
         self.img_paths = []
@@ -100,7 +101,7 @@ class RichImg:
             return True
         return Confirm.ask(f"Command: [white on black] {self.cmd} [/] Run?", console=self.console)
 
-    def pipe_command(self):
+    def run_command(self):
         """Capture output from a supplied command and save to an image."""
         if self.cmd is None:
             log.debug("Tried to generate image with no command")
@@ -137,6 +138,7 @@ class RichImg:
             log.debug(f"Running command '{self.cmd}' with subprocess")
             process = subprocess.Popen(
                 self.cmd,
+                cwd=self.cwd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 shell=True,  # Needed for pipes
@@ -170,9 +172,9 @@ class RichImg:
             self.capture_console.print(syntax)
 
     def get_output(self):
-        """Either pipe command or format snippet, depending on what is set."""
+        """Either run command or format snippet, depending on what is set."""
         if self.cmd is not None:
-            self.pipe_command()
+            self.run_command()
         elif self.snippet is not None:
             self.format_snippet()
         else:

@@ -147,6 +147,7 @@ class CodexSearch:
 
                         # Save the command
                         if img_cmd_match:
+                            img_obj.cwd = Path(file).parent
                             img_obj.cmd = m["cmd"]
                             num_commands += 1
 

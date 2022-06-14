@@ -21,7 +21,7 @@ Typical use cases:
 
 1. 📖 Write some markdown docs, use an image tag with a backtick command inside:
    ```markdown
-   ![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat.svg)
+   ![`cat docs/cat.txt | lolcat -S 1`](docs/img/cat.png)
    ```
 2. 🤖 Add a GitHub Action to automatically run the command, generate the image and commit to the repo:
 
@@ -42,7 +42,7 @@ Typical use cases:
              commit_changes: "true"
    ```
 
-3. 🌈 Enjoy reading your documentation ![My cat rainbow](docs/img/cat.svg)
+3. 🌈 Enjoy reading your documentation ![My cat rainbow](docs/img/cat.png)
 
 ## How it works
 
