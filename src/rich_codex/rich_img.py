@@ -1,11 +1,14 @@
 import difflib
+import fcntl
 import logging
 import os
 import pty
 import re
-import shlex
+import signal
+import struct
 import subprocess
 from pathlib import Path
+import termios
 from shutil import copyfile
 from tempfile import gettempdir, mkstemp
 
@@ -121,16 +124,49 @@ class RichImg:
         # Run the command with a fake tty to try to get colours
         if self.use_pty:
             log.debug(f"Running command '{self.cmd}' with pty")
-            # https://stackoverflow.com/a/61724722/713980
+
+            read_end, write_end = pty.openpty()
+
+            # Resize routine for pty
+            # First, get our own current terminal size
+            # (struct is documented here: https://www.delorie.com/djgpp/doc/libc/libc_495.html)
+            size = fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack("HHHH", 0, 0, 0, 0))
+
+            # Rewrite size with selected terminal width
+            if self.terminal_width is not None:
+                data = struct.unpack("HHHH", size)
+                size = struct.pack("HHHH", data[0], self.terminal_width, data[2], data[3])
+
+            # Issue command to pty to resize
+            fcntl.ioctl(read_end, termios.TIOCSWINSZ, size)
+            signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(read_end, termios.TIOCSWINSZ, size))
+
+            # Run subprocess in pty
+            process = subprocess.Popen(
+                self.cmd,
+                shell=True,
+                close_fds=True,
+                preexec_fn=os.setsid,
+                stdout=write_end,
+                stderr=write_end,
+            )
+            os.close(write_end)
+
             output_arr = []
 
-            def read(fd):
-                data = os.read(fd, 1024)
-                output_arr.append(data)
-                return data
+            # This loop will keep going until no more data is incoming (child process closed their pipe)
+            while True:
+                try:
+                    data = os.read(read_end, 1024)
+                except OSError:
+                    data = b""
 
-            # NOTE: Does not support piped commands!
-            pty.spawn(shlex.split(self.cmd), read)
+                if data:
+                    output_arr.append(data)
+                else:
+                    break
+
+            os.close(read_end)
             output = b"".join(output_arr).decode("utf-8")
 
         # Run the command without messing with ttys

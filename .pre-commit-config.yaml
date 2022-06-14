@@ -8,7 +8,7 @@ repos:
       - id: identity
       - id: check-hooks-apply
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: "" # Can not be removed, so leave this empty.
+    rev: "v2.7.0" # Can not be removed, so leave this empty.
     hooks:
       - id: prettier
   - repo: local
