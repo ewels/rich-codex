@@ -1,14 +1,9 @@
 import difflib
-import fcntl
 import logging
 import os
-import pty
 import re
-import signal
-import struct
 import subprocess
 from pathlib import Path
-import termios
 from shutil import copyfile
 from tempfile import gettempdir, mkstemp
 
@@ -121,10 +116,30 @@ class RichImg:
         if self.title == "":
             self.title = self.cmd
 
-        # Run the command with a fake tty to try to get colours
         if self.use_pty:
             log.debug(f"Running command '{self.cmd}' with pty")
 
+            try:
+                import fcntl
+                import pty
+                import signal
+                import struct
+                import termios
+
+                run_with_pty = True
+            except ImportError:
+                # fallback method needed
+                log.warning(
+                    "Could not use pty, import failed (are you using Windows? pty is not usable there). "
+                    "Falling back to subprocess."
+                )
+                run_with_pty = False
+        else:
+            log.debug(f"Running command '{self.cmd}' with subprocess")
+            run_with_pty = False
+
+        # Run the command with a fake tty to try to get colours
+        if run_with_pty:
             read_end, write_end = pty.openpty()
 
             # Resize routine for pty
@@ -132,21 +147,25 @@ class RichImg:
             # (struct is documented here: https://www.delorie.com/djgpp/doc/libc/libc_495.html)
             size = fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack("HHHH", 0, 0, 0, 0))
 
-            # Rewrite size with selected terminal width
+            # Rewrite size with selected terminal width if set
             if self.terminal_width is not None:
                 data = struct.unpack("HHHH", size)
-                size = struct.pack("HHHH", data[0], self.terminal_width, data[2], data[3])
+                size = struct.pack("HHHH", data[0], self.terminal_width, 0, 0)
 
             # Issue command to pty to resize
+            fcntl.ioctl(write_end, termios.TIOCSWINSZ, size)
             fcntl.ioctl(read_end, termios.TIOCSWINSZ, size)
+            signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(write_end, termios.TIOCSWINSZ, size))
             signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(read_end, termios.TIOCSWINSZ, size))
 
             # Run subprocess in pty
             process = subprocess.Popen(
                 self.cmd,
+                cwd=self.cwd,
                 shell=True,
                 close_fds=True,
                 preexec_fn=os.setsid,
+                stdin=write_end,
                 stdout=write_end,
                 stderr=write_end,
             )
@@ -171,7 +190,6 @@ class RichImg:
 
         # Run the command without messing with ttys
         else:
-            log.debug(f"Running command '{self.cmd}' with subprocess")
             process = subprocess.Popen(
                 self.cmd,
                 cwd=self.cwd,
