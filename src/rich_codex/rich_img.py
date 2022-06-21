@@ -1,9 +1,7 @@
 import difflib
 import logging
 import os
-import pty
 import re
-import shlex
 import subprocess
 from pathlib import Path
 from shutil import copyfile
@@ -118,24 +116,80 @@ class RichImg:
         if self.title == "":
             self.title = self.cmd
 
-        # Run the command with a fake tty to try to get colours
         if self.use_pty:
             log.debug(f"Running command '{self.cmd}' with pty")
-            # https://stackoverflow.com/a/61724722/713980
+
+            try:
+                import fcntl
+                import pty
+                import signal
+                import struct
+                import termios
+
+                run_with_pty = True
+            except ImportError:
+                # fallback method needed
+                log.warning(
+                    "Could not use pty, import failed (are you using Windows? pty is not usable there). "
+                    "Falling back to subprocess."
+                )
+                run_with_pty = False
+        else:
+            log.debug(f"Running command '{self.cmd}' with subprocess")
+            run_with_pty = False
+
+        # Run the command with a fake tty to try to get colours
+        if run_with_pty:
+            read_end, write_end = pty.openpty()
+
+            # Resize routine for pty
+            # First, get our own current terminal size
+            # (struct is documented here: https://www.delorie.com/djgpp/doc/libc/libc_495.html)
+            size = fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack("HHHH", 0, 0, 0, 0))
+
+            # Rewrite size with selected terminal width if set
+            if self.terminal_width is not None:
+                data = struct.unpack("HHHH", size)
+                size = struct.pack("HHHH", data[0], self.terminal_width, 0, 0)
+
+            # Issue command to pty to resize
+            fcntl.ioctl(write_end, termios.TIOCSWINSZ, size)
+            fcntl.ioctl(read_end, termios.TIOCSWINSZ, size)
+            signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(write_end, termios.TIOCSWINSZ, size))
+            signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(read_end, termios.TIOCSWINSZ, size))
+
+            # Run subprocess in pty
+            process = subprocess.Popen(
+                self.cmd,
+                cwd=self.cwd,
+                shell=True,
+                close_fds=True,
+                preexec_fn=os.setsid,
+                stdin=write_end,
+                stdout=write_end,
+                stderr=write_end,
+            )
+            os.close(write_end)
+
             output_arr = []
 
-            def read(fd):
-                data = os.read(fd, 1024)
-                output_arr.append(data)
-                return data
+            # This loop will keep going until no more data is incoming (child process closed their pipe)
+            while True:
+                try:
+                    data = os.read(read_end, 1024)
+                except OSError:
+                    data = b""
 
-            # NOTE: Does not support piped commands!
-            pty.spawn(shlex.split(self.cmd), read)
+                if data:
+                    output_arr.append(data)
+                else:
+                    break
+
+            os.close(read_end)
             output = b"".join(output_arr).decode("utf-8")
 
         # Run the command without messing with ttys
         else:
-            log.debug(f"Running command '{self.cmd}' with subprocess")
             process = subprocess.Popen(
                 self.cmd,
                 cwd=self.cwd,
