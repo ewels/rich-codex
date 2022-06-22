@@ -209,13 +209,20 @@ class CodexSearch:
 
     def parse_configs(self):
         """Loop through rich-codex config files to send for parsing."""
+        configs = []
         for config_fn in self.configs:
             config = Path(config_fn)
             if config.exists():
-                with config.open() as fh:
-                    self.parse_config(config_fn, yaml.safe_load(fh))
+                log.debug(f"Found config '{config_fn}'")
+                configs.append(config)
             else:
-                log.debug(f"Couldn't find '{config_fn}'")
+                log.debug(f"[dim]Couldn't find '{config_fn}'")
+
+        if len(configs) > 0:
+            log.info(f"Found {len(configs)} config file{'s' if len(configs) > 1 else ''}")
+        for config in configs:
+            with config.open() as fh:
+                self.parse_config(config_fn, yaml.safe_load(fh))
 
     def parse_config(self, config_fn, config):
         """Parse a single rich-codex config file."""
