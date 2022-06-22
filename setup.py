@@ -9,6 +9,7 @@ setup(
         "rich-cli",  # For convience only
         "importlib-metadata; python_version < '3.8'",
         "levenshtein>=0.18.1",
+        "jsonschema",
     ],
     extras_require={
         "cairo": "CairoSVG>=2.5.2",
