@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import yaml
-from jsonschema import Draft7Validator
+from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from rich.panel import Panel
@@ -215,10 +215,12 @@ class CodexSearch:
             if config.exists():
                 with config.open() as fh:
                     self.parse_config(config_fn, yaml.safe_load(fh))
+            else:
+                log.debug(f"Couldn't find '{config_fn}'")
 
     def parse_config(self, config_fn, config):
         """Parse a single rich-codex config file."""
-        v = Draft7Validator(self.config_schema)
+        v = Draft4Validator(self.config_schema)
         if v.is_valid(config):
             log.debug(f"Config '{config_fn}' looks valid")
         else:
