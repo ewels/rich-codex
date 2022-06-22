@@ -52,13 +52,18 @@ It collects either commands or code snippets, together with output filenames and
 
 Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
 
+<!-- prettier-ignore-start -->
+<!-- (mkdocs needs 4-space indentation for nested lists) -->
+
 - 🖼 [Markdown images](inputs/markdown.md)
-  - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](img/rich-codex-help.svg) ``
+    - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](img/rich-codex-help.svg) ``
 - 💬 [Markdown comments](inputs/markdown.md#code-snippets)
-  - Search markdown files for special HTML comments.
+    - Search markdown files for special HTML comments.
 - ➡️ [Command-line / action inputs](inputs/direct_inputs.md)
-  - Specify a command or snippet using the action `with` inputs.
+    - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](inputs/config_file.md)
-  - Use one or more YAML config files for multiple images and more complex customisation.
+    - Use one or more YAML config files for multiple images and more complex customisation.
+
+<!-- prettier-ignore-end -->
 
 Images can be generated as SVG, PNG or PDF (detected by filename extension).
