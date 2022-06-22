@@ -65,8 +65,7 @@ class CodexSearch:
             pass
 
         # Parse the config schema file
-        self.base_dir = Path(__file__).parent.parent.parent
-        config_schema_fn = self.base_dir / "config-schema.yml"
+        config_schema_fn = Path(__file__).parent / "config-schema.yml"
         with config_schema_fn.open() as fh:
             self.config_schema = yaml.safe_load(fh)
 
@@ -246,7 +245,6 @@ class CodexSearch:
 
             # Save the command
             if "command" in output:
-                img_obj.cwd = self.base_dir
                 img_obj.cmd = output["command"]
 
             # Save the snippet
@@ -255,7 +253,7 @@ class CodexSearch:
 
             # Save the image paths
             for img_path_str in output["img_paths"]:
-                img_path = self.base_dir / Path(img_path_str.strip())
+                img_path = Path(img_path_str.strip())
                 img_obj.img_paths.append(str(img_path.resolve()))
 
             # Save the title if set

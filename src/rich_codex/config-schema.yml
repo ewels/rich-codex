@@ -1,6 +1,6 @@
 ---
 "$schema": "http://json-schema.org/draft-04/schema#"
-"$id": https://github.com/ewels/rich-codex/blob/main/config-schema.yml
+"$id": https://github.com/ewels/rich-codex/raw/main/src/rich_codex/config-schema.yml
 title: rich-codex configs
 type: object
 required:
