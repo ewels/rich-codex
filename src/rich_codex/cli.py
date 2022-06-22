@@ -1,7 +1,9 @@
 import logging
 from datetime import datetime
 from os import environ, getenv
+from sys import exit
 
+from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.pretty import pretty_repr
@@ -215,8 +217,6 @@ def main(
         raise click.BadOptionUsage("--command", "Please use either --command OR --snippet but not both")
     if (command or snippet) and not img_paths:
         raise click.BadOptionUsage("--img-paths", "--img-paths is required when using --command or --snippet")
-    if (command or snippet) and configs:
-        raise click.BadOptionUsage("--configs", "Please use either --command / --snippet OR --configs but not both")
 
     # Generate image from a supplied command / snippet
     if command or snippet:
@@ -238,28 +238,36 @@ def main(
             num_saved_images = img_obj.num_img_saved
             num_skipped_images = img_obj.num_img_skipped
 
+    # Generate images from config files
+
     # Search files for codex strings
+    codex_obj = codex_search.CodexSearch(
+        search_include,
+        search_exclude,
+        configs,
+        no_confirm,
+        snippet_syntax,
+        min_pct_diff,
+        skip_change_regex,
+        terminal_width,
+        terminal_theme,
+        use_pty,
+        console,
+    )
+    try:
+        codex_obj.parse_configs()
+    except ValidationError as e:
+        log.critical(e)
+        exit(1)
     if no_search:
         log.info("Skipping file search")
     else:
-        codex_obj = codex_search.CodexSearch(
-            search_include,
-            search_exclude,
-            no_confirm,
-            snippet_syntax,
-            min_pct_diff,
-            skip_change_regex,
-            terminal_width,
-            terminal_theme,
-            use_pty,
-            console,
-        )
         codex_obj.search_files()
-        codex_obj.collapse_duplicates()
-        codex_obj.confirm_commands()
-        codex_obj.save_all_images()
-        num_saved_images = codex_obj.num_img_saved
-        num_skipped_images = codex_obj.num_img_skipped
+    codex_obj.collapse_duplicates()
+    codex_obj.confirm_commands()
+    codex_obj.save_all_images()
+    num_saved_images = codex_obj.num_img_saved
+    num_skipped_images = codex_obj.num_img_skipped
 
     # Clean unrecognised images
     if clean_img_paths:

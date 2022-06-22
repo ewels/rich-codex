@@ -1,0 +1,63 @@
+---
+"$schema": "http://json-schema.org/draft-07/schema#"
+"$id": https://github.com/ewels/rich-codex/blob/main/config-schema.yml
+title: rich-codex configs
+type: object
+required:
+  - outputs
+additionalProperties: false
+properties:
+  outputs:
+    title: Array of outputs to generate
+    type: array
+    items:
+      title: A single output to generate
+      type: object
+      additionalProperties: false
+      required:
+        - img_paths
+      oneOf:
+        - required:
+            - command
+        - required:
+            - snippet
+      properties:
+        command:
+          title: Shell command to run
+          type: string
+          message:
+            required: Either command or snippet is required
+        snippet:
+          title: Code snippet to use
+          type: string
+          message:
+            required: Either command or snippet is required
+        title:
+          title: Title to use for the terminal window
+          type: string
+        img_paths:
+          title: Array of image filenames to generate
+          type: array
+          minItems: 1
+          items:
+            type: string
+            title: An image path
+            pattern: "(?i)\\.(svg|png|pdf)$"
+        snippet_syntax:
+          title: Language to use for snippet sytax highlighting
+          type: string
+        min_pct_diff:
+          title: Minimum file percentage change required to update image
+          type: string
+        skip_change_regex:
+          title: Skip image update if file changes match regex
+          type: boolean
+        terminal_width:
+          title: Width of the terminal
+          type: integer
+        terminal_theme:
+          title: Colour theme
+          type: string
+        use_pty:
+          title: Use a pseudo-terminal for commands (may capture coloured output)
+          type: boolean

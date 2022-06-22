@@ -2,6 +2,9 @@ import logging
 import re
 from pathlib import Path
 
+import yaml
+from jsonschema import Draft7Validator
+from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -23,6 +26,7 @@ class CodexSearch:
         self,
         search_include,
         search_exclude,
+        configs,
         no_confirm,
         snippet_syntax,
         min_pct_diff,
@@ -37,6 +41,9 @@ class CodexSearch:
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
             self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
+        self.configs = [".rich-codex.yml", ".github/rich-codex.yml", "docs/img/rich-codex.yml"]
+        if configs is not None:
+            self.configs.extend(self._clean_list(configs.splitlines()))
         self.no_confirm = no_confirm
         self.snippet_syntax = snippet_syntax
         self.min_pct_diff = min_pct_diff
@@ -56,6 +63,12 @@ class CodexSearch:
                 self.search_exclude.extend(self._clean_list(fh.readlines()))
         except IOError:
             pass
+
+        # Parse the config schema file
+        self.base_dir = Path(__file__).parent.parent.parent
+        config_schema_fn = self.base_dir / "config-schema.yml"
+        with config_schema_fn.open() as fh:
+            self.config_schema = yaml.safe_load(fh)
 
     def _clean_list(self, unclean_lines):
         """Remove empty strings from a list."""
@@ -191,9 +204,64 @@ class CodexSearch:
                                     local_config[key] = value
 
         if num_commands > 0:
-            log.info(f"Found {num_commands} commands")
+            log.info(f"Search: Found {num_commands} commands")
         if num_snippets > 0:
-            log.info(f"Found {num_snippets} snippets")
+            log.info(f"Search: Found {num_snippets} snippets")
+
+    def parse_configs(self):
+        """Loop through rich-codex config files to send for parsing."""
+        for config_fn in self.configs:
+            config = Path(config_fn)
+            if config.exists():
+                with config.open() as fh:
+                    self.parse_config(config_fn, yaml.safe_load(fh))
+
+    def parse_config(self, config_fn, config):
+        """Parse a single rich-codex config file."""
+        v = Draft7Validator(self.config_schema)
+        if v.is_valid(config):
+            log.debug(f"Config '{config_fn}' looks valid")
+        else:
+            err_msg = f"[red][✗] Rich-codex config file '{config_fn}' was invalid:"
+
+            for error in sorted(v.iter_errors(config), key=str):
+                err_msg += f"\n - {error.message}"
+                if len(error.context):
+                    err_msg += ":"
+                for suberror in sorted(error.context, key=lambda e: e.schema_path):
+                    err_msg += f"\n     * {suberror.message}"
+            raise ValidationError(err_msg, v)
+
+        for output in config["outputs"]:
+            log.debug(f"Found valid output in '{config_fn}': {output}")
+            snippet_syntax = output.get("snippet_syntax", self.snippet_syntax)
+            min_pct_diff = output.get("min_pct_diff", self.min_pct_diff)
+            skip_change_regex = output.get("skip_change_regex", self.skip_change_regex)
+            t_width = output.get("terminal_width", self.terminal_width)
+            t_theme = output.get("terminal_theme", self.terminal_theme)
+            use_pty = output.get("use_pty", self.use_pty)
+            img_obj = rich_img.RichImg(snippet_syntax, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty)
+
+            # Save the command
+            if "command" in output:
+                img_obj.cwd = self.base_dir
+                img_obj.cmd = output["command"]
+
+            # Save the snippet
+            elif "snippet" in output:
+                img_obj.snippet = output["snippet"]
+
+            # Save the image paths
+            for img_path_str in output["img_paths"]:
+                img_path = self.base_dir / Path(img_path_str.strip())
+                img_obj.img_paths.append(str(img_path.resolve()))
+
+            # Save the title if set
+            if "title" in output:
+                img_obj.title = output["title"]
+
+            # Save the image object
+            self.rich_imgs.append(img_obj)
 
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
