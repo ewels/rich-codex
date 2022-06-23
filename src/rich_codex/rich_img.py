@@ -162,16 +162,21 @@ class RichImg:
             signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(read_end, termios.TIOCSWINSZ, size))
 
             # Run subprocess in pty
-            process = subprocess.Popen(
-                self.cmd,
-                cwd=self.cwd,
-                shell=True,
-                close_fds=True,
-                preexec_fn=os.setsid,
-                stdin=write_end,
-                stdout=write_end,
-                stderr=write_end,
-            )
+            try:
+                process = subprocess.Popen(
+                    self.cmd,
+                    cwd=self.cwd,
+                    shell=True,
+                    close_fds=True,
+                    preexec_fn=os.setsid,
+                    stdin=write_end,
+                    stdout=write_end,
+                    stderr=write_end,
+                )
+                process.wait(timeout=self.timeout)
+            except subprocess.TimeoutExpired:
+                log.info(f"Command '{self.cmd}' timed out after {self.timeout} seconds")
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             os.close(write_end)
 
             output_arr = []
