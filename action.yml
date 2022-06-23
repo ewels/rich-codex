@@ -47,6 +47,12 @@ inputs:
   terminal_width:
     description: Width of the terminal
     required: false
+  terminal_min_width:
+    description: Minimum width of the terminal (use trimming)
+    required: false
+  notrim:
+    description: Disable automatic trimming of terminal width
+    required: false
   terminal_theme:
     description: Colour theme
     required: false
@@ -99,6 +105,8 @@ runs:
         MIN_PCT_DIFF: ${{ inputs.min_pct_diff }}
         SKIP_CHANGE_REGEX: ${{ inputs.skip_change_regex }}
         TERMINAL_WIDTH: ${{ inputs.terminal_width }}
+        TERMINAL_MIN_WIDTH: ${{ inputs.terminal_min_width }}
+        NOTRIM: ${{ inputs.notrim }}
         TERMINAL_THEME: ${{ inputs.terminal_theme }}
         USE_PTY: ${{ inputs.use_pty }}
         LOG_VERBOSE: ${{ inputs.log_verbose }}
