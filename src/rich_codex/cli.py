@@ -112,6 +112,21 @@ log = logging.getLogger()
     help="Width of the terminal",
 )
 @click.option(
+    "--terminal-min-width",
+    type=int,
+    default=80,
+    envvar="TERMINAL_MIN_WIDTH",
+    show_envvar=True,
+    show_default=True,
+    help="Minimum width of the terminal when trimming",
+)
+@click.option(
+    "--notrim",
+    envvar="NOTRIM",
+    show_envvar=True,
+    help="Disable automatic trimming of terminal width",
+)
+@click.option(
     "--terminal-theme",
     envvar="TERMINAL_THEME",
     show_envvar=True,
@@ -163,6 +178,8 @@ def main(
     min_pct_diff,
     skip_change_regex,
     terminal_width,
+    terminal_min_width,
+    notrim,
     terminal_theme,
     use_pty,
     verbose,
@@ -174,6 +191,7 @@ def main(
     no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
     terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
+    terminal_min_width = int(terminal_min_width) if type(terminal_min_width) is str else terminal_min_width
     num_skipped_images = 0
     num_saved_images = 0
     num_img_cleaned = 0
@@ -186,6 +204,8 @@ def main(
         log.debug("Forcing terminal logging output")
     if terminal_width:
         log.info(f"Setting terminal width to {terminal_width}")
+    if terminal_min_width and not notrim:
+        log.info(f"Trimming terminal output down to a minimum of {terminal_min_width}")
 
     # Set up the logger
     log.setLevel(logging.DEBUG)
@@ -231,7 +251,16 @@ def main(
     # Generate image from a supplied command / snippet
     if command or snippet:
         img_obj = rich_img.RichImg(
-            snippet_syntax, timeout, min_pct_diff, skip_change_regex, terminal_width, terminal_theme, use_pty, console
+            snippet_syntax,
+            timeout,
+            min_pct_diff,
+            skip_change_regex,
+            terminal_width,
+            terminal_min_width,
+            notrim,
+            terminal_theme,
+            use_pty,
+            console,
         )
         img_obj.no_confirm = no_confirm
         if command:
@@ -261,6 +290,8 @@ def main(
         min_pct_diff,
         skip_change_regex,
         terminal_width,
+        terminal_min_width,
+        notrim,
         terminal_theme,
         use_pty,
         console,

@@ -33,6 +33,8 @@ class CodexSearch:
         min_pct_diff,
         skip_change_regex,
         terminal_width,
+        terminal_min_width,
+        notrim,
         terminal_theme,
         use_pty,
         console,
@@ -51,6 +53,8 @@ class CodexSearch:
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
+        self.terminal_min_width = terminal_min_width
+        self.notrim = notrim
         self.terminal_theme = terminal_theme
         self.use_pty = use_pty
         self.console = Console() if console is None else console
@@ -154,10 +158,20 @@ class CodexSearch:
                         min_pct_diff = local_config.get("MIN_PCT_DIFF", self.min_pct_diff)
                         skip_change_regex = local_config.get("SKIP_CHANGE_REGEX", self.skip_change_regex)
                         t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
+                        t_min_width = local_config.get("TERMINAL_MIN_WIDTH", self.terminal_min_width)
+                        notrim = local_config.get("NOTRIM", self.notrim)
                         t_theme = local_config.get("TERMINAL_THEME", self.terminal_theme)
                         use_pty = local_config.get("USE_PTY", self.use_pty)
                         img_obj = rich_img.RichImg(
-                            snippet_syntax, timeout, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty
+                            snippet_syntax,
+                            timeout,
+                            min_pct_diff,
+                            skip_change_regex,
+                            t_width,
+                            t_min_width,
+                            notrim,
+                            t_theme,
+                            use_pty,
                         )
 
                         # Save the command
@@ -250,10 +264,12 @@ class CodexSearch:
             min_pct_diff = output.get("min_pct_diff", self.min_pct_diff)
             skip_change_regex = output.get("skip_change_regex", self.skip_change_regex)
             t_width = output.get("terminal_width", self.terminal_width)
+            t_min_width = output.get("terminal_min_width", self.terminal_min_width)
+            notrim = output.get("notrim", self.notrim)
             t_theme = output.get("terminal_theme", self.terminal_theme)
             use_pty = output.get("use_pty", self.use_pty)
             img_obj = rich_img.RichImg(
-                snippet_syntax, timeout, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty
+                snippet_syntax, timeout, min_pct_diff, skip_change_regex, t_width, t_min_width, notrim, t_theme, use_pty
             )
 
             # Save the command

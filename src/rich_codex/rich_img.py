@@ -1,4 +1,5 @@
 import difflib
+import json
 import logging
 import os
 import re
@@ -20,6 +21,7 @@ log = logging.getLogger("rich-codex")
 # Attributes of RichImg which are important for equality
 RICH_IMG_ATTRS = [
     "terminal_width",
+    "terminal_min_width",
     "terminal_theme",
     "title",
     "cmd",
@@ -49,6 +51,8 @@ class RichImg:
         min_pct_diff=0,
         skip_change_regex=None,
         terminal_width=None,
+        terminal_min_width=80,
+        notrim=False,
         terminal_theme=None,
         use_pty=False,
         console=None,
@@ -59,18 +63,13 @@ class RichImg:
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
+        self.terminal_min_width = terminal_min_width
+        self.notrim = notrim
         self.terminal_theme = terminal_theme
         self.use_pty = use_pty
         self.title = ""
         self.console = Console() if console is None else console
-        self.capture_console = Console(
-            file=open(os.devnull, "w"),
-            force_terminal=True,
-            color_system="truecolor",
-            highlight=False,
-            record=True,
-            width=int(terminal_width) if terminal_width else None,
-        )
+        self.capture_console = None
         self.cwd = Path.cwd()
         self.cmd = None
         self.snippet = None
@@ -214,8 +213,24 @@ class RichImg:
                 output, errs = process.communicate()
             output = output.decode("utf-8")
 
-        # Decode and print the output (captured)
         decoder = AnsiDecoder()
+
+        # If terminal_min_width is set, find longest line
+        t_width = int(self.terminal_width) if self.terminal_width else None
+        if not self.notrim and self.terminal_min_width:
+            t_width = max(len(line) for line in decoder.decode(output))
+            t_width = int(max(t_width, self.terminal_min_width))
+            log.info(f"Setting terminal width to {t_width}")
+        self.capture_console = Console(
+            file=open(os.devnull, "w"),
+            force_terminal=True,
+            color_system="truecolor",
+            highlight=False,
+            record=True,
+            width=t_width,
+        )
+
+        # Decode and print the output (captured)
         for line in decoder.decode(output):
             self.capture_console.print(line)
 
@@ -225,20 +240,35 @@ class RichImg:
             log.debug("Tried to format snippet with no snippet")
             return
 
-        # JSON is a special case, use rich function
-        try:
-            if self.snippet_syntax == "json" or self.snippet_syntax is None:
-                self.capture_console.print_json(json=self.snippet)
-                log.debug("Formatting snippet as JSON")
-                return
-            else:
-                raise
+        # Reformat JSON with pretty printing, because we can
+        if self.snippet_syntax == "json" or self.snippet_syntax is None:
+            try:
+                json_snippet = json.loads(self.snippet)
+                self.snippet = json.dumps(json_snippet, indent=4, sort_keys=True)
+                self.snippet_syntax = "json"
+            except json.decoder.JSONDecodeError:
+                pass
 
-        # All other languages, use rich Syntax highlighter (no reformatting whitespace)
-        except Exception:
-            log.debug(f"Formatting snippet as {self.snippet_syntax}")
-            syntax = Syntax(self.snippet, self.snippet_syntax)
-            self.capture_console.print(syntax)
+        # Adjust terminal width if min-width set
+        t_width = int(self.terminal_width) if self.terminal_width else None
+        if not self.notrim and self.terminal_min_width:
+            t_width = max(len(line) for line in self.snippet.splitlines())
+            t_width = int(max(t_width, self.terminal_min_width))
+            log.info(f"Setting terminal width to {t_width}")
+
+        self.capture_console = Console(
+            file=open(os.devnull, "w"),
+            force_terminal=True,
+            color_system="truecolor",
+            highlight=False,
+            record=True,
+            width=t_width,
+        )
+
+        # Print with rich Syntax highlighter
+        log.debug(f"Formatting snippet as {self.snippet_syntax}")
+        syntax = Syntax(self.snippet, self.snippet_syntax)
+        self.capture_console.print(syntax)
 
     def get_output(self):
         """Either run command or format snippet, depending on what is set."""

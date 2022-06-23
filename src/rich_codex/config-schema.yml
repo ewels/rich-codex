@@ -58,6 +58,12 @@ properties:
         terminal_width:
           title: Width of the terminal
           type: integer
+        terminal_min_width:
+          title: Minimum width of the terminal (use trimming)
+          type: integer
+        notrim:
+          title: Disable automatic trimming of terminal width
+          type: boolean
         terminal_theme:
           title: Colour theme
           type: string
