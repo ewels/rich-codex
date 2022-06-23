@@ -206,6 +206,14 @@ def main(
         log.info(f"Setting terminal width to {terminal_width}")
     if terminal_min_width and not notrim:
         log.info(f"Trimming terminal output down to a minimum of {terminal_min_width}")
+    if terminal_width and terminal_min_width:
+        if terminal_min_width > terminal_width:
+            log.error(
+                "terminal_min_width ({}) > terminal_width ({})! Disabling terminal_min_width".format(
+                    terminal_min_width, terminal_width
+                )
+            )
+            terminal_min_width = None
 
     # Set up the logger
     log.setLevel(logging.DEBUG)

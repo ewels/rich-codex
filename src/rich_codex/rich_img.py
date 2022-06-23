@@ -64,6 +64,8 @@ class RichImg:
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
         self.terminal_min_width = terminal_min_width
+        if self.terminal_width and self.terminal_min_width and self.terminal_min_width > self.terminal_width:
+            self.terminal_min_width = None
         self.notrim = notrim
         self.terminal_theme = terminal_theme
         self.use_pty = use_pty
