@@ -46,6 +46,9 @@ properties:
         snippet_syntax:
           title: Language to use for snippet sytax highlighting
           type: string
+        timeout:
+          title: Maximum run time for command (seconds)
+          type: integer
         min_pct_diff:
           title: Minimum file percentage change required to update image
           type: string

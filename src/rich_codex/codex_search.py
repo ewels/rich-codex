@@ -29,6 +29,7 @@ class CodexSearch:
         configs,
         no_confirm,
         snippet_syntax,
+        timeout,
         min_pct_diff,
         skip_change_regex,
         terminal_width,
@@ -46,6 +47,7 @@ class CodexSearch:
             self.configs.extend(self._clean_list(configs.splitlines()))
         self.no_confirm = no_confirm
         self.snippet_syntax = snippet_syntax
+        self.timeout = timeout
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
@@ -148,13 +150,14 @@ class CodexSearch:
 
                         log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
                         snippet_syntax = local_config.get("SNIPPET_SYNTAX", self.snippet_syntax)
+                        timeout = local_config.get("TIMEOUT", self.timeout)
                         min_pct_diff = local_config.get("MIN_PCT_DIFF", self.min_pct_diff)
                         skip_change_regex = local_config.get("SKIP_CHANGE_REGEX", self.skip_change_regex)
                         t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
                         t_theme = local_config.get("TERMINAL_THEME", self.terminal_theme)
                         use_pty = local_config.get("USE_PTY", self.use_pty)
                         img_obj = rich_img.RichImg(
-                            snippet_syntax, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty
+                            snippet_syntax, timeout, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty
                         )
 
                         # Save the command
@@ -243,12 +246,15 @@ class CodexSearch:
         for output in config["outputs"]:
             log.debug(f"Found valid output in '{config_fn}': {output}")
             snippet_syntax = output.get("snippet_syntax", self.snippet_syntax)
+            timeout = output.get("timeout", self.timeout)
             min_pct_diff = output.get("min_pct_diff", self.min_pct_diff)
             skip_change_regex = output.get("skip_change_regex", self.skip_change_regex)
             t_width = output.get("terminal_width", self.terminal_width)
             t_theme = output.get("terminal_theme", self.terminal_theme)
             use_pty = output.get("use_pty", self.use_pty)
-            img_obj = rich_img.RichImg(snippet_syntax, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty)
+            img_obj = rich_img.RichImg(
+                snippet_syntax, timeout, min_pct_diff, skip_change_regex, t_width, t_theme, use_pty
+            )
 
             # Save the command
             if "command" in output:

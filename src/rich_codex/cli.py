@@ -45,6 +45,15 @@ log = logging.getLogger()
     help="Specify a command to run to capture output",
 )
 @click.option(
+    "--timeout",
+    type=int,
+    default=5,
+    envvar="TIMEOUT",
+    show_envvar=True,
+    show_default=True,
+    help="Maximum run time for command (seconds)",
+)
+@click.option(
     "--snippet",
     envvar="SNIPPET",
     show_envvar=True,
@@ -144,6 +153,7 @@ def main(
     search_exclude,
     no_search,
     command,
+    timeout,
     snippet,
     snippet_syntax,
     img_paths,
@@ -221,7 +231,7 @@ def main(
     # Generate image from a supplied command / snippet
     if command or snippet:
         img_obj = rich_img.RichImg(
-            snippet_syntax, min_pct_diff, skip_change_regex, terminal_width, terminal_theme, use_pty, console
+            snippet_syntax, timeout, min_pct_diff, skip_change_regex, terminal_width, terminal_theme, use_pty, console
         )
         img_obj.no_confirm = no_confirm
         if command:
@@ -247,6 +257,7 @@ def main(
         configs,
         no_confirm,
         snippet_syntax,
+        timeout,
         min_pct_diff,
         skip_change_regex,
         terminal_width,

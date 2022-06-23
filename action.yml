@@ -20,6 +20,9 @@ inputs:
   command:
     description: Specify a command to run to capture output
     required: false
+  timeout:
+    description: Maximum run time for command (seconds)
+    required: false
   snippet:
     description: Literal code snippet to render
     required: false
@@ -87,6 +90,7 @@ runs:
         SEARCH_EXCLUDE: ${{ inputs.search_exclude }}
         NO_SEARCH: ${{ inputs.no_search }}
         COMMAND: ${{ inputs.command }}
+        TIMEOUT: ${{ inputs.timeout }}
         SNIPPET: ${{ inputs.snippet }}
         SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
         IMG_PATHS: ${{ inputs.img_paths }}

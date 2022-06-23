@@ -42,6 +42,7 @@ For a more complex example, see [`.github/workflows/examples.yml`](https://githu
 - `search_exclude`: Glob patterns to exclude from search for rich-codex comments
 - `no_search`: Set to 'true' to disable searching for rich-codex comments
 - `command`: Specify a command to run to capture output
+- `timeout`: Maximum run time for command (seconds)
 - `snippet`: Literal code snippet to render
 - `snippet_syntax`: Language to use for snippet sytax highlighting
 - `img_paths`: Path to image filenames if using 'command' or 'snippet'

@@ -2,6 +2,7 @@ import difflib
 import logging
 import os
 import re
+import signal
 import subprocess
 from pathlib import Path
 from shutil import copyfile
@@ -24,6 +25,7 @@ RICH_IMG_ATTRS = [
     "cmd",
     "snippet",
     "snippet_syntax",
+    "timeout",
     "img_paths",
 ]
 
@@ -43,6 +45,7 @@ class RichImg:
     def __init__(
         self,
         snippet_syntax=None,
+        timeout=5,
         min_pct_diff=0,
         skip_change_regex=None,
         terminal_width=None,
@@ -52,6 +55,7 @@ class RichImg:
     ):
         """Initialise the RichImg object with core console options."""
         self.snippet_syntax = snippet_syntax
+        self.timeout = timeout
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
@@ -122,7 +126,6 @@ class RichImg:
             try:
                 import fcntl
                 import pty
-                import signal
                 import struct
                 import termios
 
@@ -190,14 +193,21 @@ class RichImg:
 
         # Run the command without messing with ttys
         else:
-            process = subprocess.Popen(
-                self.cmd,
-                cwd=self.cwd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=True,  # Needed for pipes
-            )
-            output = process.stdout.read().decode("utf-8")
+            try:
+                process = subprocess.Popen(
+                    self.cmd,
+                    cwd=self.cwd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=True,  # Needed for pipes
+                    start_new_session=True,  # Needed for subprocess termination
+                )
+                output, errs = process.communicate(timeout=self.timeout)
+            except subprocess.TimeoutExpired:
+                log.info(f"Command '{self.cmd}' timed out after {self.timeout} seconds")
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                output, errs = process.communicate()
+            output = output.decode("utf-8")
 
         # Decode and print the output (captured)
         decoder = AnsiDecoder()
