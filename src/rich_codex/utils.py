@@ -1,6 +1,9 @@
 import logging
 from pathlib import Path
 
+from git import Repo
+from git.exc import InvalidGitRepositoryError
+
 log = logging.getLogger("rich-codex")
 
 
@@ -47,3 +50,14 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
         path_to_delete.unlink()
 
     return len(clean_img_paths)
+
+
+def check_git_status():
+    """Check if the working directory is a clean git repo."""
+    try:
+        repo = Repo(Path.cwd().resolve(), search_parent_directories=True)
+        if repo.is_dirty():
+            return (False, "Found uncommitted changes")
+    except InvalidGitRepositoryError:
+        return (False, "Does not appear to be a git repository")
+    return (True, "Git repo looks good.")

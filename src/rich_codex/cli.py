@@ -84,6 +84,13 @@ log = logging.getLogger()
     help="Paths to YAML config files",
 )
 @click.option(
+    "--skip-git-checks",
+    is_flag=True,
+    envvar="SKIP_GIT_CHECKS",
+    show_envvar=True,
+    help="Skip safety checks for git repos",
+)
+@click.option(
     "--no-confirm",
     is_flag=True,
     envvar="NO_CONFIRM",
@@ -174,6 +181,7 @@ def main(
     img_paths,
     clean_img_paths,
     configs,
+    skip_git_checks,
     no_confirm,
     min_pct_diff,
     skip_change_regex,
@@ -197,23 +205,6 @@ def main(
     num_img_cleaned = 0
     img_obj = None
     codex_obj = None
-
-    if no_confirm:
-        log.debug("Skipping confirmation of commands")
-    if force_terminal:
-        log.debug("Forcing terminal logging output")
-    if terminal_width:
-        log.info(f"Setting terminal width to {terminal_width}")
-    if terminal_min_width and not notrim:
-        log.info(f"Trimming terminal output down to a minimum of {terminal_min_width}")
-    if terminal_width and terminal_min_width:
-        if terminal_min_width > terminal_width:
-            log.error(
-                "terminal_min_width ({}) > terminal_width ({})! Disabling terminal_min_width".format(
-                    terminal_min_width, terminal_width
-                )
-            )
-            terminal_min_width = None
 
     # Set up the logger
     log.setLevel(logging.DEBUG)
@@ -244,6 +235,32 @@ def main(
         log_fh.setLevel(logging.DEBUG)
         log_fh.setFormatter(logging.Formatter("[%(asctime)s] %(name)-20s [%(levelname)-7s]  %(message)s"))
         log.addHandler(log_fh)
+
+    # Check git status
+    git_status, git_status_msg = utils.check_git_status()
+    if skip_git_checks or git_status:
+        log.debug(f"Git status check: {git_status_msg} (skip_git_checks: {skip_git_checks})")
+    elif not git_status:
+        log.error(f"[bright_red]Error with git:[/] [red]{git_status_msg}")
+        log.info("Please resolve and run again, or use '--skip-git-checks'")
+        exit(1)
+
+    if no_confirm:
+        log.debug("Skipping confirmation of commands")
+    if force_terminal:
+        log.debug("Forcing terminal logging output")
+    if terminal_width:
+        log.info(f"Setting terminal width to {terminal_width}")
+    if terminal_min_width and not notrim:
+        log.info(f"Trimming terminal output down to a minimum of {terminal_min_width}")
+    if terminal_width and terminal_min_width:
+        if terminal_min_width > terminal_width:
+            log.error(
+                "terminal_min_width ({}) > terminal_width ({})! Disabling terminal_min_width".format(
+                    terminal_min_width, terminal_width
+                )
+            )
+            terminal_min_width = None
 
     # Console for printing to stdout
     console = Console(force_terminal=force_terminal)
