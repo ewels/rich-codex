@@ -48,6 +48,7 @@ For a more complex example, see [`.github/workflows/examples.yml`](https://githu
 - `img_paths`: Path to image filenames if using 'command' or 'snippet'
 - `clean_img_paths`: Remove any matching files that are not generated
 - `rc_configs`: Paths to YAML config files
+- `skip_git_checks`: Skip safety checks for git repos
 - `min_pct_diff`: Minimum file percentage change required to update image
 - `skip_change_regex`: Skip image update if file changes match regex
 - `terminal_width`: Width of the terminal
