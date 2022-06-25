@@ -62,8 +62,8 @@ class RichImg:
         self.timeout = timeout
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
-        self.terminal_width = terminal_width
-        self.terminal_min_width = terminal_min_width
+        self.terminal_width = None if terminal_width is None else int(terminal_width)
+        self.terminal_min_width = None if terminal_min_width is None else int(terminal_min_width)
         if self.terminal_width and self.terminal_min_width and self.terminal_min_width > self.terminal_width:
             self.terminal_min_width = None
         self.notrim = notrim
