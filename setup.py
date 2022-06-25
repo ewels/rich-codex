@@ -9,6 +9,7 @@ setup(
         "importlib-metadata; python_version < '3.8'",
         "levenshtein>=0.18.1",
         "jsonschema",
+        "GitPython",
     ],
     extras_require={
         "cairo": "CairoSVG>=2.5.2",
