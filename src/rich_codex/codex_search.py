@@ -5,6 +5,8 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
+from rich.align import Align
+from rich.columns import Columns
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -173,6 +175,8 @@ class CodexSearch:
                             t_theme,
                             use_pty,
                         )
+                        img_obj.source_type = "search"
+                        img_obj.source = file
 
                         # Save the command
                         if img_cmd_match:
@@ -271,6 +275,8 @@ class CodexSearch:
             img_obj = rich_img.RichImg(
                 snippet_syntax, timeout, min_pct_diff, skip_change_regex, t_width, t_min_width, notrim, t_theme, use_pty
             )
+            img_obj.source_type = "config"
+            img_obj.source = config_fn
 
             # Save the command
             if "command" in output:
@@ -305,22 +311,19 @@ class CodexSearch:
             else:
                 merged_imgs[ri_hash] = ri
         log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
-        self.rich_imgs = merged_imgs.values()
+        self.rich_imgs = sorted(merged_imgs.values(), key=lambda x: str(x.cmd).lower())
 
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
-        # Collect the unique commands
-        commands = set()
+        table = Table(box=None, show_header=False, row_styles=["bold green on grey11", "green on grey23"])
         for img_obj in self.rich_imgs:
             if img_obj.cmd is not None:
-                commands.add(img_obj.cmd)
+                rel_source = Path(img_obj.source).relative_to(Path.cwd())
+                source = f"[grey42][link=file:{Path(img_obj.source).absolute()}]{rel_source}[/][/]"
+                table.add_row(Columns([img_obj.cmd, Align(source, "right")], expand=True))
 
-        if len(commands) == 0:
+        if table.row_count == 0:
             return True
-
-        table = Table(box=None, show_header=False, row_styles=["bold green", "green"])
-        for cmd in commands:
-            table.add_row(cmd)
 
         self.console.print(Panel(table, title="Commands to run", title_align="left", border_style="blue"))
 

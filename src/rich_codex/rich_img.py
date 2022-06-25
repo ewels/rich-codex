@@ -80,6 +80,8 @@ class RichImg:
         self.num_img_skipped = 0
         self.no_confirm = False
         self.aborted = False
+        self.source_type = None
+        self.source = None
 
     def __eq__(self, other):
         """Compare RichImg objects for equality."""
