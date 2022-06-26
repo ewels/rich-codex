@@ -265,6 +265,7 @@ def main(
     # Console for printing to stdout
     console = Console(
         force_terminal=force_terminal,
+        highlight=False,
         width=100 if getenv("GITHUB_ACTIONS") else None,
     )
 

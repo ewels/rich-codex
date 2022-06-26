@@ -319,7 +319,7 @@ class CodexSearch:
         for img_obj in self.rich_imgs:
             if img_obj.cmd is not None:
                 rel_source = Path(img_obj.source).relative_to(Path.cwd())
-                source = f"[grey42][link=file:{Path(img_obj.source).absolute()}]{rel_source}[/][/]"
+                source = f" [grey42][link=file:{Path(img_obj.source).absolute()}]{rel_source}[/][/]"
                 table.add_row(Columns([img_obj.cmd, Align(source, "right")], expand=True))
 
         if table.row_count == 0:
