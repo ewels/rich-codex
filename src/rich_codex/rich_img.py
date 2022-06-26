@@ -218,13 +218,15 @@ class RichImg:
             output = output.decode("utf-8")
 
         decoder = AnsiDecoder()
+        decoded_output = decoder.decode(output)
 
         # If terminal_min_width is set, find longest line
         t_width = int(self.terminal_width) if self.terminal_width else None
-        if not self.notrim and self.terminal_min_width:
-            t_width = max(len(line) for line in decoder.decode(output))
-            t_width = int(max(t_width, self.terminal_min_width))
-            log.info(f"Setting terminal width to {t_width}")
+        if not self.notrim and self.terminal_min_width and decoded_output:
+            t_width = int(self.terminal_min_width)
+            for line in decoded_output:
+                t_width = max(len(line), t_width)
+            log.debug(f"Setting terminal width to {t_width}")
         self.capture_console = Console(
             file=open(os.devnull, "w"),
             force_terminal=True,
@@ -235,7 +237,7 @@ class RichImg:
         )
 
         # Decode and print the output (captured)
-        for line in decoder.decode(output):
+        for line in decoded_output:
             self.capture_console.print(line)
 
     def format_snippet(self):
