@@ -5,10 +5,8 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
-from rich.align import Align
-from rich.columns import Columns
+from rich import box
 from rich.console import Console
-from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
 
@@ -315,17 +313,26 @@ class CodexSearch:
 
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
-        table = Table(box=None, show_header=False, row_styles=["bold green on grey3", "green on grey11"])
+        table = Table(
+            title_style="blue",
+            title_justify="left",
+            box=box.ROUNDED,
+            header_style="bold blue",
+            border_style="blue",
+            row_styles=["green on grey3", "magenta on grey15"],
+        )
+        table.add_column("Commands to run:")
+        table.add_column("Source", justify="right")
         for img_obj in self.rich_imgs:
             if img_obj.cmd is not None:
                 rel_source = Path(img_obj.source).relative_to(Path.cwd())
                 source = f" [grey42][link=file:{Path(img_obj.source).absolute()}]{rel_source}[/][/]"
-                table.add_row(Columns([img_obj.cmd, Align(source, "right")], expand=True))
+                table.add_row(img_obj.cmd, source)
 
         if table.row_count == 0:
             return True
 
-        self.console.print(Panel(table, title="Commands to run", title_align="left", border_style="blue"))
+        self.console.print(table)
 
         if self.no_confirm:
             return True
