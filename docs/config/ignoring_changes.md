@@ -29,4 +29,7 @@ If there is a > 0% change in files, a rich diff will be generated. Any diff line
 
 Rich-codex ships with one default, applied for PDF files: if the only change is a line with `"/CreationDate"` then the changeset will be ignored.
 
-> ⏱ Please note that generating diffs between file pairs can be very slow. Use with caution.
+<!-- prettier-ignore-start -->
+!!! warning
+    Please note that generating diffs between file pairs can be _very_ slow. Use with caution.
+<!-- prettier-ignore-end -->

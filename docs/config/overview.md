@@ -33,7 +33,7 @@ An overview of all available config options in all scopes is below:
 | `--use-pty`            | `USE_PTY`            | `use_pty`            | `use_pty`            | `USE_PTY`            |
 | `--verbose`            | `LOG_VERBOSE`        | `log_verbose`        | -                    | -                    |
 | `--save-log`           | `LOG_SAVE`           | -                    | -                    | -                    |
-| `--log-file`           | `LOG_FILENAME        | -                    | -                    | -                    |
+| `--log-file`           | `LOG_FILENAME`       | -                    | -                    | -                    |
 | -                      | -                    | `commit_changes`     | -                    | -                    |
 | -                      | -                    | `error_changes`      | -                    | -                    |
 | -                      | -                    | -                    | `title`              | -                    |
@@ -65,13 +65,13 @@ A brief description of each option follows.
 - `--skip-change-regex`: Skip image update if file changes match regex
 - `--terminal-width`: Width of the terminal
 - `--terminal-min-width`: Minimum width of the terminal when trimming
-- `--notrim` | `NOTRIM`: Disable automatic trimming of terminal width
+- `--notrim`: Disable automatic trimming of terminal width
 - `--terminal-theme`: Colour theme
 - `--use-pty`: Use a pseudo-terminal for commands (may capture coloured output)
 - `--verbose`: Print verbose output to the console.
 - `--save-log`: Save a verbose log to a file (automatic filename).
 - `--log-file`: Save a verbose log to a file (specific filename).
 - `commit_changes`: Automatically commit changes to the repository
-- `error_changes`: Exit with an error if changes are found (Ignored if 'commit_changes' is true)
+- `error_changes`: Exit with an error if changes are found (Ignored if `commit_changes` is true)
 - `title`: Title for the terminal title bar
 - `SKIP`: Skip / ignore this image

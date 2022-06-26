@@ -23,5 +23,5 @@ If your console output doesn't match this width, you may get weird effects such 
 
 <!-- prettier-ignore-start -->
 !!! tip
-    Some tools (such as rich-click) also honour the environment variable `$TERMINAL_WIDTH`
+    Some tools (such as [rich-click](https://github.com/ewels/rich-click)) also honour the environment variable `$TERMINAL_WIDTH`
 <!-- prettier-ignore-end -->
