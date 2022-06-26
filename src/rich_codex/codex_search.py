@@ -315,7 +315,7 @@ class CodexSearch:
 
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
-        table = Table(box=None, show_header=False, row_styles=["bold green on grey11", "green on grey23"])
+        table = Table(box=None, show_header=False, row_styles=["bold green on grey3", "green on grey11"])
         for img_obj in self.rich_imgs:
             if img_obj.cmd is not None:
                 rel_source = Path(img_obj.source).relative_to(Path.cwd())

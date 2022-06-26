@@ -263,7 +263,10 @@ def main(
             terminal_min_width = None
 
     # Console for printing to stdout
-    console = Console(force_terminal=force_terminal)
+    console = Console(
+        force_terminal=force_terminal,
+        width=100 if getenv("GITHUB_ACTIONS") else None,
+    )
 
     log.debug("Environment variables: " + pretty_repr(environ))
 
