@@ -2,10 +2,9 @@
 
 A GitHub Action / command-line tool which generates screengrab images of a terminal window, containing _command outputs_ or _code snippets_.
 
-> ### 📚 Documentation: https://ewels.github.io/rich-codex/
+## 📚 Documentation: https://ewels.github.io/rich-codex/ 📚
 
 [![PyPI Version](https://img.shields.io/pypi/v/rich-codex.svg?style=flat-square)](https://pypi.python.org/pypi/multiqc/)
-[![Docker](https://img.shields.io/docker/automated/ewels/rich-codex.svg?style=flat-square)](https://hub.docker.com/r/ewels/multiqc/)
 
 ## Introduction
 

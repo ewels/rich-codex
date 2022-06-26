@@ -43,9 +43,13 @@ Finally, you can use a HTML comment in a line above the image to set config attr
 The comment should begin with `RICH-CODEX` and then have `KEY=VALUE` pairs. Available configs are:
 
 - `SKIP`: Skip this image
+- `SNIPPET_SYNTAX`: Language to use for snippet sytax highlighting
+- `TIMEOUT`: Maximum run time for command (seconds)
 - `MIN_PCT_DIFF`: Minimum file percentage change required to update image
 - `SKIP_CHANGE_REGEX`: Skip image update if file changes match regex
 - `TERMINAL_WIDTH`: Set terminal width
+- `TERMINAL_MIN_WIDTH`: Minimum width of the terminal when trimming
+- `NOTRIM`: Disable automatic trimming of terminal width
 - `TERMINAL_THEME`: Set terminal theme
 - `USE_PTY`: Use a pseudo-terminal for commands (may capture coloured output)
 

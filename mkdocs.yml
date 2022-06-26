@@ -39,10 +39,14 @@ nav:
       - inputs/markdown.md
       - inputs/direct_inputs.md
       - inputs/config_file.md
-  - Advanced:
-      - advanced/ignoring_changes.md
-      - advanced/safety.md
-      - advanced/troubleshooting.md
+  - Configuration:
+      - config/overview.md
+      - config/behaviours.md
+      - config/width.md
+      - config/colours.md
+      - config/cleaning.md
+      - config/ignoring_changes.md
+      - config/safety.md
 
 markdown_extensions:
   - admonition

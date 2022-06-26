@@ -38,22 +38,4 @@ For a more complex example, see [`.github/workflows/examples.yml`](https://githu
 
 ## GitHub Action Inputs
 
-- `search_include`: Glob patterns to files in which to search for rich-codex comments
-- `search_exclude`: Glob patterns to exclude from search for rich-codex comments
-- `no_search`: Set to 'true' to disable searching for rich-codex comments
-- `command`: Specify a command to run to capture output
-- `timeout`: Maximum run time for command (seconds)
-- `snippet`: Literal code snippet to render
-- `snippet_syntax`: Language to use for snippet sytax highlighting
-- `img_paths`: Path to image filenames if using 'command' or 'snippet'
-- `clean_img_paths`: Remove any matching files that are not generated
-- `rc_configs`: Paths to YAML config files
-- `skip_git_checks`: Skip safety checks for git repos
-- `min_pct_diff`: Minimum file percentage change required to update image
-- `skip_change_regex`: Skip image update if file changes match regex
-- `terminal_width`: Width of the terminal
-- `terminal_theme`: Colour theme
-- `use_pty`: Use a pseudo-terminal for commands (may capture coloured output)
-- `log_verbose`: Print verbose output to the console.
-- `commit_changes`: Automatically commit changes to the repository
-- `error_changes`: Exit with an error if changes are found (Ignored if 'commit_changes' is true)
+For a description of the action inputs, please see the [configuration overview docs](../config/overview.md).
