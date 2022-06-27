@@ -206,7 +206,7 @@ class RichImg:
                     self.cmd,
                     cwd=self.cwd,
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
                     shell=True,  # Needed for pipes
                     start_new_session=True,  # Needed for subprocess termination
                 )
