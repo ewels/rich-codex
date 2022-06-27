@@ -17,10 +17,10 @@ An overview of all available config options in all scopes is below:
 | `--no-search`          | `NO_SEARCH`          | `no_search`          | -                    | -                    |
 | `--command`            | `COMMAND`            | `command`            | `command`            | -                    |
 | `--timeout`            | `TIMEOUT`            | `timeout`            | `timeout`            | `TIMEOUT`            |
-| `--hide_command`       | `hide_command`       |  `hide_command`      | `hide_command`       | `hide_command`       |
-| `--head`               | `RC_HEAD`            |  `head`              | `head`               | `RC_HEAD`            |
-| `--tail`               | `RC_TAIL`            |  `tail`              | `tail`               | `RC_TAIL`            |
-| `--truncated_text`     | `truncated_text`     |  `truncated_text`    | `truncated_text`     | `truncated_text`     |
+| `--hide-command`       | `HIDE_COMMAND`       | `hide_command`       | `hide_command`       | `HIDE_COMMAND`       |
+| `--head`               | `RC_HEAD`            | `head`               | `head`               | `RC_HEAD`            |
+| `--tail`               | `RC_TAIL`            | `tail`               | `tail`               | `RC_TAIL`            |
+| `--truncated-text`     | `TRUNCATED_TEXT`     | `truncated_text`     | `truncated_text`     | `TRUNCATED_TEXT`     |
 | `--snippet`            | `SNIPPET`            | `snippet`            | `snippet`            | -                    |
 | `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`     | `snippet_syntax`     | `SNIPPET_SYNTAX`     |
 | `--img-paths`          | `IMG_PATHS`          | `img_paths`          | `img_paths`          | -                    |

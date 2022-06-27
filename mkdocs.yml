@@ -43,6 +43,7 @@ nav:
       - config/overview.md
       - config/snippet_syntax.md
       - config/time_limits.md
+      - config/truncating_output.md
       - config/width.md
       - config/colours.md
       - config/cleaning.md
