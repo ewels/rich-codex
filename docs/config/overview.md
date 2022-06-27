@@ -2,13 +2,15 @@
 
 Rich-codex can be run in several different ways and get configuration from multiple different locations:
 
+<!-- prettier-ignore-start -->
 - Global, for entire run:
-  - Command-line flags (CLI)
-  - Environment variables
-  - GitHub Action arguments
+    - Command-line flags (CLI)
+    - Environment variables
+    - GitHub Action arguments
 - Per-image:
-  - Rich-codex config files
-  - Markdown config flags
+    - Rich-codex config files
+    - Markdown config flags
+<!-- prettier-ignore-end -->
 
 ## Overview of all options
 

@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
+from rich import box
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
@@ -373,6 +374,7 @@ class CodexSearch:
         table = Table(
             title_style="blue",
             title_justify="left",
+            box=box.ROUNDED,
             safe_box=True,
             header_style="bold blue",
             border_style="blue",
