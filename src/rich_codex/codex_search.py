@@ -375,6 +375,7 @@ class CodexSearch:
             title_style="blue",
             title_justify="left",
             box=box.ROUNDED,
+            safe_box=True,
             header_style="bold blue",
             border_style="blue",
             row_styles=["green on grey3", "magenta on grey15"],

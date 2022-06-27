@@ -41,9 +41,8 @@ nav:
       - inputs/config_file.md
   - Configuration:
       - config/overview.md
-      - config/snippet_syntax.md
       - config/time_limits.md
-      - config/truncating_output.md
+      - config/tweaks.md
       - config/width.md
       - config/colours.md
       - config/cleaning.md
