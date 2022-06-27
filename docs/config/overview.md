@@ -17,6 +17,10 @@ An overview of all available config options in all scopes is below:
 | `--no-search`          | `NO_SEARCH`          | `no_search`          | -                    | -                    |
 | `--command`            | `COMMAND`            | `command`            | `command`            | -                    |
 | `--timeout`            | `TIMEOUT`            | `timeout`            | `timeout`            | `TIMEOUT`            |
+| `--hide_command`       | `hide_command`       |  `hide_command`      | `hide_command`       | `hide_command`       |
+| `--head`               | `RC_HEAD`            |  `head`              | `head`               | `RC_HEAD`            |
+| `--tail`               | `RC_TAIL`            |  `tail`              | `tail`               | `RC_TAIL`            |
+| `--truncated_text`     | `truncated_text`     |  `truncated_text`    | `truncated_text`     | `truncated_text`     |
 | `--snippet`            | `SNIPPET`            | `snippet`            | `snippet`            | -                    |
 | `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`     | `snippet_syntax`     | `SNIPPET_SYNTAX`     |
 | `--img-paths`          | `IMG_PATHS`          | `img_paths`          | `img_paths`          | -                    |
@@ -54,6 +58,10 @@ A brief description of each option follows.
 - `--no-search`: Set to disable searching for rich-codex comments
 - `--command`: Specify a command to run to capture output
 - `--timeout`: Maximum run time for command (seconds)
+- `--hide-command`: Hide the terminal prompt with the command at the top of the output
+- `--head`: Show only the first N lines of output
+- `--tail`: Show only the last N lines of output
+- `--truncated-text`: Text to show when --head or --tail truncate content
 - `--snippet`: Literal code snippet to render
 - `--snippet-syntax`: Language to use for snippet sytax highlighting
 - `--img-paths`: Path to image filenames if using 'command' or 'snippet'

@@ -48,6 +48,10 @@ class RichImg:
         self,
         snippet_syntax=None,
         timeout=5,
+        hide_command=False,
+        head=None,
+        tail=None,
+        truncated_text="[..truncated..]",
         min_pct_diff=0,
         skip_change_regex=None,
         terminal_width=None,
@@ -60,6 +64,10 @@ class RichImg:
         """Initialise the RichImg object with core console options."""
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
+        self.hide_command = hide_command
+        self.head = None if head is None else int(head)
+        self.tail = None if tail is None else int(tail)
+        self.truncated_text = truncated_text
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = None if terminal_width is None else int(terminal_width)
@@ -219,12 +227,18 @@ class RichImg:
 
         decoder = AnsiDecoder()
 
+        # Count lines and find longest line
+        print_lines = []
+        max_line_length = 0
+        for line in decoder.decode(output):
+            print_lines.append(True)
+            max_line_length = max(len(line), max_line_length)
+
         # If terminal_min_width is set, find longest line
         t_width = int(self.terminal_width) if self.terminal_width else None
         if not self.notrim and self.terminal_min_width:
             t_width = int(self.terminal_min_width)
-            for line in decoder.decode(output):
-                t_width = max(len(line), t_width)
+            t_width = max(t_width, max_line_length)
             log.debug(f"Setting terminal width to {t_width}")
         self.capture_console = Console(
             file=open(os.devnull, "w"),
@@ -235,9 +249,29 @@ class RichImg:
             width=t_width,
         )
 
+        # Set head / tail print set
+        if self.head and self.head >= len(print_lines):
+            self.head = None
+        if self.tail and self.tail >= len(print_lines):
+            self.tail = None
+        if self.head is not None or self.tail is not None:
+            print_lines = [False] * len(print_lines)
+            if self.head is not None:
+                print_lines[: self.head] = [True] * self.head
+            if self.tail is not None:
+                print_lines[len(print_lines) - self.tail :] = [True] * self.tail
+
+        # Print the command
+        if not self.hide_command:
+            self.capture_console.print(f"$ {self.cmd}")
+
         # Decode and print the output (captured)
-        for line in decoder.decode(output):
-            self.capture_console.print(line)
+        for idx, line in enumerate(decoder.decode(output)):
+            if print_lines[idx]:
+                self.capture_console.print(line)
+            elif (self.head is not None or self.tail is not None) and self.truncated_text:
+                self.capture_console.print(self.truncated_text, style="italic dim")
+                self.truncated_text = None
 
     def format_snippet(self):
         """Take a text snippet and format it using rich."""

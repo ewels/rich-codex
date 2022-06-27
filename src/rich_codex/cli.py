@@ -84,6 +84,34 @@ log = logging.getLogger()
     help="Paths to YAML config files",
 )
 @click.option(
+    "--hide-command",
+    is_flag=True,
+    envvar="HIDE_COMMAND",
+    show_envvar=True,
+    help="Hide the terminal prompt with the command at the top of the output",
+)
+@click.option(
+    "--head",
+    type=int,
+    envvar="RC_HEAD",
+    show_envvar=True,
+    help="Show only the first N lines of output",
+)
+@click.option(
+    "--tail",
+    type=int,
+    envvar="RC_TAIL",
+    show_envvar=True,
+    help="Show only the last N lines of output",
+)
+@click.option(
+    "--truncated-text",
+    default="[..truncated..]",
+    envvar="RC_TAIL",
+    show_envvar=True,
+    help="Text to show when --head or --tail truncate content",
+)
+@click.option(
     "--skip-git-checks",
     is_flag=True,
     envvar="SKIP_GIT_CHECKS",
@@ -182,6 +210,10 @@ def main(
     img_paths,
     clean_img_paths,
     configs,
+    hide_command,
+    head,
+    tail,
+    truncated_text,
     skip_git_checks,
     no_confirm,
     min_pct_diff,
@@ -283,6 +315,10 @@ def main(
         img_obj = rich_img.RichImg(
             snippet_syntax,
             timeout,
+            hide_command,
+            head,
+            tail,
+            truncated_text,
             min_pct_diff,
             skip_change_regex,
             terminal_width,
@@ -317,6 +353,10 @@ def main(
         no_confirm,
         snippet_syntax,
         timeout,
+        hide_command,
+        head,
+        tail,
+        truncated_text,
         min_pct_diff,
         skip_change_regex,
         terminal_width,

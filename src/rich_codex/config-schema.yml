@@ -49,6 +49,18 @@ properties:
         timeout:
           title: Maximum run time for command (seconds)
           type: integer
+        hide_command:
+          title: Hide the terminal prompt with the command at the top of the output
+          type: boolean
+        head:
+          title: Show only the first N lines of output
+          type: integer
+        tail:
+          title: Show only the last N lines of output
+          type: integer
+        truncated_text:
+          title: Text to show when --head or --tail truncate content
+          type: string
         min_pct_diff:
           title: Minimum file percentage change required to update image
           type: string

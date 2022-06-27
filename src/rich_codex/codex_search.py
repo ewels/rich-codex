@@ -30,6 +30,10 @@ class CodexSearch:
         no_confirm,
         snippet_syntax,
         timeout,
+        hide_command,
+        head,
+        tail,
+        truncated_text,
         min_pct_diff,
         skip_change_regex,
         terminal_width,
@@ -50,6 +54,10 @@ class CodexSearch:
         self.no_confirm = no_confirm
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
+        self.hide_command = hide_command
+        self.head = head
+        self.tail = tail
+        self.truncated_text = truncated_text
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
         self.terminal_width = terminal_width
@@ -116,10 +124,27 @@ class CodexSearch:
         # eg. ![](img/example-named.svg)
         img_snippet_re = re.compile(r"\s*!\[.*\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
 
+        local_config_expected = [
+            "SKIP",
+            "SNIPPET_SYNTAX",
+            "TIMEOUT",
+            "HIDE_COMMAND",
+            "RC_HEAD",
+            "RC_TAIL",
+            "TRUNCATED_TEXT",
+            "MIN_PCT_DIFF",
+            "SKIP_CHANGE_REGEX",
+            "TERMINAL_WIDTH",
+            "TERMINAL_MIN_WIDTH",
+            "NOTRIM",
+            "TERMINAL_THEME",
+            "USE_PTY",
+        ]
         local_config = {}
         num_commands = 0
         num_snippets = 0
         for file in search_files:
+            file_rel_fn = Path(file).relative_to(Path.cwd())
             with open(file, "r") as fh:
                 line_number = 0
                 in_snippet = False
@@ -129,10 +154,10 @@ class CodexSearch:
 
                     # Save snippet if we're in a snippet block
                     if in_snippet:
-                        if line.strip() == "-->":
+                        if line.strip().replace("-->", "") != "":
+                            snippet += line.replace("-->", "")
+                        if line.strip().endswith("-->"):
                             in_snippet = False
-                        else:
-                            snippet += line
                         continue
 
                     # Look for images, in case we have a local config
@@ -143,6 +168,10 @@ class CodexSearch:
                         # Use the results from either a command or snippet match
                         if img_cmd_match:
                             m = img_cmd_match.groupdict()
+                            if snippet != "":
+                                log.warn(
+                                    f"Found command but already had snippet '{snippet.strip()}' in '{file_rel_fn}'"
+                                )
                         elif img_match:
                             # Check that we actually have a snippet ready
                             if not len(snippet):
@@ -155,6 +184,10 @@ class CodexSearch:
                         log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
                         snippet_syntax = local_config.get("SNIPPET_SYNTAX", self.snippet_syntax)
                         timeout = local_config.get("TIMEOUT", self.timeout)
+                        hide_command = local_config.get("HIDE_COMMAND", self.hide_command)
+                        head = local_config.get("RC_HEAD", self.head)
+                        tail = local_config.get("RC_TAIL", self.tail)
+                        truncated_text = local_config.get("TRUNCATED_TEXT", self.truncated_text)
                         min_pct_diff = local_config.get("MIN_PCT_DIFF", self.min_pct_diff)
                         skip_change_regex = local_config.get("SKIP_CHANGE_REGEX", self.skip_change_regex)
                         t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
@@ -165,6 +198,10 @@ class CodexSearch:
                         img_obj = rich_img.RichImg(
                             snippet_syntax,
                             timeout,
+                            hide_command,
+                            head,
+                            tail,
+                            truncated_text,
                             min_pct_diff,
                             skip_change_regex,
                             t_width,
@@ -219,7 +256,12 @@ class CodexSearch:
                             for config_part in m["config_str"].split():
                                 if "=" in config_part:
                                     key, value = config_part.split("=", 1)
-                                    local_config[key] = value
+                                    if key not in local_config_expected:
+                                        log.warn(
+                                            f"[red]Found unexpected markdown config key '{key}' in '{file_rel_fn}'"
+                                        )
+                                    else:
+                                        local_config[key] = value
 
         if num_commands > 0:
             log.info(f"Search: Found {num_commands} commands")
@@ -263,6 +305,10 @@ class CodexSearch:
             log.debug(f"Found valid output in '{config_fn}': {output}")
             snippet_syntax = output.get("snippet_syntax", self.snippet_syntax)
             timeout = output.get("timeout", self.timeout)
+            hide_command = output.get("hide_command", self.hide_command)
+            head = output.get("head", self.head)
+            tail = output.get("tail", self.tail)
+            truncated_text = output.get("truncated_text", self.truncated_text)
             min_pct_diff = output.get("min_pct_diff", self.min_pct_diff)
             skip_change_regex = output.get("skip_change_regex", self.skip_change_regex)
             t_width = output.get("terminal_width", self.terminal_width)
@@ -271,7 +317,19 @@ class CodexSearch:
             t_theme = output.get("terminal_theme", self.terminal_theme)
             use_pty = output.get("use_pty", self.use_pty)
             img_obj = rich_img.RichImg(
-                snippet_syntax, timeout, min_pct_diff, skip_change_regex, t_width, t_min_width, notrim, t_theme, use_pty
+                snippet_syntax,
+                timeout,
+                hide_command,
+                head,
+                tail,
+                truncated_text,
+                min_pct_diff,
+                skip_change_regex,
+                t_width,
+                t_min_width,
+                notrim,
+                t_theme,
+                use_pty,
             )
             img_obj.source_type = "config"
             img_obj.source = config_fn
