@@ -14,13 +14,18 @@ For example, the following markdown will generate `../img/rich-codex-help.svg` (
 
 Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for convenience, so you can easily produce screenshots of files with the `rich` command:
 
+<!-- prettier-ignore-start -->
+!!! tip
+    You probably want to hide the command with `hide_command` / `HIDE_COMMAND`
+
 ```markdown
+<!-- RICH-CODEX HIDE_COMMAND=1 -->
 ![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 ```
-
+<!-- RICH-CODEX HIDE_COMMAND=1 -->
 ![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 
-<!-- prettier-ignore-start -->
+
 !!! tip
     💡 Use the `--force-terminal` flag to keep colours in your screenshots
 <!-- prettier-ignore-end -->
@@ -28,12 +33,17 @@ Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for conven
 ## Title text
 
 You can also add [title text](https://daringfireball.net/projects/markdown/syntax#img) in quotes after the filename, which will be used in the top menu bar of the screenshot terminal.
-This can be useful when adding lots of command markup to get a good screenshot. For example:
+This can be useful when adding lots of command markup to get a good screenshot.
+You might also want to hide the command prompt.
+For example:
 
+<!-- prettier-ignore-start -->
 ```markdown
 You don't always want people to see the exact command you used, after all.
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --width 120 --line-numbers --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
+<!-- RICH-CODEX HIDE_COMMAND=1 -->
+![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --line-numbers --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
 ```
+<!-- prettier-ignore-end -->
 
 ![long rich-cli command](../img/rich-codex-snippet-title.svg "rich_img.py")
 
