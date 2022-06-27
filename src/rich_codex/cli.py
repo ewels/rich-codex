@@ -129,6 +129,7 @@ log = logging.getLogger()
 )
 @click.option(
     "--notrim",
+    is_flag=True,
     envvar="NOTRIM",
     show_envvar=True,
     help="Disable automatic trimming of terminal width",
