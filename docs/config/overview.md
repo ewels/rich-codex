@@ -1,3 +1,5 @@
+## Config locations
+
 Rich-codex can be run in several different ways and get configuration from multiple different locations:
 
 - Global, for entire run:
@@ -7,6 +9,8 @@ Rich-codex can be run in several different ways and get configuration from multi
 - Per-image:
   - Rich-codex config files
   - Markdown config flags
+
+## Overview of all options
 
 An overview of all available config options in all scopes is below:
 
