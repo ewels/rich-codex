@@ -13,6 +13,11 @@ You can set the number of lines of output that you would like to show using: _(C
 
 If the number you set is larger than the amount of output then all output will be shown as usual.
 
+<!-- prettier-ignore-start -->
+!!! tip
+    Remember that you can set both head and tail to remove just the middle section of output 🚀
+<!-- prettier-ignore-end -->
+
 By default, if any output is truncated a line will be printed: `[..truncated..]`.
 You can customise this text using `--truncated-text` / `TRUNCATED_TEXT` / `truncated_text`.
 Set it to `None` to omit the line completely.
