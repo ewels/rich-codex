@@ -384,6 +384,9 @@ def main(
         log.info("Skipping file search")
     else:
         num_errors = codex_obj.search_files()
+        if num_errors > 0:
+            log.error("Found errors whilst running")
+            exit(1)
     codex_obj.collapse_duplicates()
     codex_obj.confirm_commands()
     codex_obj.save_all_images()
@@ -402,9 +405,6 @@ def main(
         log.info(f"Deleted {num_img_cleaned} images 💥")
     if num_skipped_images == 0 and num_saved_images == 0:
         log.warning("Couldn't find anything to do 🙄")
-    if num_errors > 0:
-        log.error("Found errors whilst running")
-        exit(1)
 
 
 if __name__ == "__main__":
