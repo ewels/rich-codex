@@ -138,7 +138,7 @@ class CodexSearch:
 
                     # Keep saving config if we're in a config block
                     if in_config:
-                        local_config_str += line + "\n"
+                        local_config_str += line
                         if "-->" in line:
                             in_config = False
                             local_config_str = local_config_str.split("-->")[0]
@@ -268,7 +268,7 @@ class CodexSearch:
                             in_config = True
 
                         # Save config
-                        local_config_str = m.get("config_str", "").split("-->")[0]
+                        local_config_str = m.get("config_str", "").split("-->")[0] + "\n"
 
         if num_commands > 0:
             log.info(f"Search: Found {num_commands} commands")
