@@ -83,7 +83,8 @@ Remember that you can use the pipe character `|` in YAML to have multi-line stri
 If the snippet is valid JSON, it will be pretty-printed and coloured. Otherwise text will default to white.
 
 ```markdown
-<!-- RICH-CODEX snippet: |
+<!-- RICH-CODEX
+snippet: |
   {"menu": {
     "id": "file", "value": "File",
     "popup": {
