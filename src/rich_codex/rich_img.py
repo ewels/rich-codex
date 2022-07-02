@@ -184,7 +184,7 @@ class RichImg:
                     stdout=write_end,
                     stderr=write_end,
                 )
-                process.wait(timeout=self.timeout)
+                process.wait(timeout=float(self.timeout))
             except subprocess.TimeoutExpired:
                 log.info(f"Command '{self.cmd}' timed out after {self.timeout} seconds")
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
@@ -213,15 +213,16 @@ class RichImg:
                 process = subprocess.Popen(
                     self.cmd,
                     cwd=self.cwd,
+                    stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     shell=True,  # Needed for pipes
                     start_new_session=True,  # Needed for subprocess termination
                 )
-                output, errs = process.communicate(timeout=self.timeout)
+                output, errs = process.communicate(timeout=float(self.timeout))
             except subprocess.TimeoutExpired:
                 log.info(f"Command '{self.cmd}' timed out after {self.timeout} seconds")
-                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
                 output, errs = process.communicate()
             output = output.decode("utf-8")
 
