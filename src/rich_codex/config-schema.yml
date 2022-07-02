@@ -16,7 +16,7 @@ properties:
       additionalProperties: false
       required:
         - img_paths
-      oneOf:
+      anyOf:
         - required:
             - command
         - required:
