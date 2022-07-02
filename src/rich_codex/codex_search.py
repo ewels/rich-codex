@@ -124,6 +124,7 @@ class CodexSearch:
         # eg. ![](img/example-named.svg)
         img_snippet_re = re.compile(r"\s*!\[.*\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
         local_config = {}
+        num_errors = 0
         num_commands = 0
         num_snippets = 0
         for file in search_files:
@@ -162,9 +163,11 @@ class CodexSearch:
                             log.error(f"[red][✗] Error parsing config YAML in '{file_rel_fn}' line {line_number}: {e}")
                             log.debug(f"Config block:\n{local_config_str}")
                             local_config = {}
+                            num_errors += 1
                         except ValidationError as e:
                             log.error(e)
                             local_config = {}
+                            num_errors += 1
                         local_config_str = ""
 
                     # Look for images
@@ -271,6 +274,7 @@ class CodexSearch:
             log.info(f"Search: Found {num_commands} commands")
         if num_snippets > 0:
             log.info(f"Search: Found {num_snippets} snippets")
+        return num_errors
 
     def parse_configs(self):
         """Loop through rich-codex config files to send for parsing."""
