@@ -66,7 +66,7 @@ properties:
           type: string
         min_pct_diff:
           title: Minimum file percentage change required to update image
-          type: float
+          type: number
         skip_change_regex:
           title: Skip image update if file changes match regex
           type: boolean
