@@ -16,13 +16,13 @@ Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for conven
 
 <!-- prettier-ignore-start -->
 !!! tip
-    You probably want to hide the command with `hide_command` / `HIDE_COMMAND`
+    You probably want to hide the command with `hide_command` - see below for more about configuration.
 
 ```markdown
-<!-- RICH-CODEX HIDE_COMMAND=1 -->
+<!-- RICH-CODEX hide_command: true -->
 ![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 ```
-<!-- RICH-CODEX HIDE_COMMAND=1 -->
+<!-- RICH-CODEX hide_command: true -->
 ![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 
 
@@ -40,7 +40,7 @@ For example:
 <!-- prettier-ignore-start -->
 ```markdown
 You don't always want people to see the exact command you used, after all.
-<!-- RICH-CODEX HIDE_COMMAND=1 -->
+<!-- RICH-CODEX hide_command: true -->
 ![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --line-numbers --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
 ```
 <!-- prettier-ignore-end -->
@@ -50,29 +50,20 @@ You don't always want people to see the exact command you used, after all.
 ## Config comments
 
 Finally, you can use a HTML comment in a line above the image to set config attributes for this image only.
-The comment should begin with `RICH-CODEX` and then have `KEY=VALUE` pairs. Available configs are:
+The comment should begin with `RICH-CODEX` and then have valid YAML after that.
 
-- `SKIP`: Skip this image
-- `SNIPPET_SYNTAX`: Language to use for snippet sytax highlighting
-- `TIMEOUT`: Maximum run time for command (seconds)
-- `MIN_PCT_DIFF`: Minimum file percentage change required to update image
-- `SKIP_CHANGE_REGEX`: Skip image update if file changes match regex
-- `TERMINAL_WIDTH`: Set terminal width
-- `TERMINAL_MIN_WIDTH`: Minimum width of the terminal when trimming
-- `NOTRIM`: Disable automatic trimming of terminal width
-- `TERMINAL_THEME`: Set terminal theme
-- `USE_PTY`: Use a pseudo-terminal for commands (may capture coloured output)
+The parsed configuration will be validated and is the same as used within [rich-codex config files](config_file.md).
 
 For example:
 
 <!-- prettier-ignore-start -->
 
 ```markdown
-<!-- RICH-CODEX TERMINAL_WIDTH=60 TERMINAL_THEME=MONOKAI -->
+<!-- RICH-CODEX {terminal_width: 60, terminal_theme: MONOKAI} -->
 ![`cowsay "Taste the rainbow" | lolcat -S 100`](../img/taste-the-rainbow.svg "Taste the rainbow")
 ```
 
-<!-- RICH-CODEX TERMINAL_WIDTH=60 TERMINAL_THEME=MONOKAI -->
+<!-- RICH-CODEX {terminal_width: 60, terminal_theme: MONOKAI} -->
 ![`cowsay "Taste the rainbow" | lolcat -S 100`](../img/taste-the-rainbow.svg "Taste the rainbow")
 
 <!-- prettier-ignore-end -->
@@ -81,7 +72,8 @@ For example:
 
 In addition to running commands, you can format code blocks or "snippets".
 
-To do this, make the `<!-- RICH-CODEX` code comment multi-line. Config key-pairs stay on the first line and anything on subsequent lines before the closing `-->` will be treated as the snippet. Then follow the code comment with a markdown image tag (again, the filename will be taken for the generated image).
+To do this, make the `<!-- RICH-CODEX` code comment config with the `snippet` key.
+Remember that you can use the pipe character `|` in YAML to have multi-line strings, but there must be correct indentation. I'd recommend you write the YAML in a code editor with syntax highlighting and then paste it in.
 
 <!-- prettier-ignore-start -->
 
@@ -91,38 +83,41 @@ To do this, make the `<!-- RICH-CODEX` code comment multi-line. Config key-pairs
 If the snippet is valid JSON, it will be pretty-printed and coloured. Otherwise text will default to white.
 
 ```markdown
-<!-- RICH-CODEX
-{"menu": {
-  "id": "file", "value": "File",
-  "popup": {
-    "menuitem": [
-      {"value": "New", "onclick": "CreateNewDoc()"},
-      {"value": "Open", "onclick": "OpenDoc()"},
-      {"value": "Close", "onclick": "CloseDoc()"}
-    ]
-  }
-}}
+<!-- RICH-CODEX snippet: |
+  {"menu": {
+    "id": "file", "value": "File",
+    "popup": {
+      "menuitem": [
+        {"value": "New", "onclick": "CreateNewDoc()"},
+        {"value": "Open", "onclick": "OpenDoc()"},
+        {"value": "Close", "onclick": "CloseDoc()"}
+      ]
+    }
+  }}
 -->
 ![my JSON snippet](../img/example-json-snippet.svg)
 ```
 ![my snippet](../img/example-json-snippet.svg)
 
-For other code languages, use `SNIPPET_SYNTAX` to define which language to format in. For example:
+For other code languages, use `snippet_syntax` to define which language to format in. For example:
 
 ```markdown
-<!-- RICH-CODEX SNIPPET_SYNTAX=python TERMINAL_WIDTH=80
->>> print("[italic red]Hello[/italic red] World!", locals())
-Hello World!
-{
-    '__annotations__': {},
-    '__builtins__': <module 'builtins' (built-in)>,
-    '__doc__': None,
-    '__loader__': <class '_frozen_importlib.BuiltinImporter'>,
-    '__name__': '__main__',
-    '__package__': None,
-    '__spec__': None,
-    'print': <function print at 0x1027fd4c0>,
-}
+<!-- RICH-CODEX
+snippet_syntax: python
+terminal_width: 80
+snippet: |
+  >>> print("[italic red]Hello[/italic red] World!", locals())
+  Hello World!
+  {
+      '__annotations__': {},
+      '__builtins__': <module 'builtins' (built-in)>,
+      '__doc__': None,
+      '__loader__': <class '_frozen_importlib.BuiltinImporter'>,
+      '__name__': '__main__',
+      '__package__': None,
+      '__spec__': None,
+      'print': <function print at 0x1027fd4c0>,
+  }
 -->
 ![](../img/example-python-snippet.svg)
 ```

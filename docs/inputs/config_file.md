@@ -46,12 +46,5 @@ outputs:
       - docs/img/main_header.svg
 ```
 
-The following keys may also be added to configure that specific image:
-
-- `snippet_syntax`: Language to use for snippet sytax highlighting
-- `timeout`: Maximum run time for command (seconds)
-- `min_pct_diff`: Minimum file percentage change required to update image
-- `skip_change_regex`: Skip image update if file changes match regex
-- `terminal_width`: Width of the terminal
-- `terminal_theme`: Colour theme
-- `use_pty`: Use a pseudo-terminal for commands (may capture coloured output)
+There are many other config keys also available.
+See the [configuration docs](../config/overview.md) for more details.

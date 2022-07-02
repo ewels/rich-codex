@@ -3,7 +3,6 @@ import re
 from pathlib import Path
 
 import yaml
-from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
 from rich import box
 from rich.console import Console
@@ -11,6 +10,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from rich_codex import rich_img
+from rich_codex.utils import validate_config
 
 log = logging.getLogger("rich-codex")
 
@@ -115,9 +115,7 @@ class CodexSearch:
 
         # eg. <!-- RICH-CODEX TERMINAL_WIDTH=60 -->
         # eg. <!-- RICH-CODEX
-        config_comment_re = re.compile(
-            r"\s*<!\-\-\s*RICH-CODEX\s*(?P<config_str>.*(?!-->)\w)*\s*(?P<end_comment>\-\->)?"
-        )
+        config_comment_re = re.compile(r"\s*<!\-\-\s*RICH-CODEX\s*(?P<config_str>.*)")
 
         # eg. ![`rich --help`](rich-cli-help.svg)
         img_cmd_re = re.compile(r"\s*!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
@@ -125,24 +123,6 @@ class CodexSearch:
         # eg. ![custom text](img/example.svg)
         # eg. ![](img/example-named.svg)
         img_snippet_re = re.compile(r"\s*!\[.*\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
-
-        local_config_expected = [
-            "SKIP",
-            "SNIPPET_SYNTAX",
-            "TIMEOUT",
-            "HIDE_COMMAND",
-            "RC_HEAD",
-            "RC_TAIL",
-            "TRIM_AFTER",
-            "TRUNCATED_TEXT",
-            "MIN_PCT_DIFF",
-            "SKIP_CHANGE_REGEX",
-            "TERMINAL_WIDTH",
-            "TERMINAL_MIN_WIDTH",
-            "NOTRIM",
-            "TERMINAL_THEME",
-            "USE_PTY",
-        ]
         local_config = {}
         num_commands = 0
         num_snippets = 0
@@ -150,23 +130,52 @@ class CodexSearch:
             file_rel_fn = Path(file).relative_to(Path.cwd())
             with open(file, "r") as fh:
                 line_number = 0
-                in_snippet = False
-                snippet = ""
+                in_config = False
+                local_config_str = ""
                 for line in fh:
                     line_number += 1
 
-                    # Save snippet if we're in a snippet block
-                    if in_snippet:
-                        if line.strip().replace("-->", "") != "":
-                            snippet += line.replace("-->", "")
-                        if line.strip().endswith("-->"):
-                            in_snippet = False
-                        continue
+                    # Keep saving config if we're in a config block
+                    if in_config:
+                        local_config_str += line
+                        if "-->" in line:
+                            in_config = False
+                            local_config_str = local_config_str.split("-->")[0]
+                            continue
 
-                    # Look for images, in case we have a local config
+                    # Parse +  validate config yaml
+                    if local_config_str != "" and not in_config:
+                        try:
+                            local_config = yaml.safe_load(local_config_str)
+                            if not isinstance(local_config, dict):
+                                raise ValidationError(
+                                    f"Config YAML is not a dictionary: '{file_rel_fn}', line {line_number}"
+                                )
+                            # Fake a full config file with the local config
+                            full_config = {
+                                "outputs": [
+                                    {"img_paths": ["parsed_later.svg"], "command": "parsed_later", **local_config}
+                                ]
+                            }
+                            validate_config(self.config_schema, full_config, file_rel_fn, line_number)
+                        except yaml.YAMLError as e:
+                            log.error(f"[red][✗] Error parsing config YAML in '{file_rel_fn}' line {line_number}: {e}")
+                            log.debug(f"Config block:\n{local_config_str}")
+                            local_config = {}
+                        except ValidationError as e:
+                            log.error(e)
+                            local_config = {}
+                        local_config_str = ""
+
+                    # Look for images
                     img_cmd_match = img_cmd_re.match(line)
                     img_match = img_snippet_re.match(line)
-                    if (img_cmd_match or img_match) and not local_config.get("SKIP"):
+                    if (img_cmd_match or img_match) and not local_config.get("skip"):
+
+                        # Skip if it's a regular image with no config snippet
+                        snippet = local_config.get("snippet", "")
+                        if not img_cmd_match and snippet == "":
+                            continue
 
                         # Use the results from either a command or snippet match
                         if img_cmd_match:
@@ -185,20 +194,20 @@ class CodexSearch:
                             m = img_match.groupdict()
 
                         log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
-                        snippet_syntax = local_config.get("SNIPPET_SYNTAX", self.snippet_syntax)
-                        timeout = local_config.get("TIMEOUT", self.timeout)
-                        hide_command = local_config.get("HIDE_COMMAND", self.hide_command)
-                        head = local_config.get("RC_HEAD", self.head)
-                        tail = local_config.get("RC_TAIL", self.tail)
-                        trim_after = local_config.get("TRIM_AFTER", self.trim_after)
-                        truncated_text = local_config.get("TRUNCATED_TEXT", self.truncated_text)
-                        min_pct_diff = local_config.get("MIN_PCT_DIFF", self.min_pct_diff)
-                        skip_change_regex = local_config.get("SKIP_CHANGE_REGEX", self.skip_change_regex)
-                        t_width = local_config.get("TERMINAL_WIDTH", self.terminal_width)
-                        t_min_width = local_config.get("TERMINAL_MIN_WIDTH", self.terminal_min_width)
-                        notrim = local_config.get("NOTRIM", self.notrim)
-                        t_theme = local_config.get("TERMINAL_THEME", self.terminal_theme)
-                        use_pty = local_config.get("USE_PTY", self.use_pty)
+                        snippet_syntax = local_config.get("snippet_syntax", self.snippet_syntax)
+                        timeout = local_config.get("timeout", self.timeout)
+                        hide_command = local_config.get("hide_command", self.hide_command)
+                        head = local_config.get("head", self.head)
+                        tail = local_config.get("tail", self.tail)
+                        trim_after = local_config.get("trim_after", self.trim_after)
+                        truncated_text = local_config.get("truncated_text", self.truncated_text)
+                        min_pct_diff = local_config.get("min_pct_diff", self.min_pct_diff)
+                        skip_change_regex = local_config.get("skip_change_regex", self.skip_change_regex)
+                        t_width = local_config.get("terminal_width", self.terminal_width)
+                        t_min_width = local_config.get("terminal_min_width", self.terminal_min_width)
+                        notrim = local_config.get("notrim", self.notrim)
+                        t_theme = local_config.get("terminal_theme", self.terminal_theme)
+                        use_pty = local_config.get("use_pty", self.use_pty)
                         img_obj = rich_img.RichImg(
                             snippet_syntax,
                             timeout,
@@ -225,12 +234,9 @@ class CodexSearch:
                             num_commands += 1
 
                         # Save the snippet
-                        elif img_match:
+                        else:
                             img_obj.snippet = snippet
                             num_snippets += 1
-
-                        # Reset the snippet, if there was one
-                        snippet = ""
 
                         # Save the image path
                         img_path = Path(file).parent / Path(m["img_path"].strip())
@@ -243,30 +249,23 @@ class CodexSearch:
                         # Save the image object
                         self.rich_imgs.append(img_obj)
 
-                    # Clear local config
-                    if line.strip() != "":
+                        # Clear local config
                         local_config = {}
+                        local_config_str = ""
 
-                    # Now look for a local config
+                        continue
+
+                    # Look for a local config
                     config_match = config_comment_re.match(line)
                     if config_match:
                         m = config_match.groupdict()
 
                         # If we don't end the comment on this line, must be a snippet
-                        if m.get("end_comment") != "-->":
-                            in_snippet = True
+                        if "-->" not in line:
+                            in_config = True
 
-                        # Parse config keypairs
-                        if m.get("config_str") is not None:
-                            for config_part in m["config_str"].split():
-                                if "=" in config_part:
-                                    key, value = config_part.split("=", 1)
-                                    if key not in local_config_expected:
-                                        log.warn(
-                                            f"[red]Found unexpected markdown config key '{key}' in '{file_rel_fn}'"
-                                        )
-                                    else:
-                                        local_config[key] = value
+                        # Save config
+                        local_config_str = m.get("config_str", "").split("-->")[0]
 
         if num_commands > 0:
             log.info(f"Search: Found {num_commands} commands")
@@ -292,19 +291,7 @@ class CodexSearch:
 
     def parse_config(self, config_fn, config):
         """Parse a single rich-codex config file."""
-        v = Draft4Validator(self.config_schema)
-        if v.is_valid(config):
-            log.debug(f"Config '{config_fn}' looks valid")
-        else:
-            err_msg = f"[red][✗] Rich-codex config file '{config_fn}' was invalid:"
-
-            for error in sorted(v.iter_errors(config), key=str):
-                err_msg += f"\n - {error.message}"
-                if len(error.context):
-                    err_msg += ":"
-                for suberror in sorted(error.context, key=lambda e: e.schema_path):
-                    err_msg += f"\n     * {suberror.message}"
-            raise ValidationError(err_msg, v)
+        validate_config(self.config_schema, config, config_fn)
 
         for output in config["outputs"]:
             log.debug(f"Found valid output in '{config_fn}': {output}")

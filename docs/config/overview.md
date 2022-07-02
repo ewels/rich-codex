@@ -3,52 +3,54 @@
 Rich-codex can be run in several different ways and get configuration from multiple different locations:
 
 <!-- prettier-ignore-start -->
+
 - Global, for entire run:
     - Command-line flags (CLI)
     - Environment variables
     - GitHub Action arguments
 - Per-image:
     - Rich-codex config files
-    - Markdown config flags
+    - Markdown config
+
 <!-- prettier-ignore-end -->
 
 ## Overview of all options
 
 An overview of all available config options in all scopes is below:
 
-| CLI                    | Environment variable | GitHub Action        | Rich-codex config    | Markdown config      |
-| ---------------------- | -------------------- | -------------------- | -------------------- | -------------------- |
-| `--search-include`     | `SEARCH_INCLUDE`     | `search_include`     | -                    | -                    |
-| `--search-exclude`     | `SEARCH_EXCLUDE`     | `search_exclude`     | -                    | -                    |
-| `--no-search`          | `NO_SEARCH`          | `no_search`          | -                    | -                    |
-| `--command`            | `COMMAND`            | `command`            | `command`            | -                    |
-| `--timeout`            | `TIMEOUT`            | `timeout`            | `timeout`            | `TIMEOUT`            |
-| `--snippet`            | `SNIPPET`            | `snippet`            | `snippet`            | -                    |
-| `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`     | `snippet_syntax`     | `SNIPPET_SYNTAX`     |
-| `--img-paths`          | `IMG_PATHS`          | `img_paths`          | `img_paths`          | -                    |
-| `--clean-img-paths`    | `CLEAN_IMG_PATHS`    | `clean_img_paths`    | -                    | -                    |
-| `--configs`            | `RC_CONFIGS`         | `rc_configs`         | -                    | -                    |
-| `--hide-command`       | `HIDE_COMMAND`       | `hide_command`       | `hide_command`       | `HIDE_COMMAND`       |
-| `--head`               | `RC_HEAD`            | `head`               | `head`               | `RC_HEAD`            |
-| `--tail`               | `RC_TAIL`            | `tail`               | `tail`               | `RC_TAIL`            |
-| `--trim-after`         | `TRIM_AFTER`         | `trim_after`         | `trim_after`         | `TRIM_AFTER`         |
-| `--truncated-text`     | `TRUNCATED_TEXT`     | `truncated_text`     | `truncated_text`     | `TRUNCATED_TEXT`     |
-| `--skip-git-checks`    | `SKIP_GIT_CHECKS`    | `skip_git_checks`    | -                    | -                    |
-| `--no-confirm`         | `NO_CONFIRM`         | -                    | -                    | -                    |
-| `--min-pct-diff`       | `MIN_PCT_DIFF`       | `min_pct_diff`       | `min_pct_diff`       | `MIN_PCT_DIFF`       |
-| `--skip-change-regex`  | `SKIP_CHANGE_REGEX`  | `skip_change_regex`  | `skip_change_regex`  | `SKIP_CHANGE_REGEX`  |
-| `--terminal-width`     | `TERMINAL_WIDTH`     | `terminal_width`     | `terminal_width`     | `TERMINAL_WIDTH`     |
-| `--terminal-min-width` | `TERMINAL_MIN_WIDTH` | `terminal_min_width` | `terminal_min_width` | `TERMINAL_MIN_WIDTH` |
-| `--notrim`             | `NOTRIM`             | `notrim`             | `notrim`             | `NOTRIM`             |
-| `--terminal-theme`     | `TERMINAL_THEME`     | `terminal_theme`     | `terminal_theme`     | `TERMINAL_THEME`     |
-| `--use-pty`            | `USE_PTY`            | `use_pty`            | `use_pty`            | `USE_PTY`            |
-| `--verbose`            | `LOG_VERBOSE`        | `log_verbose`        | -                    | -                    |
-| `--save-log`           | `LOG_SAVE`           | -                    | -                    | -                    |
-| `--log-file`           | `LOG_FILENAME`       | -                    | -                    | -                    |
-| -                      | -                    | `commit_changes`     | -                    | -                    |
-| -                      | -                    | `error_changes`      | -                    | -                    |
-| -                      | -                    | -                    | `title`              | -                    |
-| -                      | -                    | -                    | -                    | `SKIP`               |
+| CLI                    | Environment variable | Config               | GitHub Action | Rich-codex config | Markdown config |
+| ---------------------- | -------------------- | -------------------- | ------------- | ----------------- | --------------- |
+| `--search-include`     | `SEARCH_INCLUDE`     | `search_include`     | ✅            | -                 | -               |
+| `--search-exclude`     | `SEARCH_EXCLUDE`     | `search_exclude`     | ✅            | -                 | -               |
+| `--no-search`          | `NO_SEARCH`          | `no_search`          | ✅            | -                 | -               |
+| `--command`            | `COMMAND`            | `command`            | ✅            | ✅                | -               |
+| `--timeout`            | `TIMEOUT`            | `timeout`            | ✅            | ✅                | ✅              |
+| `--snippet`            | `SNIPPET`            | `snippet`            | ✅            | ✅                | -               |
+| `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`     | ✅            | ✅                | ✅              |
+| `--img-paths`          | `IMG_PATHS`          | `img_paths`          | ✅            | ✅                | -               |
+| `--clean-img-paths`    | `CLEAN_IMG_PATHS`    | `clean_img_paths`    | ✅            | -                 | -               |
+| `--configs`            | `RC_CONFIGS`         | `rc_configs`         | ✅            | -                 | -               |
+| `--hide-command`       | `HIDE_COMMAND`       | `hide_command`       | ✅            | ✅                | ✅              |
+| `--head`               | `RC_HEAD`            | `head`               | ✅            | ✅                | ✅              |
+| `--tail`               | `RC_TAIL`            | `tail`               | ✅            | ✅                | ✅              |
+| `--trim-after`         | `TRIM_AFTER`         | `trim_after`         | ✅            | ✅                | ✅              |
+| `--truncated-text`     | `TRUNCATED_TEXT`     | `truncated_text`     | ✅            | ✅                | ✅              |
+| `--skip-git-checks`    | `SKIP_GIT_CHECKS`    | `skip_git_checks`    | ✅            | -                 | -               |
+| `--no-confirm`         | `NO_CONFIRM`         | -                    | -             | -                 | -               |
+| `--min-pct-diff`       | `MIN_PCT_DIFF`       | `min_pct_diff`       | ✅            | ✅                | ✅              |
+| `--skip-change-regex`  | `SKIP_CHANGE_REGEX`  | `skip_change_regex`  | ✅            | ✅                | ✅              |
+| `--terminal-width`     | `TERMINAL_WIDTH`     | `terminal_width`     | ✅            | ✅                | ✅              |
+| `--terminal-min-width` | `TERMINAL_MIN_WIDTH` | `terminal_min_width` | ✅            | ✅                | ✅              |
+| `--notrim`             | `NOTRIM`             | `notrim`             | ✅            | ✅                | ✅              |
+| `--terminal-theme`     | `TERMINAL_THEME`     | `terminal_theme`     | ✅            | ✅                | ✅              |
+| `--use-pty`            | `USE_PTY`            | `use_pty`            | ✅            | ✅                | ✅              |
+| `--verbose`            | `LOG_VERBOSE`        | `log_verbose`        | ✅            | -                 | -               |
+| `--save-log`           | `LOG_SAVE`           | -                    | -             | -                 | -               |
+| `--log-file`           | `LOG_FILENAME`       | -                    | -             | -                 | -               |
+| -                      | -                    | `commit_changes`     | ✅            | -                 | -               |
+| -                      | -                    | `error_changes`      | ✅            | -                 | -               |
+| -                      | -                    | `title`              | -             | ✅                | -               |
+| -                      | -                    | `skip`               | -             | -                 | ✅              |
 
 ## Description of options
 
@@ -90,4 +92,4 @@ A brief description of each option follows.
 - `commit_changes`: Automatically commit changes to the repository
 - `error_changes`: Exit with an error if changes are found (Ignored if `commit_changes` is true)
 - `title`: Title for the terminal title bar
-- `SKIP`: Skip / ignore this image
+- `skip`: Skip / ignore this image

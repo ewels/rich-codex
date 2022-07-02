@@ -11,19 +11,20 @@ When you run rich-codex, any new images created will generate log messages that 
 `Saved: 'docs/img/rich-codex-snippet-title.svg' (4.63% change)`.
 This percentage change is calculated using the [python-Levenshtein](https://github.com/ztane/python-Levenshtein) package, comparing the raw bytes of the two files.
 
-By default, any new files with 0.00% change will be ignored. If you find that you have screenshots changing by the same small percentage every time, you can raise this threshold by setting `--min-pct-diff` (cli) / `MIN_PCT_DIFF` (env var / markdown comment) / `min_pct_diff` (GitHub action input).
+By default, any new files with 0.00% change will be ignored. If you find that you have screenshots changing by the same small percentage every time, you can raise this threshold by setting `--min-pct-diff` / `$MIN_PCT_DIFF` / `min_pct_diff` (CLI, env var, action/config).
 
 For example, if a timestamp caused this file to change by 4.34% on every commit, those changes could be ignored as follows:
 
+<!-- prettier-ignore-start -->
 ```markdown
-<!-- RICH-CODEX MIN_PCT_DIFF=5 -->
-
+<!-- RICH-CODEX min_pct_diff: 5 -->
 ![`rich-codex --help`](../img/rich-codex-help.svg)
 ```
+<!-- prettier-ignore-end -->
 
 ## Regular expression matches
 
-Percentage changes in files is quick and simple, but a little crude. If you prefer, you may be able to use regular expressions instead with `--skip-change-regex` (cli) / `SKIP_CHANGE_REGEX` (env var / markdown comment) / `skip_change_regex` (GitHub action input).
+Percentage changes in files is quick and simple, but a little crude. If you prefer, you may be able to use regular expressions instead with `--skip-change-regex` / `$SKIP_CHANGE_REGEX` / `skip_change_regex` (CLI, env var, action/config).
 
 If there is a > 0% change in files, a rich diff will be generated. Any diff lines matching the supplied regexes will be removed and if none remain, the changeset will be ignored.
 

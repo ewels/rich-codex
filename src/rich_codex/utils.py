@@ -3,6 +3,8 @@ from pathlib import Path
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
+from jsonschema import Draft4Validator
+from jsonschema.exceptions import ValidationError
 
 log = logging.getLogger("rich-codex")
 
@@ -61,3 +63,23 @@ def check_git_status():
     except InvalidGitRepositoryError:
         return (False, "Does not appear to be a git repository")
     return (True, "Git repo looks good.")
+
+
+def validate_config(schema, config, filename, line_number=None):
+    """Validate a config file string against the rich-click JSON schema."""
+    v = Draft4Validator(schema)
+    if v.is_valid(config):
+        log.debug(f"Config in '{filename}' looks valid")
+    else:
+        err_msg = f"[red][✗] Rich-codex config in '{filename}' "
+        if line_number:
+            err_msg += f"line {line_number} "
+        err_msg += "was invalid:"
+
+        for error in sorted(v.iter_errors(config), key=str):
+            err_msg += f"\n - {error.message}"
+            if len(error.context):
+                err_msg += ":"
+            for suberror in sorted(error.context, key=lambda e: e.schema_path):
+                err_msg += f"\n     * {suberror.message}"
+        raise ValidationError(err_msg, v)
