@@ -51,6 +51,7 @@ class RichImg:
         hide_command=False,
         head=None,
         tail=None,
+        trim_after=None,
         truncated_text="[..truncated..]",
         min_pct_diff=0,
         skip_change_regex=None,
@@ -67,6 +68,7 @@ class RichImg:
         self.hide_command = hide_command
         self.head = None if head is None else int(head)
         self.tail = None if tail is None else int(tail)
+        self.trim_after = trim_after
         self.truncated_text = truncated_text
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
@@ -270,6 +272,9 @@ class RichImg:
         for idx, line in enumerate(decoder.decode(output)):
             if print_lines[idx]:
                 self.capture_console.print(line)
+                # Trim text after trim_after
+                if self.trim_after and self.trim_after in line:
+                    break
             elif (self.head is not None or self.tail is not None) and self.truncated_text:
                 self.capture_console.print(self.truncated_text, style="italic dim")
                 self.truncated_text = None

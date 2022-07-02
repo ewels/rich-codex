@@ -29,3 +29,11 @@ If the number you set is larger than the amount of output then all output will b
 By default, if any output is truncated a line will be printed: `[..truncated..]`.
 You can customise this text using `--truncated-text` / `TRUNCATED_TEXT` / `truncated_text`.
 Set it to `None` to omit the line completely.
+
+## Trimming content
+
+You can clean off unwanted content based on a string pattern match using `--trim-after` / `TRIM_AFTER` / `trim_after`.
+
+Set it to a string - if that string is found in the input, no more lines will be printed after that.
+
+No `truncated_text` is shown for this method currently (could be added if anyone wants it).

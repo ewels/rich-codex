@@ -58,6 +58,9 @@ properties:
         tail:
           title: Show only the last N lines of output
           type: integer
+        trim_after:
+          title: Don't print any more lines after this string is found
+          type: integer
         truncated_text:
           title: Text to show when --head or --tail truncate content
           type: string

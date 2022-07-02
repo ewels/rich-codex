@@ -105,9 +105,15 @@ log = logging.getLogger()
     help="Show only the last N lines of output",
 )
 @click.option(
+    "--trim-after",
+    envvar="TRIM_AFTER",
+    show_envvar=True,
+    help="Don't print any more lines after this string is found",
+)
+@click.option(
     "--truncated-text",
     default="[..truncated..]",
-    envvar="RC_TAIL",
+    envvar="TRUNCATED_TEXT",
     show_envvar=True,
     help="Text to show when --head or --tail truncate content",
 )
@@ -213,6 +219,7 @@ def main(
     hide_command,
     head,
     tail,
+    trim_after,
     truncated_text,
     skip_git_checks,
     no_confirm,
@@ -318,6 +325,7 @@ def main(
             hide_command,
             head,
             tail,
+            trim_after,
             truncated_text,
             min_pct_diff,
             skip_change_regex,
@@ -356,6 +364,7 @@ def main(
         hide_command,
         head,
         tail,
+        trim_after,
         truncated_text,
         min_pct_diff,
         skip_change_regex,

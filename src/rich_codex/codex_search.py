@@ -33,6 +33,7 @@ class CodexSearch:
         hide_command,
         head,
         tail,
+        trim_after,
         truncated_text,
         min_pct_diff,
         skip_change_regex,
@@ -57,6 +58,7 @@ class CodexSearch:
         self.hide_command = hide_command
         self.head = head
         self.tail = tail
+        self.trim_after = trim_after
         self.truncated_text = truncated_text
         self.min_pct_diff = min_pct_diff
         self.skip_change_regex = skip_change_regex
@@ -131,6 +133,7 @@ class CodexSearch:
             "HIDE_COMMAND",
             "RC_HEAD",
             "RC_TAIL",
+            "TRIM_AFTER",
             "TRUNCATED_TEXT",
             "MIN_PCT_DIFF",
             "SKIP_CHANGE_REGEX",
@@ -187,6 +190,7 @@ class CodexSearch:
                         hide_command = local_config.get("HIDE_COMMAND", self.hide_command)
                         head = local_config.get("RC_HEAD", self.head)
                         tail = local_config.get("RC_TAIL", self.tail)
+                        trim_after = local_config.get("TRIM_AFTER", self.trim_after)
                         truncated_text = local_config.get("TRUNCATED_TEXT", self.truncated_text)
                         min_pct_diff = local_config.get("MIN_PCT_DIFF", self.min_pct_diff)
                         skip_change_regex = local_config.get("SKIP_CHANGE_REGEX", self.skip_change_regex)
@@ -201,6 +205,7 @@ class CodexSearch:
                             hide_command,
                             head,
                             tail,
+                            trim_after,
                             truncated_text,
                             min_pct_diff,
                             skip_change_regex,
@@ -308,6 +313,7 @@ class CodexSearch:
             hide_command = output.get("hide_command", self.hide_command)
             head = output.get("head", self.head)
             tail = output.get("tail", self.tail)
+            trim_after = output.get("trim_after", self.trim_after)
             truncated_text = output.get("truncated_text", self.truncated_text)
             min_pct_diff = output.get("min_pct_diff", self.min_pct_diff)
             skip_change_regex = output.get("skip_change_regex", self.skip_change_regex)
@@ -322,6 +328,7 @@ class CodexSearch:
                 hide_command,
                 head,
                 tail,
+                trim_after,
                 truncated_text,
                 min_pct_diff,
                 skip_change_regex,

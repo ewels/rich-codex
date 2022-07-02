@@ -38,6 +38,21 @@ inputs:
   rc_configs:
     description: Paths to YAML config files
     required: false
+  hide_command:
+    description: Hide the terminal prompt with the command at the top of the output
+    required: false
+  head:
+    description: Show only the first N lines of output
+    required: false
+  tail:
+    description: Show only the last N lines of output
+    required: false
+  trim_after:
+    description: Don't print any more lines after this string is found
+    required: false
+  truncated_text:
+    description: Text to show when '--head' or '--tail' truncate content
+    required: false
   skip_git_checks:
     description: Skip safety checks for git repos
     required: false
@@ -105,6 +120,11 @@ runs:
         IMG_PATHS: ${{ inputs.img_paths }}
         CLEAN_IMG_PATHS: ${{ inputs.clean_img_paths }}
         RC_CONFIGS: ${{ inputs.rc_configs }}
+        HIDE_COMMAND: ${{ inputs.hide_command }}
+        RC_HEAD: ${{ inputs.head }}
+        RC_TAIL: ${{ inputs.tail }}
+        TRIM_AFTER: ${{ inputs.trim_after }}
+        TRUNCATED_TEXT: ${{ inputs.truncated_text }}
         SKIP_GIT_CHECKS: ${{ inputs.skip_git_checks }}
         MIN_PCT_DIFF: ${{ inputs.min_pct_diff }}
         SKIP_CHANGE_REGEX: ${{ inputs.skip_change_regex }}
