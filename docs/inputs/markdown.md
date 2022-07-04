@@ -49,10 +49,10 @@ You don't always want people to see the exact command you used, after all.
 
 ## Config comments
 
-Finally, you can use a HTML comment in a line above the image to set config attributes for this image only.
+You can use a HTML comment in a line above the image to set config attributes for this image only.
 The comment should begin with `RICH-CODEX` and then have valid YAML after that.
 
-The parsed configuration will be validated and is the same as used within [rich-codex config files](config_file.md).
+The parsed configuration will be validated - see an overview of available variables on the [config overview docs](../config/overview.md).
 
 For example:
 
@@ -123,8 +123,5 @@ snippet: |
 ![](../img/example-python-snippet.svg)
 ```
 ![](../img/example-python-snippet.svg)
-
-!!! hint
-    Note that all other key-value pairs above also work for snippets.
 
 <!-- prettier-ignore-end -->

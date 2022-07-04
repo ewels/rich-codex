@@ -22,7 +22,7 @@ Any files that are not found (including those supplied in addition to the defaul
 
 ### Validation
 
-When found, rich-codex will first parse the YAML and validate using the [bundled schema](https://github.com/ewels/rich-codex/blob/main/config-schema.yml).
+When found, rich-codex will first parse the YAML and validate using the [bundled schema](https://github.com/ewels/rich-codex/blob/main/src/rich_codex/config-schema.yml).
 If any validation errors are found, rich-codex will provide a log and exit with an error.
 
 ### Structure

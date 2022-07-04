@@ -189,30 +189,37 @@ class CodexSearch:
                     img_match = img_snippet_re.match(line)
                     if (img_cmd_match or img_match) and not local_config.get("skip"):
 
-                        # Skip if it's a regular image with no config snippet
-                        if not img_cmd_match and local_config.get("snippet", "") == "":
-                            continue
-
-                        # Use the results from either a command or snippet match
+                        # Get the command and title from a command regex match
                         if img_cmd_match:
                             m = img_cmd_match.groupdict()
                             local_config["command"] = m["cmd"]
-                            local_config["working_dir"] = Path(file).parent
-                            num_commands += 1
+                            # Save the title if set
+                            if m["title"]:
+                                local_config["title"] = m["title"].strip("'\" ")
                         else:
                             m = img_match.groupdict()
+
+                        # Counters for commands / snippets
+                        if "command" in local_config:
+                            num_commands += 1
+                        elif local_config.get("snippet", "") != "":
                             num_snippets += 1
+                        # Just a regular image with no command / snippet - carry on
+                        else:
+                            local_config = {}
+                            local_config_str = ""
+                            continue
 
-                        # Set the image path
+                        # Set the image path (append in case any others were in the config)
                         img_path = Path(file).parent / Path(m["img_path"].strip())
-                        local_config["img_paths"] = [str(img_path.resolve())]
+                        local_config["img_paths"] = local_config.get("img_paths", []) + [str(img_path.resolve())]
 
-                        # Save the title if set
-                        if m["title"]:
-                            local_config["title"] = m["title"].strip("'\" ")
-
-                        local_config["source_type"] = "search"
-                        local_config["source"] = file
+                        # Set other config defaults if not supplied
+                        local_config["working_dir"] = (
+                            Path(local_config["working_dir"]) if "working_dir" in local_config else Path(file).parent
+                        )
+                        local_config["source_type"] = local_config.get("source_type", "search")
+                        local_config["source"] = Path(local_config["source"]) if "source" in local_config else file
 
                         local_config = self._merge_local_class_attrs(local_config)
 
