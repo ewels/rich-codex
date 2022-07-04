@@ -46,8 +46,13 @@ class RichImg:
 
     def __init__(
         self,
+        command=None,
+        working_dir=None,
+        snippet=None,
+        img_paths=None,
         snippet_syntax=None,
         timeout=5,
+        title=None,
         hide_command=False,
         head=None,
         tail=None,
@@ -61,10 +66,17 @@ class RichImg:
         terminal_theme=None,
         use_pty=False,
         console=None,
+        source_type=None,
+        source=None,
     ):
         """Initialise the RichImg object with core console options."""
+        self.cmd = command
+        self.working_dir = Path.cwd() if working_dir is None else working_dir
+        self.snippet = snippet
+        self.img_paths = [] if img_paths is None else img_paths
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
+        self.title = "" if title is None else title
         self.hide_command = hide_command
         self.head = None if head is None else int(head)
         self.tail = None if tail is None else int(tail)
@@ -79,19 +91,14 @@ class RichImg:
         self.notrim = notrim
         self.terminal_theme = terminal_theme
         self.use_pty = use_pty
-        self.title = ""
         self.console = Console() if console is None else console
         self.capture_console = None
-        self.cwd = Path.cwd()
-        self.cmd = None
-        self.snippet = None
-        self.img_paths = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
         self.no_confirm = False
         self.aborted = False
-        self.source_type = None
-        self.source = None
+        self.source_type = source_type
+        self.source = source
 
     def __eq__(self, other):
         """Compare RichImg objects for equality."""
@@ -178,7 +185,7 @@ class RichImg:
             try:
                 process = subprocess.Popen(
                     self.cmd,
-                    cwd=self.cwd,
+                    cwd=self.working_dir,
                     shell=True,
                     close_fds=True,
                     preexec_fn=os.setsid,
@@ -214,7 +221,7 @@ class RichImg:
             try:
                 process = subprocess.Popen(
                     self.cmd,
-                    cwd=self.cwd,
+                    cwd=self.working_dir,
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,

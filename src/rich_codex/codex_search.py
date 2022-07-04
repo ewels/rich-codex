@@ -152,20 +152,9 @@ class CodexSearch:
                                 raise ValidationError(
                                     f"Config YAML is not a dictionary: '{file_rel_fn}', line {line_number}"
                                 )
-                            # Fake a full config file with the local config
-                            full_config = {
-                                "outputs": [
-                                    {"img_paths": ["parsed_later.svg"], "command": "parsed_later", **local_config}
-                                ]
-                            }
-                            validate_config(self.config_schema, full_config, file_rel_fn, line_number)
                         except yaml.YAMLError as e:
                             log.error(f"[red][✗] Error parsing config YAML in '{file_rel_fn}' line {line_number}: {e}")
                             log.debug(f"Config block:\n{local_config_str}")
-                            local_config = {}
-                            num_errors += 1
-                        except ValidationError as e:
-                            log.error(e)
                             local_config = {}
                             num_errors += 1
                         local_config_str = ""
@@ -176,78 +165,63 @@ class CodexSearch:
                     if (img_cmd_match or img_match) and not local_config.get("skip"):
 
                         # Skip if it's a regular image with no config snippet
-                        snippet = local_config.get("snippet", "")
-                        if not img_cmd_match and snippet == "":
+                        if not img_cmd_match and local_config.get("snippet", "") == "":
                             continue
 
                         # Use the results from either a command or snippet match
                         if img_cmd_match:
                             m = img_cmd_match.groupdict()
-                            if snippet != "":
-                                log.warn(
-                                    f"Found command but already had snippet '{snippet.strip()}' in '{file_rel_fn}'"
-                                )
-                        elif img_match:
-                            # Check that we actually have a snippet ready
-                            if not len(snippet):
-                                log.debug(
-                                    f"Found image tag but no snippet or command: [magenta]{file}[cyan]:L{line_number}"
-                                )  # noqa: E501
-                                continue
-                            m = img_match.groupdict()
-
-                        log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
-                        snippet_syntax = local_config.get("snippet_syntax", self.snippet_syntax)
-                        timeout = local_config.get("timeout", self.timeout)
-                        hide_command = local_config.get("hide_command", self.hide_command)
-                        head = local_config.get("head", self.head)
-                        tail = local_config.get("tail", self.tail)
-                        trim_after = local_config.get("trim_after", self.trim_after)
-                        truncated_text = local_config.get("truncated_text", self.truncated_text)
-                        min_pct_diff = local_config.get("min_pct_diff", self.min_pct_diff)
-                        skip_change_regex = local_config.get("skip_change_regex", self.skip_change_regex)
-                        t_width = local_config.get("terminal_width", self.terminal_width)
-                        t_min_width = local_config.get("terminal_min_width", self.terminal_min_width)
-                        notrim = local_config.get("notrim", self.notrim)
-                        t_theme = local_config.get("terminal_theme", self.terminal_theme)
-                        use_pty = local_config.get("use_pty", self.use_pty)
-                        img_obj = rich_img.RichImg(
-                            snippet_syntax,
-                            timeout,
-                            hide_command,
-                            head,
-                            tail,
-                            trim_after,
-                            truncated_text,
-                            min_pct_diff,
-                            skip_change_regex,
-                            t_width,
-                            t_min_width,
-                            notrim,
-                            t_theme,
-                            use_pty,
-                        )
-                        img_obj.source_type = "search"
-                        img_obj.source = file
-
-                        # Save the command
-                        if img_cmd_match:
-                            img_obj.cwd = Path(file).parent
-                            img_obj.cmd = m["cmd"]
+                            local_config["command"] = m["cmd"]
+                            local_config["working_dir"] = Path(file).parent
                             num_commands += 1
-
-                        # Save the snippet
                         else:
-                            img_obj.snippet = snippet
+                            m = img_match.groupdict()
                             num_snippets += 1
 
-                        # Save the image path
+                        # Set the image path
                         img_path = Path(file).parent / Path(m["img_path"].strip())
-                        img_obj.img_paths = [str(img_path.resolve())]
+                        local_config["img_paths"] = [str(img_path.resolve())]
 
                         # Save the title if set
                         if m["title"]:
-                            img_obj.title = m["title"].strip("'\" ")
+                            local_config["title"] = m["title"].strip("'\" ")
+
+                        local_config["source_type"] = "search"
+                        local_config["source"] = file
+
+                        # Update local config with class params
+                        # Only if not set locally and if not None at class level
+                        for conf in [
+                            "snippet_syntax",
+                            "timeout",
+                            "hide_command",
+                            "head",
+                            "tail",
+                            "trim_after",
+                            "truncated_text",
+                            "min_pct_diff",
+                            "skip_change_regex",
+                            "terminal_width",
+                            "terminal_min_width",
+                            "notrim",
+                            "terminal_theme",
+                            "use_pty",
+                        ]:
+                            if conf not in local_config and getattr(self, conf) is not None:
+                                local_config[conf] = getattr(self, conf)
+
+                        # Validate the config we have via the schema
+                        try:
+                            validate_config(self.config_schema, {"outputs": [local_config]}, file_rel_fn, line_number)
+                        except ValidationError as e:
+                            log.error(e)
+                            local_config_str = ""
+                            local_config = {}
+                            num_errors += 1
+                            continue
+
+                        log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
+                        img_obj = rich_img.RichImg(**local_config)
 
                         # Save the image object
                         self.rich_imgs.append(img_obj)

@@ -3,10 +3,32 @@
 "$id": https://github.com/ewels/rich-codex/raw/main/src/rich_codex/config-schema.yml
 title: rich-codex configs
 type: object
-required:
-  - outputs
 additionalProperties: false
 properties:
+  # top-level config options
+
+  # Shared config options
+  snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
+  timeout: { "$ref": "#/$defs/timeout" }
+  hide_command: { "$ref": "#/$defs/hide_command" }
+  head: { "$ref": "#/$defs/head" }
+  tail: { "$ref": "#/$defs/tail" }
+  trim_after: { "$ref": "#/$defs/trim_after" }
+  truncated_text: { "$ref": "#/$defs/truncated_text" }
+  min_pct_diff: { "$ref": "#/$defs/min_pct_diff" }
+  skip_change_regex: { "$ref": "#/$defs/skip_change_regex" }
+  terminal_width: { "$ref": "#/$defs/terminal_width" }
+  terminal_min_width: { "$ref": "#/$defs/terminal_min_width" }
+  notrim: { "$ref": "#/$defs/notrim" }
+  terminal_theme: { "$ref": "#/$defs/terminal_theme" }
+  use_pty: { "$ref": "#/$defs/use_pty" }
+
+  # Top-level only config options
+  skip:
+    title: Skip the next rich-codex image in the markdown source
+    type: boolean
+
+  # List of specific screenshots to generate
   outputs:
     title: Array of outputs to generate
     type: array
@@ -16,17 +38,22 @@ properties:
       additionalProperties: false
       required:
         - img_paths
+      # Need either a command or a snippet
       anyOf:
         - required:
             - command
         - required:
             - snippet
+
+      # Additional properties needed to create an output, beyond config
       properties:
         command:
           title: Shell command to run
           type: string
           message:
             required: Either command or snippet is required
+        working_dir:
+          title: Working directory to run command in
         snippet:
           title: Code snippet to use
           type: string
@@ -43,45 +70,69 @@ properties:
             type: string
             title: An image path
             pattern: "(?i)\\.(svg|png|pdf)$"
-        snippet_syntax:
-          title: Language to use for snippet sytax highlighting
+        source:
+          title: Filename / meta about where the image came from
+        source_type:
+          title: Type of input that the image came from
           type: string
-        timeout:
-          title: Maximum run time for command (seconds)
-          type: integer
-        hide_command:
-          title: Hide the terminal prompt with the command at the top of the output
-          type: boolean
-        head:
-          title: Show only the first N lines of output
-          type: integer
-        tail:
-          title: Show only the last N lines of output
-          type: integer
-        trim_after:
-          title: Don't print any more lines after this string is found
-          type: string
-        truncated_text:
-          title: Text to show when --head or --tail truncate content
-          type: string
-        min_pct_diff:
-          title: Minimum file percentage change required to update image
-          type: number
-        skip_change_regex:
-          title: Skip image update if file changes match regex
-          type: boolean
-        terminal_width:
-          title: Width of the terminal
-          type: integer
-        terminal_min_width:
-          title: Minimum width of the terminal (use trimming)
-          type: integer
-        notrim:
-          title: Disable automatic trimming of terminal width
-          type: boolean
-        terminal_theme:
-          title: Colour theme
-          type: string
-        use_pty:
-          title: Use a pseudo-terminal for commands (may capture coloured output)
-          type: boolean
+
+        # Shared config options
+        snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
+        timeout: { "$ref": "#/$defs/timeout" }
+        hide_command: { "$ref": "#/$defs/hide_command" }
+        head: { "$ref": "#/$defs/head" }
+        tail: { "$ref": "#/$defs/tail" }
+        trim_after: { "$ref": "#/$defs/trim_after" }
+        truncated_text: { "$ref": "#/$defs/truncated_text" }
+        min_pct_diff: { "$ref": "#/$defs/min_pct_diff" }
+        skip_change_regex: { "$ref": "#/$defs/skip_change_regex" }
+        terminal_width: { "$ref": "#/$defs/terminal_width" }
+        terminal_min_width: { "$ref": "#/$defs/terminal_min_width" }
+        notrim: { "$ref": "#/$defs/notrim" }
+        terminal_theme: { "$ref": "#/$defs/terminal_theme" }
+        use_pty: { "$ref": "#/$defs/use_pty" }
+
+# Single location to hold schema for config options, as used twice
+"$defs":
+  snippet_syntax:
+    title: Language to use for snippet sytax highlighting
+    type: string
+  timeout:
+    title: Maximum run time for command (seconds)
+    type: integer
+  hide_command:
+    title: Hide the terminal prompt with the command at the top of the output
+    type: boolean
+  head:
+    title: Show only the first N lines of output
+    type: integer
+  tail:
+    title: Show only the last N lines of output
+    type: integer
+  trim_after:
+    title: Don't print any more lines after this string is found
+    type: string
+  truncated_text:
+    title: Text to show when --head or --tail truncate content
+    type: string
+  min_pct_diff:
+    title: Minimum file percentage change required to update image
+    type: number
+  skip_change_regex:
+    title: Skip image update if file changes match regex
+    type: boolean
+  terminal_width:
+    title: Width of the terminal
+    type: integer
+  terminal_min_width:
+    title: Minimum width of the terminal (use trimming)
+    type: integer
+  notrim:
+    title: Disable automatic trimming of terminal width
+    type: boolean
+  terminal_theme:
+    title: Colour theme
+    type: string
+  use_pty:
+    title: Use a pseudo-terminal for commands (may capture coloured output)
+    type: boolean
