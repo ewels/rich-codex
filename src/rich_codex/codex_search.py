@@ -71,6 +71,22 @@ class CodexSearch:
         self.rich_imgs = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
+        self.class_config_attrs = [
+            "snippet_syntax",
+            "timeout",
+            "hide_command",
+            "head",
+            "tail",
+            "trim_after",
+            "truncated_text",
+            "min_pct_diff",
+            "skip_change_regex",
+            "terminal_width",
+            "terminal_min_width",
+            "notrim",
+            "terminal_theme",
+            "use_pty",
+        ]
 
         # Look in .gitignore to add to search_exclude
         try:
@@ -93,6 +109,15 @@ class CodexSearch:
             if not line.startswith("#") and line:
                 clean_lines.append(line)
         return clean_lines
+
+    def _merge_local_class_attrs(self, local_config):
+        """Update local config with class params.
+        Only if not set locally and if not None at class level
+        """
+        for conf in self.class_config_attrs:
+            if conf not in local_config and getattr(self, conf) is not None:
+                local_config[conf] = getattr(self, conf)
+        return local_config
 
     def search_files(self):
         """Search through a set of files for codex strings."""
@@ -189,26 +214,7 @@ class CodexSearch:
                         local_config["source_type"] = "search"
                         local_config["source"] = file
 
-                        # Update local config with class params
-                        # Only if not set locally and if not None at class level
-                        for conf in [
-                            "snippet_syntax",
-                            "timeout",
-                            "hide_command",
-                            "head",
-                            "tail",
-                            "trim_after",
-                            "truncated_text",
-                            "min_pct_diff",
-                            "skip_change_regex",
-                            "terminal_width",
-                            "terminal_min_width",
-                            "notrim",
-                            "terminal_theme",
-                            "use_pty",
-                        ]:
-                            if conf not in local_config and getattr(self, conf) is not None:
-                                local_config[conf] = getattr(self, conf)
+                        local_config = self._merge_local_class_attrs(local_config)
 
                         # Validate the config we have via the schema
                         try:
@@ -271,60 +277,18 @@ class CodexSearch:
         """Parse a single rich-codex config file."""
         validate_config(self.config_schema, config, config_fn)
 
+        # Overwrite class-level configs
+        for cls in self.class_config_attrs:
+            if cls in config:
+                setattr(self, cls, config["cls"])
+
         for output in config["outputs"]:
             log.debug(f"Found valid output in '{config_fn}': {output}")
-            snippet_syntax = output.get("snippet_syntax", self.snippet_syntax)
-            timeout = output.get("timeout", self.timeout)
-            hide_command = output.get("hide_command", self.hide_command)
-            head = output.get("head", self.head)
-            tail = output.get("tail", self.tail)
-            trim_after = output.get("trim_after", self.trim_after)
-            truncated_text = output.get("truncated_text", self.truncated_text)
-            min_pct_diff = output.get("min_pct_diff", self.min_pct_diff)
-            skip_change_regex = output.get("skip_change_regex", self.skip_change_regex)
-            t_width = output.get("terminal_width", self.terminal_width)
-            t_min_width = output.get("terminal_min_width", self.terminal_min_width)
-            notrim = output.get("notrim", self.notrim)
-            t_theme = output.get("terminal_theme", self.terminal_theme)
-            use_pty = output.get("use_pty", self.use_pty)
-            img_obj = rich_img.RichImg(
-                snippet_syntax,
-                timeout,
-                hide_command,
-                head,
-                tail,
-                trim_after,
-                truncated_text,
-                min_pct_diff,
-                skip_change_regex,
-                t_width,
-                t_min_width,
-                notrim,
-                t_theme,
-                use_pty,
-            )
-            img_obj.source_type = "config"
-            img_obj.source = config_fn
-
-            # Save the command
-            if "command" in output:
-                img_obj.cmd = output["command"]
-
-            # Save the snippet
-            elif "snippet" in output:
-                img_obj.snippet = output["snippet"]
-
-            # Save the image paths
-            for img_path_str in output["img_paths"]:
-                img_path = Path(img_path_str.strip())
-                img_obj.img_paths.append(str(img_path.resolve()))
-
-            # Save the title if set
-            if "title" in output:
-                img_obj.title = output["title"]
-
-            # Save the image object
-            self.rich_imgs.append(img_obj)
+            output["img_paths"] = [str(Path(img_path_str.strip()).resolve()) for img_path_str in output["img_paths"]]
+            output["source_type"] = "config"
+            output["source"] = config_fn
+            local_config = self._merge_local_class_attrs(output)
+            self.rich_imgs.append(rich_img.RichImg(**local_config))
 
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
