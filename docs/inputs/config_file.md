@@ -14,6 +14,12 @@ You can pass one or more additional config locations (separated with newlines) u
 
 Any files that are not found (including those supplied in addition to the defaults) will be silently ignored.
 
+<!-- prettier-ignore-start -->
+!!! note
+    Strange things may happen if you have more than one config file, such as global config settings overwriting one another in unpredictable ways.
+    So it's probably best not to use more than one.
+<!-- prettier-ignore-end -->
+
 ### Validation
 
 When found, rich-codex will first parse the YAML and validate using the [bundled schema](https://github.com/ewels/rich-codex/blob/main/config-schema.yml).
@@ -21,9 +27,9 @@ If any validation errors are found, rich-codex will provide a log and exit with 
 
 ### Structure
 
-Config files must contain the top-level key `outputs` with an array of different things to create.
+Config files can have both top-level configuration options that apply to all files and also an `outputs` array of different things to create.
 
-Each array item must contain an `img_paths` array of output filenames and either a `command` or a `snippet`.
+Each `outputs` array item must contain an `img_paths` array of output filenames and either a `command` or a `snippet`.
 You can optionally add `title` to customise the terminal window title.
 
 For example:
