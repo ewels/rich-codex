@@ -21,8 +21,6 @@ jobs:
         with:
           commit_changes: "true"
           clean_img_paths: docs/img/*.svg
-          terminal_width: "120"
-          notrim: "true"
 
       - name: Build and deploy docs
         run: mkdocs gh-deploy --force

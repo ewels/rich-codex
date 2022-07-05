@@ -32,7 +32,8 @@ Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for conven
 
 ## Title text
 
-You can also add [title text](https://daringfireball.net/projects/markdown/syntax#img) in quotes after the filename, which will be used in the top menu bar of the screenshot terminal.
+You can also add markdown image [title text](https://daringfireball.net/projects/markdown/syntax#img) in quotes after the filename, which will be used in the top menu bar of the screenshot terminal. (Alternatively, set the `title` config option in a comment).
+
 This can be useful when adding lots of command markup to get a good screenshot.
 You might also want to hide the command prompt.
 For example:
@@ -41,7 +42,7 @@ For example:
 ```markdown
 You don't always want people to see the exact command you used, after all.
 <!-- RICH-CODEX hide_command: true -->
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --line-numbers --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
+![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
 ```
 <!-- prettier-ignore-end -->
 
@@ -73,7 +74,7 @@ For example:
 In addition to running commands, you can format code blocks or "snippets".
 
 To do this, make the `<!-- RICH-CODEX` code comment config with the `snippet` key.
-Remember that you can use the pipe character `|` in YAML to have multi-line strings, but there must be correct indentation. I'd recommend you write the YAML in a code editor with syntax highlighting and then paste it in.
+Remember that you can use the pipe character `|` in YAML to have multi-line strings, but you need to be careful with indentation to maintain valid YAML. I'd recommend you write the YAML in a code editor with syntax highlighting and then paste it in.
 
 <!-- prettier-ignore-start -->
 

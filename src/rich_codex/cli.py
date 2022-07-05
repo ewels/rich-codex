@@ -96,6 +96,12 @@ log = logging.getLogger()
     help="Paths to YAML config files",
 )
 @click.option(
+    "--fake-command",
+    envvar="FAKE_COMMAND",
+    show_envvar=True,
+    help="Pretend command to show in the screenshot prompt",
+)
+@click.option(
     "--hide-command",
     is_flag=True,
     envvar="HIDE_COMMAND",
@@ -230,6 +236,7 @@ def main(
     img_paths,
     clean_img_paths,
     configs,
+    fake_command,
     hide_command,
     head,
     tail,

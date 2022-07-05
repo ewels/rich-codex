@@ -55,6 +55,7 @@ class RichImg:
         before_command=None,
         after_command=None,
         title=None,
+        fake_command=None,
         hide_command=False,
         head=None,
         tail=None,
@@ -81,6 +82,7 @@ class RichImg:
         self.before_command = before_command
         self.after_command = after_command
         self.title = "" if title is None else title
+        self.fake_command = fake_command
         self.hide_command = hide_command
         self.head = None if head is None else int(head)
         self.tail = None if tail is None else int(tail)
@@ -142,7 +144,7 @@ class RichImg:
                 return False
 
         if self.title == "":
-            self.title = self.cmd
+            self.title = self.fake_command if self.fake_command else self.cmd
 
         if self.use_pty:
             log.debug(f"Running command '{self.cmd}' with pty")
@@ -316,7 +318,11 @@ class RichImg:
 
         # Print the command
         if not self.hide_command:
-            self.capture_console.print(f"$ {self.cmd}")
+            self.capture_console.print(
+                "$ {}".format(
+                    self.fake_command if self.fake_command else self.cmd,
+                )
+            )
 
         # Decode and print the output (captured)
         for idx, line in enumerate(decoder.decode(output)):

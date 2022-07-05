@@ -1,6 +1,29 @@
+## Faking simple commands
+
+Sometimes you may need to have long complicated commands to get the screenshot you need, when the typical command for an end user would be much simpler.
+
+In this case, you can fake the command shown in the terminal prompt using `--fake-command` / `$FAKE_COMMAND` / `fake_command`.
+
+For example:
+
+<!-- prettier-ignore-start -->
+
+```markdown
+<!-- RICH-CODEX fake_command: "my_tool --is-simple" -->
+![`echo "I won't tell if you don't 🤫" > temp_file.txt && echo "" && cat temp_file.txt && rm temp_file.txt`](docs/images/fake_command.svg)
+```
+![](../images/fake_command.svg)
+
+<!-- prettier-ignore-end -->
+
 ## Running commands before and after
 
-For more complex scenarios, you can also use the config options `--before-command` / `$BEFORE_COMMAND` / `before_command` and `--after-command` / `$AFTER_COMMAND` / `after_command`.
+Chaining complex commands may not always work if the setup / cleanup commands generate output that you don't want to show in the screenshot.
+
+In these more complex scenarios, you can run additional commands before and after the one used for the screenshot. This is done with the following options:
+
+- `--before-command` / `$BEFORE_COMMAND` / `before_command`
+- `--after-command` / `$AFTER_COMMAND` / `after_command`.
 
 These run separate `subprocess` calls with the specified commands before and after the target command.
 This can be useful for initialising an environment and then cleaning up afterwards.
@@ -17,7 +40,7 @@ after_command: rm before_after_command_example.txt
 -->
 ![`cat before_after_command_example.txt`](docs/images/before_after_command.svg)
 ```
-![](docs/images/before_after_command.svg)
+![](../images/before_after_command.svg)
 
 !!! note:
     Commands should be a single string, so remember to chain using `&&` and ideally use YAML multi-line strings that collapse newlines using `>`.
