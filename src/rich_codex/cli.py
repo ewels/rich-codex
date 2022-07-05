@@ -362,7 +362,7 @@ def main(
         img_obj.no_confirm = no_confirm
         if command:
             log.info(f"Command: [white on black] {command} [/]")
-            img_obj.cmd = command
+            img_obj.command = command
         if snippet:
             log_snippet = snippet[0:30].replace("\n", " ")
             log.info(f"Snippet: [white on black] {log_snippet}... [/]")

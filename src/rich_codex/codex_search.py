@@ -326,7 +326,7 @@ class CodexSearch:
             else:
                 merged_imgs[ri_hash] = ri
         log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
-        self.rich_imgs = sorted(merged_imgs.values(), key=lambda x: str(x.cmd).lower())
+        self.rich_imgs = sorted(merged_imgs.values(), key=lambda x: str(x.command).lower())
 
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
@@ -342,10 +342,10 @@ class CodexSearch:
         table.add_column("Commands to run:")
         table.add_column("Source", justify="right")
         for img_obj in self.rich_imgs:
-            if img_obj.cmd is not None:
+            if img_obj.command is not None:
                 rel_source = Path(img_obj.source).relative_to(Path.cwd())
                 source = f" [grey42][link=file:{Path(img_obj.source).absolute()}]{rel_source}[/][/]"
-                table.add_row(img_obj.cmd, source)
+                table.add_row(img_obj.command, source)
 
         if table.row_count == 0:
             return True
@@ -363,7 +363,7 @@ class CodexSearch:
             return True
         elif confirm == "n":
             log.info("Skipping all outputs that require running a command")
-            self.rich_imgs = [ri for ri in self.rich_imgs if ri.cmd is None]
+            self.rich_imgs = [ri for ri in self.rich_imgs if ri.command is None]
             return False
         else:
             log.info("Please select commands individually")

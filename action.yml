@@ -44,6 +44,9 @@ inputs:
   rc_configs:
     description: Paths to YAML config files
     required: false
+  fake_command:
+    description: Pretend command to show in the screenshot prompt
+    required: false
   hide_command:
     description: Hide the terminal prompt with the command at the top of the output
     required: false
@@ -128,6 +131,7 @@ runs:
         IMG_PATHS: ${{ inputs.img_paths }}
         CLEAN_IMG_PATHS: ${{ inputs.clean_img_paths }}
         RC_CONFIGS: ${{ inputs.rc_configs }}
+        FAKE_COMMAND: ${{ inputs.fake_command }}
         HIDE_COMMAND: ${{ inputs.hide_command }}
         RC_HEAD: ${{ inputs.head }}
         RC_TAIL: ${{ inputs.tail }}
