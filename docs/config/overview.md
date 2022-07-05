@@ -46,13 +46,16 @@ An overview of all available config options in all scopes is below:
 | `--notrim`             | `NOTRIM`             | `notrim`                          |
 | `--terminal-theme`     | `TERMINAL_THEME`     | `terminal_theme`                  |
 | `--use-pty`            | `USE_PTY`            | `use_pty`                         |
-| `--verbose`            | `LOG_VERBOSE`        | `log_verbose`                     |
+| `--verbose`            | `LOG_VERBOSE`        | `log_verbose` \*                  |
 | `--save-log`           | `LOG_SAVE`           | -                                 |
 | `--log-file`           | `LOG_FILENAME`       | -                                 |
-| -                      | -                    | `commit_changes`                  |
-| -                      | -                    | `error_changes`                   |
-| -                      | -                    | `title`                           |
-| -                      | -                    | `skip`                            |
+| -                      | -                    | `commit_changes` \*               |
+| -                      | -                    | `error_changes` \*                |
+| -                      | -                    | `title` †                         |
+| -                      | -                    | `skip` †                          |
+
+- `*` - GitHub Action only
+- `†` - Markdown / config only (per-output, not global)
 
 ## Description of options
 
