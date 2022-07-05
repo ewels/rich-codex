@@ -10,9 +10,9 @@ For example:
 
 ```markdown
 <!-- RICH-CODEX fake_command: "my_tool --is-simple" -->
-![`echo "I won't tell if you don't 🤫" > temp_file.txt && echo "" && cat temp_file.txt && rm temp_file.txt`](docs/images/fake_command.svg)
+![`echo "I won't tell if you don't 🤫" > temp_file.txt && echo "" && cat temp_file.txt && rm temp_file.txt`](../img/fake_command.svg)
 ```
-![](../images/fake_command.svg)
+![](../img/fake_command.svg)
 
 <!-- prettier-ignore-end -->
 
@@ -38,9 +38,9 @@ before_command: >
   echo "This is a very simple example" > before_after_command_example.txt
 after_command: rm before_after_command_example.txt
 -->
-![`cat before_after_command_example.txt`](docs/images/before_after_command.svg)
+![`cat before_after_command_example.txt`](../img/before_after_command.svg)
 ```
-![](../images/before_after_command.svg)
+![](../img/before_after_command.svg)
 
 !!! note:
     Commands should be a single string, so remember to chain using `&&` and ideally use YAML multi-line strings that collapse newlines using `>`.

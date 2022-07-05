@@ -171,5 +171,5 @@ runs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
       with:
-        name: Log files
+        name: Rich-codex log file
         path: rich_codex_*.log
