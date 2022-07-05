@@ -18,6 +18,7 @@ Typical use cases:
 ## Quickstart
 
 1. 📖 Write some markdown docs, use an image tag with a backtick command inside:
+   <!-- RICH-CODEX {terminal_width: 120, notrim: true} -->
    ```markdown
    ![`cat cat.txt | lolcat -S 1`](img/cat.svg)
    ```
