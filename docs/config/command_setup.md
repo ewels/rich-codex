@@ -1,3 +1,25 @@
+## Setting extra environment vars
+
+In some cases you may want to set environment variables for a single command only.
+In this case, you can use the `extra_env` config option, which adds YAML key:value pairs to the environment for just that command (and the before / after commands, see below).
+
+I use this method to set the terminal width for the rich-click screenshots in this documentation:
+
+<!-- prettier-ignore-start -->
+```markdown
+<!-- RICH-CODEX
+terminal_width: 120
+notrim: true
+extra_env:
+  TERMINAL_WIDTH: 120
+-->
+![`rich-codex --help`](../img/rich-codex-cli-envs.svg)
+```
+
+!!! tip:
+    It's probably easier to set these at run-level if that's an option, these are really only if you want to customise for a single output.
+<!-- prettier-ignore-end -->
+
 ## Faking simple commands
 
 Sometimes you may need to have long complicated commands to get the screenshot you need, when the typical command for an end user would be much simpler.

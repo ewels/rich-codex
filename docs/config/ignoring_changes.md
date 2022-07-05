@@ -18,7 +18,7 @@ For example, if a timestamp caused this file to change by 4.34% on every commit,
 <!-- prettier-ignore-start -->
 ```markdown
 <!-- RICH-CODEX min_pct_diff: 5 -->
-![`rich-codex --help`](../img/rich-codex-help.svg)
+![`rich-codex --help`](../img/rich-codex-help-min-pct.svg)
 ```
 <!-- prettier-ignore-end -->
 

@@ -4,7 +4,12 @@ If you write markdown with images that contain _just_ a `backtick command` as th
 
 For example, the following markdown will generate `../img/rich-codex-help.svg` (the image shown above) based on the output of the command `rich-codex --help`:
 
-<!-- RICH-CODEX {terminal_width: 120, notrim: true} -->
+<!-- RICH-CODEX
+terminal_width: 120
+notrim: true
+extra_env:
+  TERMINAL_WIDTH: 120
+-->
 
 ```markdown
 ![`rich-codex --help`](../img/rich-codex-help.svg)

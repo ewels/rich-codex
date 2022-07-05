@@ -26,9 +26,14 @@ rich-codex
 
 Behaviour can be customised with command-line flags or by setting environment variables, see `rich-codex --help`:
 
-<!-- RICH-CODEX {terminal_width: 120, notrim: true, fake_command: "rich-codex --help"} -->
+<!-- RICH-CODEX
+terminal_width: 120
+notrim: true
+extra_env:
+  TERMINAL_WIDTH: 120
+-->
 
-![`TERMINAL_WIDTH=120 rich-codex --help`](../img/rich-codex-help.svg)
+![`rich-codex --help`](../img/rich-codex-cli-help.svg)
 
 ## Requirements for PNG / PDF outputs
 

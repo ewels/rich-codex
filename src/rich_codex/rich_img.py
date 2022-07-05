@@ -51,6 +51,7 @@ class RichImg:
         title=None,
         fake_command=None,
         hide_command=False,
+        extra_env=None,
         head=None,
         tail=None,
         trim_after=None,
@@ -78,6 +79,7 @@ class RichImg:
         self.title = "" if title is None else title
         self.fake_command = fake_command
         self.hide_command = hide_command
+        self.extra_env = {} if extra_env is None else extra_env
         self.head = None if head is None else int(head)
         self.tail = None if tail is None else int(tail)
         self.trim_after = trim_after
@@ -164,6 +166,12 @@ class RichImg:
         # Create working directory if it doesn't already exist
         self.working_dir.mkdir(parents=True, exist_ok=True)
 
+        # Set up the command environment vars, with extra_env if set
+        command_env = os.environ.copy()
+        if len(self.extra_env):
+            log.debug(f"Adding extra env variables: {self.extra_env}")
+            command_env.update({str(k): str(v) for k, v in self.extra_env.items()})
+
         # Run before_command if set
         if self.before_command:
             log.debug("Running 'before_command'")
@@ -175,6 +183,7 @@ class RichImg:
                 self.before_command,
                 cwd=self.working_dir,
                 shell=True,
+                env=command_env,
                 capture_output=True,
             )
             #         , title="'before_command' results",
@@ -208,6 +217,7 @@ class RichImg:
                     self.command,
                     cwd=self.working_dir,
                     shell=True,
+                    env=command_env,
                     close_fds=True,
                     preexec_fn=os.setsid,
                     stdin=write_end,
@@ -247,6 +257,7 @@ class RichImg:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     shell=True,  # Needed for pipes
+                    env=command_env,
                     start_new_session=True,  # Needed for subprocess termination
                 )
                 output, errs = process.communicate(timeout=float(self.timeout))
@@ -267,6 +278,7 @@ class RichImg:
                 self.after_command,
                 cwd=self.working_dir,
                 shell=True,
+                env=command_env,
                 capture_output=True,
             )
             #         , title="'after_command' results",

@@ -67,6 +67,9 @@ properties:
         fake_command:
           title: Pretend command to show in the screenshot prompt
           type: string
+        extra_env:
+          title: Additional environment variables to set for this command
+          type: object
         img_paths:
           title: Array of image filenames to generate
           type: array
