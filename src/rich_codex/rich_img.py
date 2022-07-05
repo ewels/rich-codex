@@ -67,7 +67,7 @@ class RichImg:
         source=None,
     ):
         """Initialise the RichImg object with core console options."""
-        self.cmd = command
+        self.command = command
         self.working_dir = Path.cwd() if working_dir is None else working_dir
         self.snippet = snippet
         self.img_paths = [] if img_paths is None else img_paths
@@ -119,29 +119,29 @@ class RichImg:
 
     def confirm_command(self):
         """Prompt user to confirm running command."""
-        if self.cmd is None or self.no_confirm:
+        if self.command is None or self.no_confirm:
             return True
-        return Confirm.ask(f"Command: [white on black] {self.cmd} [/] Run?", console=self.console)
+        return Confirm.ask(f"Command: [white on black] {self.command} [/] Run?", console=self.console)
 
     def run_command(self):
         """Capture output from a supplied command and save to an image."""
-        if self.cmd is None:
+        if self.command is None:
             log.debug("Tried to generate image with no command")
             return
 
-        self.cmd = self.cmd.strip()
+        self.command = self.command.strip()
 
         for ignore in IGNORE_COMMANDS:
-            if any(cmd_part.strip().startswith(ignore) for cmd_part in self.cmd.split("&;")):
-                log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.cmd} [/]")
+            if any(cmd_part.strip().startswith(ignore) for cmd_part in self.command.split("&;")):
+                log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.command} [/]")
                 self.aborted = True
                 return False
 
         if self.title == "":
-            self.title = self.fake_command if self.fake_command else self.cmd
+            self.title = self.fake_command if self.fake_command else self.command
 
         if self.use_pty:
-            log.debug(f"Running command '{self.cmd}' with pty")
+            log.debug(f"Running command '{self.command}' with pty")
 
             try:
                 import fcntl
@@ -158,7 +158,7 @@ class RichImg:
                 )
                 run_with_pty = False
         else:
-            log.debug(f"Running command '{self.cmd}' with subprocess")
+            log.debug(f"Running command '{self.command}' with subprocess")
             run_with_pty = False
 
         # Create working directory if it doesn't already exist
@@ -205,7 +205,7 @@ class RichImg:
             # Run subprocess in pty
             try:
                 process = subprocess.Popen(
-                    self.cmd,
+                    self.command,
                     cwd=self.working_dir,
                     shell=True,
                     close_fds=True,
@@ -216,7 +216,7 @@ class RichImg:
                 )
                 process.wait(timeout=float(self.timeout))
             except subprocess.TimeoutExpired:
-                log.info(f"Command '{self.cmd}' timed out after {self.timeout} seconds")
+                log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             os.close(write_end)
 
@@ -241,7 +241,7 @@ class RichImg:
         else:
             try:
                 process = subprocess.Popen(
-                    self.cmd,
+                    self.command,
                     cwd=self.working_dir,
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
@@ -251,7 +251,7 @@ class RichImg:
                 )
                 output, errs = process.communicate(timeout=float(self.timeout))
             except subprocess.TimeoutExpired:
-                log.info(f"Command '{self.cmd}' timed out after {self.timeout} seconds")
+                log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
                 os.killpg(os.getpgid(process.pid), signal.SIGKILL)
                 output, errs = process.communicate()
             output = output.decode("utf-8")
@@ -314,7 +314,7 @@ class RichImg:
         if not self.hide_command:
             self.capture_console.print(
                 "$ {}".format(
-                    self.fake_command if self.fake_command else self.cmd,
+                    self.fake_command if self.fake_command else self.command,
                 )
             )
 
@@ -368,7 +368,7 @@ class RichImg:
 
     def get_output(self):
         """Either run command or format snippet, depending on what is set."""
-        if self.cmd is not None:
+        if self.command is not None:
             self.run_command()
         elif self.snippet is not None:
             self.format_snippet()
