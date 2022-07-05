@@ -10,6 +10,7 @@ from shutil import copyfile
 from tempfile import gettempdir, mkstemp
 
 import rich.terminal_theme
+import yaml
 from Levenshtein import ratio
 from rich.ansi import AnsiDecoder
 from rich.console import Console
@@ -18,18 +19,11 @@ from rich.syntax import Syntax
 
 log = logging.getLogger("rich-codex")
 
-# Attributes of RichImg which are important for equality
-RICH_IMG_ATTRS = [
-    "terminal_width",
-    "terminal_min_width",
-    "terminal_theme",
-    "title",
-    "cmd",
-    "snippet",
-    "snippet_syntax",
-    "timeout",
-    "img_paths",
-]
+# Parse the config schema file to get config attributes
+config_schema_fn = Path(__file__).parent / "config-schema.yml"
+with config_schema_fn.open() as fh:
+    config_schema = yaml.safe_load(fh)
+RICH_IMG_ATTRS = config_schema["properties"]["outputs"]["items"]["properties"].keys()
 
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
