@@ -43,6 +43,7 @@ nav:
       - config/overview.md
       - config/time_limits.md
       - config/tweaks.md
+      - config/command_setup.md
       - config/width.md
       - config/colours.md
       - config/cleaning.md

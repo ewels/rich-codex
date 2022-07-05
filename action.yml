@@ -23,6 +23,12 @@ inputs:
   timeout:
     description: Maximum run time for command (seconds)
     required: false
+  before_command:
+    description: Setup commands to run before running main output command
+    required: false
+  after_command:
+    description: Setup commands to run after running main output command
+    required: false
   snippet:
     description: Literal code snippet to render
     required: false
@@ -115,6 +121,8 @@ runs:
         NO_SEARCH: ${{ inputs.no_search }}
         COMMAND: ${{ inputs.command }}
         TIMEOUT: ${{ inputs.timeout }}
+        BEFORE_COMMAND: ${{ inputs.before_command }}
+        AFTER_COMMAND: ${{ inputs.after_command }}
         SNIPPET: ${{ inputs.snippet }}
         SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
         IMG_PATHS: ${{ inputs.img_paths }}
