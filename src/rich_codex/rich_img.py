@@ -52,6 +52,8 @@ class RichImg:
         img_paths=None,
         snippet_syntax=None,
         timeout=5,
+        before_command=None,
+        after_command=None,
         title=None,
         hide_command=False,
         head=None,
@@ -76,6 +78,8 @@ class RichImg:
         self.img_paths = [] if img_paths is None else img_paths
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
+        self.before_command = before_command
+        self.after_command = after_command
         self.title = "" if title is None else title
         self.hide_command = hide_command
         self.head = None if head is None else int(head)
@@ -161,6 +165,27 @@ class RichImg:
             log.debug(f"Running command '{self.cmd}' with subprocess")
             run_with_pty = False
 
+        # Create working directory if it doesn't already exist
+        self.working_dir.mkdir(parents=True, exist_ok=True)
+
+        # Run before_command if set
+        if self.before_command:
+            log.debug("Running 'before_command'")
+            # TODO: Can't get inspect() to output to a log call
+            # NOTE: https://github.com/Textualize/rich/discussions/2378
+            # log.debug(
+            #     inspect(
+            subprocess.run(
+                self.before_command,
+                cwd=self.working_dir,
+                shell=True,
+                capture_output=True,
+            )
+            #         , title="'before_command' results",
+            #         docs=False,
+            #     )
+            # )
+
         # Run the command with a fake tty to try to get colours
         if run_with_pty:
             read_end, write_end = pty.openpty()
@@ -234,6 +259,24 @@ class RichImg:
                 os.killpg(os.getpgid(process.pid), signal.SIGKILL)
                 output, errs = process.communicate()
             output = output.decode("utf-8")
+
+        # Run after_command if set
+        if self.after_command:
+            log.debug("Running 'after_command'")
+            # TODO: Can't get inspect() to output to a log call
+            # NOTE: https://github.com/Textualize/rich/discussions/2378
+            # log.debug(
+            #     inspect(
+            subprocess.run(
+                self.after_command,
+                cwd=self.working_dir,
+                shell=True,
+                capture_output=True,
+            )
+            #         , title="'after_command' results",
+            #         docs=False,
+            #     )
+            # )
 
         decoder = AnsiDecoder()
 

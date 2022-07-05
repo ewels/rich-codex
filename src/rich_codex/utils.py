@@ -67,14 +67,10 @@ def check_git_status():
 
 def validate_config(schema, config, filename, line_number=None):
     """Validate a config file string against the rich-click JSON schema."""
+    ln_text = f"line {line_number} " if line_number else ""
     v = Draft4Validator(schema)
-    if v.is_valid(config):
-        log.debug(f"Config in '{filename}' looks valid")
-    else:
-        err_msg = f"[red][✗] Rich-codex config in '{filename}' "
-        if line_number:
-            err_msg += f"line {line_number} "
-        err_msg += "was invalid:"
+    if not v.is_valid(config):
+        err_msg = f"[red][✗] Rich-codex config in '{filename}' {ln_text}was invalid"
 
         for error in sorted(v.iter_errors(config), key=str):
             err_msg += f"\n - {error.message}"

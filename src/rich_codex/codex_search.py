@@ -30,6 +30,8 @@ class CodexSearch:
         no_confirm,
         snippet_syntax,
         timeout,
+        before_command,
+        after_command,
         hide_command,
         head,
         tail,
@@ -55,6 +57,8 @@ class CodexSearch:
         self.no_confirm = no_confirm
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
+        self.before_command = before_command
+        self.after_command = after_command
         self.hide_command = hide_command
         self.head = head
         self.tail = tail
@@ -74,6 +78,8 @@ class CodexSearch:
         self.class_config_attrs = [
             "snippet_syntax",
             "timeout",
+            "before_command",
+            "after_command",
             "hide_command",
             "head",
             "tail",
@@ -189,6 +195,9 @@ class CodexSearch:
                     img_match = img_snippet_re.match(line)
                     if (img_cmd_match or img_match) and not local_config.get("skip"):
 
+                        # Logging string of original local config
+                        local_config_logmsg = f" with config: {local_config}" if len(local_config) > 0 else ""
+
                         # Get the command and title from a command regex match
                         if img_cmd_match:
                             m = img_cmd_match.groupdict()
@@ -233,7 +242,14 @@ class CodexSearch:
                             num_errors += 1
                             continue
 
-                        log.debug(f"Found markdown image in [magenta]{file}[/]: {m}")
+                        log.debug(
+                            "Found markdown image in [magenta]{}[/] line {}: `[blue]{}[/]`{}".format(
+                                file.relative_to(Path.cwd()),
+                                line_number,
+                                local_config.get("command", local_config.get("snippet", "")[:20]),
+                                local_config_logmsg,
+                            )
+                        )
                         img_obj = rich_img.RichImg(**local_config)
 
                         # Save the image object

@@ -10,6 +10,8 @@ properties:
   # Shared config options
   snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
   timeout: { "$ref": "#/$defs/timeout" }
+  before_command: { "$ref": "#/$defs/before_command" }
+  after_command: { "$ref": "#/$defs/after_command" }
   hide_command: { "$ref": "#/$defs/hide_command" }
   head: { "$ref": "#/$defs/head" }
   tail: { "$ref": "#/$defs/tail" }
@@ -79,6 +81,8 @@ properties:
         # Shared config options
         snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
         timeout: { "$ref": "#/$defs/timeout" }
+        before_command: { "$ref": "#/$defs/before_command" }
+        after_command: { "$ref": "#/$defs/after_command" }
         hide_command: { "$ref": "#/$defs/hide_command" }
         head: { "$ref": "#/$defs/head" }
         tail: { "$ref": "#/$defs/tail" }
@@ -100,6 +104,12 @@ properties:
   timeout:
     title: Maximum run time for command (seconds)
     type: integer
+  before_command:
+    title: Setup commands to run before running main output command
+    type: string
+  after_command:
+    title: Setup commands to run after running main output command
+    type: string
   hide_command:
     title: Hide the terminal prompt with the command at the top of the output
     type: boolean

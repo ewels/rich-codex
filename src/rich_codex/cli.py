@@ -54,6 +54,18 @@ log = logging.getLogger()
     help="Maximum run time for command (seconds)",
 )
 @click.option(
+    "--before-command",
+    envvar="BEFORE_COMMAND",
+    show_envvar=True,
+    help="Setup commands to run before running main output command",
+)
+@click.option(
+    "--after-command",
+    envvar="AFTER_COMMAND",
+    show_envvar=True,
+    help="Setup commands to run after running main output command",
+)
+@click.option(
     "--snippet",
     envvar="SNIPPET",
     show_envvar=True,
@@ -211,6 +223,8 @@ def main(
     no_search,
     command,
     timeout,
+    before_command,
+    after_command,
     snippet,
     snippet_syntax,
     img_paths,
@@ -322,6 +336,8 @@ def main(
         img_obj = rich_img.RichImg(
             snippet_syntax,
             timeout,
+            before_command,
+            after_command,
             hide_command,
             head,
             tail,
@@ -361,6 +377,8 @@ def main(
         no_confirm,
         snippet_syntax,
         timeout,
+        before_command,
+        after_command,
         hide_command,
         head,
         tail,
