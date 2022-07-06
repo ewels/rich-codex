@@ -1,9 +1,24 @@
-There is a docker image for running rich-codex, however - note that if you're trying to run commands, they will likely not be available in the container! So this is best used for code snippets or common linux tools. Alternatively, you can build your own docker image using this as a base, with additional dependencies installed.
+There is a docker image for running rich-codex, available [on GitHub](https://github.com/ewels/rich-codex/pkgs/container/rich-codex):
+
+```bash
+docker pull ghcr.io/ewels/rich-codex:latest
+```
+
+- The label `latest` will pull the most recent release
+- The label `main` will pull the development version
+- Releases will have their own specific labels.
+
+<!-- prettier-ignore-start -->
+!!! warning
+    If you're trying to run commands, they will likely not be available in the container!
+    So this image is best used for code snippets or common linux tools.
+    Alternatively, you can build your own docker image using this as a base, with additional dependencies installed: `FROM ghcr.io/ewels/rich-codex:latest`
+<!-- prettier-ignore-end -->
 
 To run, a typical command would be:
 
 ```bash
-docker run -i -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ewels/richcodex
+docker run -i -v `pwd`:`pwd` -w `pwd` -u $(id -u):$(id -g) ghcr.io/ewels/rich-codex
 ```
 
 - The `-i` flag enables stdin so that you can confirm running commands (alternatively, use `--no-confirm` at the end)
