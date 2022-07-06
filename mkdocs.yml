@@ -49,6 +49,7 @@ nav:
       - config/cleaning.md
       - config/ignoring_changes.md
       - config/safety.md
+  - troubleshooting.md
 
 markdown_extensions:
   - admonition
