@@ -16,7 +16,7 @@ extra_env:
 ![`rich-codex --help`](../img/rich-codex-cli-envs.svg)
 ```
 
-!!! tip:
+!!! tip
     It's probably easier to set these at run-level if that's an option, these are really only if you want to customise for a single output.
 <!-- prettier-ignore-end -->
 

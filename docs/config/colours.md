@@ -66,7 +66,7 @@ These use Pygments to add code colouring, which has its own set of themes - sepa
 As such, if using snippets, you'll probably want to set both the terminal theme and the Pygments style.
 You can find available Pygments styles in the [Pygments docs](https://pygments.org/docs/styles/#getting-a-list-of-available-styles).
 
-`DEFAULT_TERMINAL_THEME` + `xcode`:
+`snippet_theme: xcode` + `terminal_theme: DEFAULT_TERMINAL_THEME`:
 
 <!-- RICH-CODEX
 terminal_theme: DEFAULT_TERMINAL_THEME
@@ -91,7 +91,7 @@ snippet: |
 
 ![DEFAULT_TERMINAL_THEME + sas](../img/snippet-theme-sas.svg "DEFAULT_TERMINAL_THEME + sas")
 
-`SVG_EXPORT_THEME` + `monokai`:
+`snippet_theme: monokai` + `terminal_theme: SVG_EXPORT_THEME`:
 
 <!-- RICH-CODEX
 terminal_theme: SVG_EXPORT_THEME
@@ -116,7 +116,7 @@ snippet: |
 
 ![SVG_EXPORT_THEME + monokai](../img/snippet-theme-monokai.svg "SVG_EXPORT_THEME + fruity")
 
-`MONOKAI` + `fruity`:
+`snippet_theme: fruity` + `terminal_theme: MONOKAI`:
 
 <!-- RICH-CODEX
 terminal_theme: MONOKAI

@@ -18,9 +18,9 @@ snippet: |
         return 0;
     }
 -->
-[c++ example](../img/snippet-syntax.svg)
+![c++ example](../img/snippet-syntax.svg)
 ```
-[c++ example](../img/snippet-syntax.svg)
+![c++ example](../img/snippet-syntax.svg)
 <!-- prettier-ignore-end -->
 
 ## Hiding the command

@@ -1,12 +1,11 @@
 import logging
 from datetime import datetime
-from os import environ, getenv
+from os import getenv
 from sys import exit
 
 from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from rich.logging import RichHandler
-from rich.pretty import pretty_repr
 
 from rich_codex import codex_search, rich_img, utils
 
@@ -344,8 +343,6 @@ def main(
         highlight=False,
         width=100 if getenv("GITHUB_ACTIONS") else None,
     )
-
-    log.debug("Environment variables: " + pretty_repr(environ))
 
     # Check for mutually exclusive options
     if command and snippet:

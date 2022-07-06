@@ -166,6 +166,7 @@ class CodexSearch:
         num_snippets = 0
         for file in search_files:
             file_rel_fn = Path(file).relative_to(Path.cwd())
+            log.debug(f"Searching: [magenta]{file_rel_fn}[/]")
             with open(file, "r") as fh:
                 line_number = 0
                 in_config = False
@@ -217,10 +218,15 @@ class CodexSearch:
                         # Counters for commands / snippets
                         if "command" in local_config:
                             num_commands += 1
+                            img_type = "[blue]command[/]"
                         elif local_config.get("snippet", "") != "":
                             num_snippets += 1
+                            img_type = "[red]snippet[/]"
                         # Just a regular image with no command / snippet - carry on
                         else:
+                            log.debug(f"[dim]Skipped markdown image, line {line_number}: {m}")
+                            if len(local_config) > 0:
+                                log.warn(f"Skipped image but local_config was not empty: {local_config}")
                             local_config = {}
                             local_config_str = ""
                             continue
@@ -249,10 +255,11 @@ class CodexSearch:
                             continue
 
                         log.debug(
-                            "Found markdown image in [magenta]{}[/] line {}: `[blue]{}[/]`{}".format(
-                                file.relative_to(Path.cwd()),
+                            "Found markdown {0}, line {1}: {3}{2}{3}{4}".format(
+                                img_type,
                                 line_number,
-                                local_config.get("command", local_config.get("snippet", "")[:20]),
+                                local_config.get("command", ""),
+                                "'" if local_config.get("command") else "",
                                 local_config_logmsg,
                             )
                         )
