@@ -1,0 +1,31 @@
+name: Publish rich-codex to PyPI
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-n-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        name: Check out source-code repository
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel build
+
+      - name: Build the distribution
+        run: python -m build
+
+      - name: Publish to PyPI
+        if: github.repository == 'ewels/rich-codex'
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
