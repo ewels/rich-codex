@@ -146,7 +146,7 @@ class CodexSearch:
             except (ValueError, NotImplementedError):
                 pass
         if len(search_files) == 0:
-            log.error("No files found to search")
+            log.debug("No files found to search")
         else:
             log.info(f"Searching {len(search_files)} files")
 

@@ -447,7 +447,7 @@ class RichImg:
                     else:
                         log_msg += ", no text to diff"
 
-        old_fn_relative = Path(old_fn).relative_to(Path.cwd())
+        old_fn_relative = old_file.resolve().relative_to(Path.cwd())
         if create_file:
             self.num_img_saved += 1
             log.info(f"Saved: '{old_fn_relative}' ({log_msg})")

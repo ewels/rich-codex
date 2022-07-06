@@ -389,8 +389,8 @@ def main(
         if img_obj.confirm_command():
             img_obj.get_output()
             img_obj.save_images()
-            num_saved_images = img_obj.num_img_saved
-            num_skipped_images = img_obj.num_img_skipped
+            num_saved_images += img_obj.num_img_saved
+            num_skipped_images += img_obj.num_img_skipped
 
     # Generate images from config files
 
@@ -435,8 +435,8 @@ def main(
     codex_obj.collapse_duplicates()
     codex_obj.confirm_commands()
     codex_obj.save_all_images()
-    num_saved_images = codex_obj.num_img_saved
-    num_skipped_images = codex_obj.num_img_skipped
+    num_saved_images += codex_obj.num_img_saved
+    num_skipped_images += codex_obj.num_img_skipped
 
     # Clean unrecognised images
     if clean_img_paths:
