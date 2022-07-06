@@ -57,3 +57,86 @@ The terminal theme should be set as a string to one of these values.
 <!-- RICH-CODEX terminal_theme: SVG_EXPORT_THEME -->
 
 ![`rich ../../setup.cfg -h 5 --force-terminal`](../img/theme-svg_export_theme.svg "SVG_EXPORT_THEME")
+
+## Snippet colours
+
+Snippets are formatted using [rich Syntax objects](https://rich.readthedocs.io/en/stable/syntax.html).
+These use Pygments to add code colouring, which has its own set of themes - separate to the terminal theme that the snippet is wrapped in.
+
+As such, if using snippets, you'll probably want to set both the terminal theme and the Pygments style.
+You can find available Pygments styles in the [Pygments docs](https://pygments.org/docs/styles/#getting-a-list-of-available-styles).
+
+`DEFAULT_TERMINAL_THEME` + `xcode`:
+
+<!-- RICH-CODEX
+terminal_theme: DEFAULT_TERMINAL_THEME
+snippet_theme: sas
+snippet_syntax: python
+snippet: |
+    from typing import Iterator
+
+    # This is an example
+    class Math:
+        @staticmethod
+        def fib(n: int) -> Iterator[int]:
+            """ Fibonacci series up to n """
+            a, b = 0, 1
+            while a < n:
+                yield a
+                a, b = b, a + b
+
+    result = sum(Math.fib(42))
+    print("The answer is {}".format(result))
+-->
+
+![DEFAULT_TERMINAL_THEME + sas](../img/snippet-theme-sas.svg "DEFAULT_TERMINAL_THEME + sas")
+
+`SVG_EXPORT_THEME` + `monokai`:
+
+<!-- RICH-CODEX
+terminal_theme: SVG_EXPORT_THEME
+snippet_theme: monokai
+snippet_syntax: python
+snippet: |
+    from typing import Iterator
+
+    # This is an example
+    class Math:
+        @staticmethod
+        def fib(n: int) -> Iterator[int]:
+            """ Fibonacci series up to n """
+            a, b = 0, 1
+            while a < n:
+                yield a
+                a, b = b, a + b
+
+    result = sum(Math.fib(42))
+    print("The answer is {}".format(result))
+-->
+
+![SVG_EXPORT_THEME + monokai](../img/snippet-theme-monokai.svg "SVG_EXPORT_THEME + fruity")
+
+`MONOKAI` + `fruity`:
+
+<!-- RICH-CODEX
+terminal_theme: MONOKAI
+snippet_theme: fruity
+snippet_syntax: python
+snippet: |
+    from typing import Iterator
+
+    # This is an example
+    class Math:
+        @staticmethod
+        def fib(n: int) -> Iterator[int]:
+            """ Fibonacci series up to n """
+            a, b = 0, 1
+            while a < n:
+                yield a
+                a, b = b, a + b
+
+    result = sum(Math.fib(42))
+    print("The answer is {}".format(result))
+-->
+
+![MONOKAI + fruity](../img/snippet-theme-fruity.svg "MONOKAI + fruity")

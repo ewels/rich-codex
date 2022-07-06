@@ -46,6 +46,7 @@ An overview of all available config options in all scopes is below:
 | `--terminal-min-width` | `TERMINAL_MIN_WIDTH` | `terminal_min_width`              |
 | `--notrim`             | `NOTRIM`             | `notrim`                          |
 | `--terminal-theme`     | `TERMINAL_THEME`     | `terminal_theme`                  |
+| `--snippet-theme`      | `SNIPPET_THEME`      | `snippet_theme`                   |
 | `--use-pty`            | `USE_PTY`            | `use_pty`                         |
 | `--verbose`            | `LOG_VERBOSE`        | `log_verbose` \*                  |
 | `--save-log`           | `LOG_SAVE`           | -                                 |
@@ -93,6 +94,7 @@ A brief description of each option follows.
 - `--terminal-min-width`: Minimum width of the terminal when trimming
 - `--notrim`: Disable automatic trimming of terminal width
 - `--terminal-theme`: Colour theme
+- `--snippet-theme`: Snippet Pygments theme
 - `--use-pty`: Use a pseudo-terminal for commands (may capture coloured output)
 - `--verbose`: Print verbose output to the console.
 - `--save-log`: Save a verbose log to a file (automatic filename).

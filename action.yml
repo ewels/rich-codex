@@ -50,6 +50,9 @@ inputs:
   hide_command:
     description: Hide the terminal prompt with the command at the top of the output
     required: false
+  title_command:
+    description: Use the command as the terminal title if not set explicitly
+    required: false
   head:
     description: Show only the first N lines of output
     required: false
@@ -82,6 +85,9 @@ inputs:
     required: false
   terminal_theme:
     description: Colour theme
+    required: false
+  snippet_theme:
+    description: Snippet Pygments theme
     required: false
   use_pty:
     description: Use a pseudo-terminal for commands (may capture coloured output)
@@ -133,6 +139,7 @@ runs:
         RC_CONFIGS: ${{ inputs.rc_configs }}
         FAKE_COMMAND: ${{ inputs.fake_command }}
         HIDE_COMMAND: ${{ inputs.hide_command }}
+        TITLE_COMMAND: ${{ inputs.title_command }}
         RC_HEAD: ${{ inputs.head }}
         RC_TAIL: ${{ inputs.tail }}
         TRIM_AFTER: ${{ inputs.trim_after }}
@@ -144,6 +151,7 @@ runs:
         TERMINAL_MIN_WIDTH: ${{ inputs.terminal_min_width }}
         NOTRIM: ${{ inputs.notrim }}
         TERMINAL_THEME: ${{ inputs.terminal_theme }}
+        SNIPPET_THEME: ${{ inputs.snippet_theme }}
         USE_PTY: ${{ inputs.use_pty }}
         LOG_VERBOSE: ${{ inputs.log_verbose }}
         LOG_SAVE: "true"

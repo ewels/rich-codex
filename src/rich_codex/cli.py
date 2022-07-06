@@ -200,6 +200,12 @@ log = logging.getLogger()
     help="Colour theme",
 )
 @click.option(
+    "--snippet-theme",
+    envvar="SNIPPET_THEME",
+    show_envvar=True,
+    help="Snippet Pygments theme",
+)
+@click.option(
     "--use-pty",
     is_flag=True,
     envvar="USE_PTY",
@@ -258,6 +264,7 @@ def main(
     terminal_min_width,
     notrim,
     terminal_theme,
+    snippet_theme,
     use_pty,
     verbose,
     save_log,
@@ -366,6 +373,7 @@ def main(
             terminal_min_width=terminal_min_width,
             notrim=notrim,
             terminal_theme=terminal_theme,
+            snippet_theme=snippet_theme,
             use_pty=use_pty,
             console=console,
         )
@@ -408,6 +416,7 @@ def main(
         terminal_min_width=terminal_min_width,
         notrim=notrim,
         terminal_theme=terminal_theme,
+        snippet_theme=snippet_theme,
         use_pty=use_pty,
         console=console,
     )

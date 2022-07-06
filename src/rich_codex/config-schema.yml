@@ -24,6 +24,7 @@ properties:
   terminal_min_width: { "$ref": "#/$defs/terminal_min_width" }
   notrim: { "$ref": "#/$defs/notrim" }
   terminal_theme: { "$ref": "#/$defs/terminal_theme" }
+  snippet_theme: { "$ref": "#/$defs/snippet_theme" }
   use_pty: { "$ref": "#/$defs/use_pty" }
 
   # Top-level only config options
@@ -102,6 +103,7 @@ properties:
         terminal_min_width: { "$ref": "#/$defs/terminal_min_width" }
         notrim: { "$ref": "#/$defs/notrim" }
         terminal_theme: { "$ref": "#/$defs/terminal_theme" }
+        snippet_theme: { "$ref": "#/$defs/snippet_theme" }
         use_pty: { "$ref": "#/$defs/use_pty" }
 
 # Single location to hold schema for config options, as used twice
@@ -153,6 +155,9 @@ properties:
     type: boolean
   terminal_theme:
     title: Colour theme
+    type: string
+  snippet_theme:
+    title: Snippet Pygments theme
     type: string
   use_pty:
     title: Use a pseudo-terminal for commands (may capture coloured output)

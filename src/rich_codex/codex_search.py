@@ -44,6 +44,7 @@ class CodexSearch:
         terminal_min_width,
         notrim,
         terminal_theme,
+        snippet_theme,
         use_pty,
         console,
     ):
@@ -72,6 +73,7 @@ class CodexSearch:
         self.terminal_min_width = terminal_min_width
         self.notrim = notrim
         self.terminal_theme = terminal_theme
+        self.snippet_theme = snippet_theme
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.rich_imgs = []
@@ -94,6 +96,7 @@ class CodexSearch:
             "terminal_min_width",
             "notrim",
             "terminal_theme",
+            "snippet_theme",
             "use_pty",
         ]
 

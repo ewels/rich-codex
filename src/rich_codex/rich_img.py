@@ -63,6 +63,7 @@ class RichImg:
         terminal_min_width=80,
         notrim=False,
         terminal_theme=None,
+        snippet_theme=None,
         use_pty=False,
         console=None,
         source_type=None,
@@ -94,6 +95,7 @@ class RichImg:
             self.terminal_min_width = None
         self.notrim = notrim
         self.terminal_theme = terminal_theme
+        self.snippet_theme = snippet_theme
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.capture_console = None
@@ -377,8 +379,8 @@ class RichImg:
 
         # Print with rich Syntax highlighter
         log.debug(f"Formatting snippet as {self.snippet_syntax}")
-        terminal_theme = "" if self.terminal_theme is None else self.terminal_theme
-        syntax = Syntax(self.snippet, self.snippet_syntax, theme=terminal_theme)
+        snippet_theme = "monokai" if self.snippet_theme is None else self.snippet_theme  # Same default as Rich
+        syntax = Syntax(self.snippet, self.snippet_syntax, theme=snippet_theme)
         self.capture_console.print(syntax)
 
     def get_output(self):
