@@ -19,47 +19,47 @@
         font-weight: 700;
     }
 
-    .terminal-2633046546-matrix {
+    .terminal-3972076290-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-2633046546-title {
+    .terminal-3972076290-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-2633046546-r1 { fill: #c5c8c6 }
+    .terminal-3972076290-r1 { fill: #c5c8c6 }
     </style>
 
     <defs>
-    <clipPath id="terminal-2633046546-clip-terminal">
+    <clipPath id="terminal-3972076290-clip-terminal">
       <rect x="0" y="0" width="975.0" height="72.19999999999999" />
     </clipPath>
-    <clipPath id="terminal-2633046546-line-0">
+    <clipPath id="terminal-3972076290-line-0">
     <rect x="0" y="1.5" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-2633046546-line-1">
+<clipPath id="terminal-3972076290-line-1">
     <rect x="0" y="25.9" width="976" height="24.65"/>
             </clipPath>
     </defs>
 
-    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="121.2" rx="8"/><text class="terminal-2633046546-title" fill="#c5c8c6" text-anchor="middle" x="496" y="27">my_tool&#160;--is-simple</text>
+    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="121.2" rx="8"/>
             <g transform="translate(26,22)">
             <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
             <circle cx="22" cy="0" r="7" fill="#febc2e"/>
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-2633046546-clip-terminal)">
+    <g transform="translate(9, 41)" clip-path="url(#terminal-3972076290-clip-terminal)">
     
-    <g class="terminal-2633046546-matrix">
-    <text class="terminal-2633046546-r1" x="0" y="20" textLength="256.2" clip-path="url(#terminal-2633046546-line-0)">$&#160;my_tool&#160;--is-simple</text><text class="terminal-2633046546-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-2633046546-line-0)">
-</text><text class="terminal-2633046546-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-2633046546-line-1)">
-</text><text class="terminal-2633046546-r1" x="0" y="68.8" textLength="329.4" clip-path="url(#terminal-2633046546-line-2)">I&#160;won&#x27;t&#160;tell&#160;if&#160;you&#160;don&#x27;t&#160;🤫</text><text class="terminal-2633046546-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#terminal-2633046546-line-2)">
+    <g class="terminal-3972076290-matrix">
+    <text class="terminal-3972076290-r1" x="0" y="20" textLength="256.2" clip-path="url(#terminal-3972076290-line-0)">$&#160;my_tool&#160;--is-simple</text><text class="terminal-3972076290-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-3972076290-line-0)">
+</text><text class="terminal-3972076290-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-3972076290-line-1)">
+</text><text class="terminal-3972076290-r1" x="0" y="68.8" textLength="329.4" clip-path="url(#terminal-3972076290-line-2)">I&#160;won&#x27;t&#160;tell&#160;if&#160;you&#160;don&#x27;t&#160;🤫</text><text class="terminal-3972076290-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#terminal-3972076290-line-2)">
 </text>
     </g>
     </g>
