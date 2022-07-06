@@ -16,6 +16,7 @@ If there are changes to the images, the action can exit with an error (default) 
 This action looks for rich-codex content in the repo. It removes any SVG files found in `docs/img/` that don't match the outputs and generates the updated images. If there have been any changes, it pushes a new commit with the updated images.
 
 ```yaml
+name: Rich-codex
 on: [push]
 jobs:
   rich_codex:
