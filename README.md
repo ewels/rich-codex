@@ -42,7 +42,7 @@ Typical use cases:
              commit_changes: "true"
    ```
 
-3. 🌈 Enjoy reading your documentation ![My cat rainbow](docs/img/cat.png)
+3. 🌈 Enjoy reading your documentation ![My cat rainbow](https://raw.githubusercontent.com/ewels/rich-codex/main/docs/img/cat.png)
 
 ## How it works
 
