@@ -48,7 +48,7 @@ nav:
       - config/colours.md
       - config/cleaning.md
       - config/ignoring_changes.md
-      - config/safety.md
+  - safety.md
   - troubleshooting.md
 
 markdown_extensions:
