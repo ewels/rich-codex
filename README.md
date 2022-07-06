@@ -4,7 +4,7 @@ A GitHub Action / command-line tool which generates screengrab images of a termi
 
 ## 📚 Documentation: https://ewels.github.io/rich-codex/ 📚
 
-[![PyPI Version](https://img.shields.io/pypi/v/rich-codex.svg?style=flat-square)](https://pypi.python.org/pypi/multiqc/)
+[![PyPI Version](https://img.shields.io/pypi/v/rich-codex.svg?style=flat-square)](https://pypi.python.org/pypi/rich-codex/)
 
 ## Introduction
 

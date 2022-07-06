@@ -32,16 +32,16 @@ This can be disabled by setting using `--hide-command` / `$HIDE_COMMAND` / `hide
 Default:
 
 ```markdown
-[`echo "See the command printed at the top?"`](../img/hide-command-default.svg)
+![`echo "See the command printed at the top?"`](../img/hide-command-default.svg)
 ```
-[echo "See the command printed at the top?"](../img/hide-command-default.svg)
+![echo "See the command printed at the top?"](../img/hide-command-default.svg)
 
 With `hide_command` set to `true`:
 
 ```markdown
-[`echo "What command was used? It's a mystery.."`](../img/hide-command.svg)
+![`echo "What command was used? It's a mystery.."`](../img/hide-command.svg)
 ```
-[echo "What command was used? It's a mystery.."](../img/hide-command.svg)
+![echo "What command was used? It's a mystery.."](../img/hide-command.svg)
 <!-- prettier-ignore-end -->
 
 ## Showing the command in the title
@@ -55,17 +55,17 @@ Do this with the `--title-command` / `$TITLE_COMMAND` / `title_command` (CLI, en
 Default:
 
 ```markdown
-[`echo "No custom title set"`](../img/title-command-default.svg)
+![`echo "No custom title set"`](../img/title-command-default.svg)
 ```
-[echo "No custom title set"](../img/title-command-default.svg)
+![echo "No custom title set"](../img/title-command-default.svg)
 
 With `title_command` set to `true`:
 
 ```markdown
 <!-- RICH-CODEX title_command: true -->
-[`echo "Look ma, a title"`](../img/title-command.svg)
+![`echo "Look ma, a title"`](../img/title-command.svg)
 ```
-[echo "Look ma, a title"](../img/title-command.svg)
+![echo "Look ma, a title"](../img/title-command.svg)
 <!-- prettier-ignore-end -->
 
 ## Truncating content
@@ -79,14 +79,12 @@ You can set the number of lines of output that you would like to show using: _(C
 <!-- prettier-ignore-start -->
 ```markdown
 <!-- RICH-CODEX { head: 10, tail: 8 } -->
-[`rich ../../src/rich_codex/codex_search.py`](../img/head-tail.svg "codex_search.py")
+![`rich ../../src/rich_codex/codex_search.py`](../img/head-tail.svg "codex_search.py")
 ```
-[rich ../../src/rich_codex/codex_search.py](../img/head-tail.svg "codex_search.py")
-<!-- prettier-ignore-end -->
+![rich ../../src/rich_codex/codex_search.py](../img/head-tail.svg "codex_search.py")
 
 If the number you set is larger than the amount of output then all output will be shown as usual.
 
-<!-- prettier-ignore-start -->
 !!! tip
     Remember that you can set both head _and_ tail to remove just the middle section of output 🚀
 <!-- prettier-ignore-end -->
@@ -106,7 +104,7 @@ No `truncated_text` is shown for this method currently (could be added if anyone
 <!-- prettier-ignore-start -->
 ```markdown
 <!-- RICH-CODEX { trim_after: "class CodexSearch:", truncated_text: "Where did the rest of the file go? 🕵️‍♀️" } -->
-[`rich ../../src/rich_codex/codex_search.py`](../img/trim-after_truncated-text.svg "codex_search.py")
+![`rich ../../src/rich_codex/codex_search.py`](../img/trim-after_truncated-text.svg "codex_search.py")
 ```
-[rich ../../src/rich_codex/codex_search.py](../img/trim-after_truncated-text.svg "codex_search.py")
+![rich ../../src/rich_codex/codex_search.py](../img/trim-after_truncated-text.svg "codex_search.py")
 <!-- prettier-ignore-end -->
