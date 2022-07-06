@@ -6,7 +6,7 @@ If you're fairly new to using git, you might find this error message a bit intim
 fake_command: git push
 -->
 
-![`echo "\nTo github.com:ewels/rich-codex.git\n [red]! [rejected][/]        main -> main (fetch first)\n[red]error: failed to push some refs to 'github.com:ewels/rich-codex.git'[/]\n[yellow]hint: Updates were rejected because the remote contains work that you do[/]\n[yellow]hint: not have locally. This is usually caused by another repository pushing[/]\n[yellow]hint: to the same ref. You may want to first integrate the remote changes[/]\n[yellow]hint: (e.g., 'git pull ...') before pushing again.[/]\n[yellow]hint: See the 'Note about fast-forwards' in 'git push --help' for details.[/]" | rich - -p --force-terminal`](../img/git-push-error.svg)
+![`echo "\nTo github.com:ewels/rich-codex.git\n [red]! [rejected][/]        main -> main (fetch first)\n[red]error: failed to push some refs to 'github.com:ewels/rich-codex.git'[/]\n[yellow]hint: Updates were rejected because the remote contains work that you do[/]\n[yellow]hint: not have locally. This is usually caused by another repository pushing[/]\n[yellow]hint: to the same ref. You may want to first integrate the remote changes[/]\n[yellow]hint: (e.g., 'git pull ...') before pushing again.[/]\n[yellow]hint: See the 'Note about fast-forwards' in 'git push --help' for details.[/]" | rich - -p --force-terminal`](img/git-push-error.svg)
 
 Fear not, what has likely happened is:
 
@@ -33,7 +33,7 @@ snippet: |
     Successfully rebased and updated refs/heads/main.
 -->
 
-![git pull --rebase](../img/git-pull-rebase.svg)
+![git pull --rebase](img/git-pull-rebase.svg)
 
 <!-- RICH-CODEX
 snippet: |
@@ -50,4 +50,4 @@ snippet: |
     fbbec47..482c318  main -> main
 -->
 
-![git push](../img/git-push-success.svg)
+![git push](img/git-push-success.svg)
