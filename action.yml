@@ -5,7 +5,7 @@ description: Create rich code images for your docs
 
 branding:
   icon: "terminal"
-  color: "yellow"
+  color: "blue"
 
 inputs:
   search_include:
