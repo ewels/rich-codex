@@ -1,4 +1,5 @@
 site_name: rich-codex
+repo_name: ewels/rich-codex
 repo_url: https://github.com/ewels/rich-codex
 
 theme:
