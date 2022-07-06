@@ -33,6 +33,7 @@ class CodexSearch:
         before_command,
         after_command,
         hide_command,
+        title_command,
         head,
         tail,
         trim_after,
@@ -60,6 +61,7 @@ class CodexSearch:
         self.before_command = before_command
         self.after_command = after_command
         self.hide_command = hide_command
+        self.title_command = title_command
         self.head = head
         self.tail = tail
         self.trim_after = trim_after
@@ -81,6 +83,7 @@ class CodexSearch:
             "before_command",
             "after_command",
             "hide_command",
+            "title_command",
             "head",
             "tail",
             "trim_after",

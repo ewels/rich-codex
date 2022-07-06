@@ -51,6 +51,7 @@ class RichImg:
         title=None,
         fake_command=None,
         hide_command=False,
+        title_command=False,
         extra_env=None,
         head=None,
         tail=None,
@@ -79,6 +80,7 @@ class RichImg:
         self.title = "" if title is None else title
         self.fake_command = fake_command
         self.hide_command = hide_command
+        self.title_command = title_command
         self.extra_env = {} if extra_env is None else extra_env
         self.head = None if head is None else int(head)
         self.tail = None if tail is None else int(tail)
@@ -139,7 +141,7 @@ class RichImg:
                 self.aborted = True
                 return False
 
-        if self.title == "":
+        if self.title == "" and self.title_command:
             self.title = self.fake_command if self.fake_command else self.command
 
         if self.use_pty:
@@ -375,7 +377,8 @@ class RichImg:
 
         # Print with rich Syntax highlighter
         log.debug(f"Formatting snippet as {self.snippet_syntax}")
-        syntax = Syntax(self.snippet, self.snippet_syntax)
+        terminal_theme = "" if self.terminal_theme is None else self.terminal_theme
+        syntax = Syntax(self.snippet, self.snippet_syntax, theme=terminal_theme)
         self.capture_console.print(syntax)
 
     def get_output(self):
@@ -504,7 +507,11 @@ class RichImg:
             # We always generate an SVG first
             if svg_img is None:
                 svg_tmp_filename = mkstemp()[1]
-                self.capture_console.save_svg(svg_tmp_filename, title=self.title, theme=terminal_theme)
+                self.capture_console.save_svg(
+                    svg_tmp_filename,
+                    title=self.title,
+                    theme=terminal_theme,
+                )
             else:
                 # Use already-generated SVG
                 svg_tmp_filename = svg_img

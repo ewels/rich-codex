@@ -33,6 +33,7 @@ An overview of all available config options in all scopes is below:
 | `--clean-img-paths`    | `CLEAN_IMG_PATHS`    | `clean_img_paths`                 |
 | `--configs`            | `RC_CONFIGS`         | `rc_configs`                      |
 | `--hide-command`       | `HIDE_COMMAND`       | `hide_command`                    |
+| `--title-command`      | `TITLE_COMMAND`      | `title_command`                   |
 | `--head`               | `RC_HEAD`            | `head`                            |
 | `--tail`               | `RC_TAIL`            | `tail`                            |
 | `--trim-after`         | `TRIM_AFTER`         | `trim_after`                      |
@@ -74,6 +75,7 @@ A brief description of each option follows.
 - `--command`: Specify a command to run to capture output
 - `--timeout`: Maximum run time for command (seconds)
 - `--hide-command`: Hide the terminal prompt with the command at the top of the output
+- `--title-command`: Use the command as the terminal title if not set explicitly
 - `--head`: Show only the first N lines of output
 - `--tail`: Show only the last N lines of output
 - `--trim-after`: Don't print any more lines after this string is found

@@ -13,6 +13,7 @@ properties:
   before_command: { "$ref": "#/$defs/before_command" }
   after_command: { "$ref": "#/$defs/after_command" }
   hide_command: { "$ref": "#/$defs/hide_command" }
+  title_command: { "$ref": "#/$defs/title_command" }
   head: { "$ref": "#/$defs/head" }
   tail: { "$ref": "#/$defs/tail" }
   trim_after: { "$ref": "#/$defs/trim_after" }
@@ -90,6 +91,7 @@ properties:
         before_command: { "$ref": "#/$defs/before_command" }
         after_command: { "$ref": "#/$defs/after_command" }
         hide_command: { "$ref": "#/$defs/hide_command" }
+        title_command: { "$ref": "#/$defs/title_command" }
         head: { "$ref": "#/$defs/head" }
         tail: { "$ref": "#/$defs/tail" }
         trim_after: { "$ref": "#/$defs/trim_after" }
@@ -118,6 +120,9 @@ properties:
     type: string
   hide_command:
     title: Hide the terminal prompt with the command at the top of the output
+    type: boolean
+  title_command:
+    title: Use the command as the terminal title if not set explicitly
     type: boolean
   head:
     title: Show only the first N lines of output
