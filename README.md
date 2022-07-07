@@ -8,7 +8,17 @@ A GitHub Action / command-line tool which generates screengrab images of a termi
 
 ## Introduction
 
-Rich-codex searches markdown code for image embeds with commands or code snippets. It runs these commands and saves a terminal screen-grab at the embedded path.
+Having code examples in your documentation is a fantastic way to help users understand what to expect from your tool.
+
+Using terminal screenshots is a good way to do this because:
+
+- 🌈 Coloured terminal output is supported
+- ↔️ You can fit in long lines without scrolling or cropping (images are auto-resized)
+- 😎 They look cool
+
+However, manually generating these screenshots is a pain 👎🏻 Remembering to update them every time you make a minor change means that they can easily get out of date.
+
+_**Rich-codex**_ automates this process for you. It searches markdown code for images with shell commands or code snippets. It runs these commands and saves a terminal screen-grab at the embedded path.
 
 Typical use cases:
 
