@@ -15,7 +15,7 @@ You are welcome to use it locally, for example when first writing new documentat
 You can install `rich-codex` from the [Python Package Index (PyPI)](https://pypi.org/project/rich-codex/) with `pip` or equivalent.
 
 ```bash
-pip install rich-click
+pip install rich-codex
 ```
 
 At its simplest, the command-line tool runs without any arguments and recursively searches the current working directory for anything it recognises:
@@ -37,10 +37,10 @@ extra_env:
 
 ## Requirements for PNG / PDF outputs
 
-If you wish to generate `PNG` or `PDF` images (not just `SVG`) then there are a few additional requirements. Conversion is done using [CairoSVG](https://cairosvg.org/). First, install rich-click with the `cairo` [extra](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-setuptools-extras):
+If you wish to generate `PNG` or `PDF` images (not just `SVG`) then there are a few additional requirements. Conversion is done using [CairoSVG](https://cairosvg.org/). First, install rich-codex with the `cairo` [extra](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-setuptools-extras):
 
 ```bash
-pip install rich-click[cairo]
+pip install rich-codex[cairo]
 ```
 
 You'll then probably need some additional libraries, see the [Cairo documentation](https://cairosvg.org/documentation/):

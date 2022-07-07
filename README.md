@@ -8,7 +8,7 @@ A GitHub Action / command-line tool which generates screengrab images of a termi
 
 ## Introduction
 
-Rich-click searches markdown code for image embeds with commands or code snippets. It runs these commands and saves a terminal screen-grab at the embedded path.
+Rich-codex searches markdown code for image embeds with commands or code snippets. It runs these commands and saves a terminal screen-grab at the embedded path.
 
 Typical use cases:
 

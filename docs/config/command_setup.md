@@ -3,7 +3,7 @@
 In some cases you may want to set environment variables for a single command only.
 In this case, you can use the `extra_env` config option, which adds YAML key:value pairs to the environment for just that command (and the before / after commands, see below).
 
-I use this method to set the terminal width for the rich-click screenshots in this documentation:
+I use this method to set the terminal width for the rich-codex screenshots in this documentation:
 
 <!-- prettier-ignore-start -->
 ```markdown
