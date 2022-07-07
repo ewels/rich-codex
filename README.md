@@ -46,7 +46,7 @@ Typical use cases:
 
 ## How it works
 
-Rich-codex is a command-line tool that you can [via a GitHub action](https://ewels.github.io/rich-codex/installation/github_action/) or as a [command line tool](https://ewels.github.io/rich-codex/installation/cli/). It works with any markdown (including GitHub READMEs).
+Rich-codex is a command-line tool that you can run [via a GitHub action](https://ewels.github.io/rich-codex/installation/github_action/) or as a [command line tool](https://ewels.github.io/rich-codex/installation/cli/). It works with any markdown (including GitHub READMEs).
 
 It collects either commands or code snippets, together with output filenames and configuration options. Commands are run in a subprocess and the standard output & standard error collected. These are then rendered as an image using [Textualize/rich](https://github.com/textualize/rich).
 
