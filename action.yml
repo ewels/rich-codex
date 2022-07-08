@@ -110,8 +110,6 @@ runs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.x
-        cache: pip
-        cache-dependency-path: setup.py
 
     - name: Install rich-codex
       run: |
