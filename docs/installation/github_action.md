@@ -118,4 +118,6 @@ jobs:
 
 ## GitHub Action Inputs
 
-For a description of the action inputs, please see the [configuration overview docs](../config/overview.md).
+Basically everything that you can configure via the command line interface / config can also be configured within GitHub actions via the `with` key.
+
+For a full description of all available inputs, please see the [configuration overview docs](../config/overview.md).

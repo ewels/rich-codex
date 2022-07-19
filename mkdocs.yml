@@ -28,7 +28,6 @@ theme:
     text: Noto Sans
   features:
     - navigation.instant
-    - navigation.sections
 
 nav:
   - Home: index.md
