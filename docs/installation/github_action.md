@@ -15,7 +15,7 @@ If there are changes to the images, the action can exit with an error (default) 
 
 This action looks for rich-codex content in the repo. It removes any SVG files found in `docs/img/` that don't match the outputs and generates the updated images. If there have been any changes, it pushes a new commit with the updated images.
 
-```yaml
+```yaml title=".github/workflows/screenshots.yml" linenums="1"
 name: Rich-codex
 on: [push]
 jobs:
@@ -50,17 +50,36 @@ For some people this may be a little excessive, in which case you might prefer s
     For example, using this in a workflow triggered by a release will fail because the workflow will be running on a detached commit.
 <!-- prettier-ignore-end -->
 
+Note that GitHub has [extensive documentation](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow) on the different ways to trigger actions workflows.
+
+<!-- prettier-ignore-start -->
+!!! tip
+    You can mix and match multiple different triggers!
+<!-- prettier-ignore-end -->
+
+### If specific files are edited
+
+If you only want to re-render screenshots if certain files (or filetypes) are edited, you can [filter the `push` event with the `paths` key](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#running-your-workflow-based-on-files-changed-in-a-pull-request-1):
+
+```yaml
+on:
+  push:
+    paths:
+      - "**.md"
+      - .rich-codex.yml
+      - src/myapp/cli-flags.py
+```
+
 ### Specific branches
 
-You can run on the `main` branch only by using:
+You can run on pushes to the `main` and `staging` branches only by using:
 
 ```yaml
 on:
   push:
     - main
+    - staging
 ```
-
-You can add as many branches here as you'd like.
 
 ### Manually running
 
@@ -72,11 +91,11 @@ on: workflow_dispatch
 
 ### Filtering for commit message
 
-You can filter by commit message by always running on every push, but then using an `if` statement.
+You can filter by commit message by always running on every push, but then using an `if` statement on the job.
 
 For example, we can take the main example above and add the following to only run when the commit message includes the string `[screenshots]`:
 
-```yaml hl_lines="5"
+```yaml title=".github/workflows/screenshots.yml" linenums="1" hl_lines="5"
 name: Rich-codex
 on: [push]
 jobs:
