@@ -31,10 +31,10 @@ theme:
 
 nav:
   - Home: index.md
-  - Installation:
-      - installation/github_action.md
-      - installation/cli.md
-      - installation/docker_image.md
+  - Usage:
+      - usage/github_action.md
+      - usage/cli.md
+      - usage/docker_image.md
   - Inputs:
       - inputs/markdown.md
       - inputs/direct_inputs.md
