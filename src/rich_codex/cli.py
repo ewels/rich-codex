@@ -7,7 +7,7 @@ from jsonschema.exceptions import ValidationError
 from rich.console import Console
 from rich.logging import RichHandler
 
-from rich_codex import codex_search, rich_img, utils
+from rich_codex import __version__, codex_search, rich_img, utils
 
 import rich_click as click
 
@@ -326,6 +326,8 @@ def main(
         log_fh.setLevel(logging.DEBUG)
         log_fh.setFormatter(logging.Formatter("[%(asctime)s] %(name)-20s [%(levelname)-7s]  %(message)s"))
         log.addHandler(log_fh)
+
+    log.info(f"[bold]rich-codex[/] ⚡️📖⚡️ [dim]version {__version__}[/dim]")
 
     # Check git status
     git_status, git_status_msg = utils.check_git_status()
