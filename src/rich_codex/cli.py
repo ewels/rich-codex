@@ -222,7 +222,7 @@ log = logging.getLogger()
     "--deleted-files",
     envvar="DELETED_FILES",
     show_envvar=True,
-    help="SSave a list of deleted files to this file",
+    help="Save a list of deleted files to this file",
     metavar="<filename>",
 )
 @click.option(
