@@ -151,6 +151,8 @@ runs:
         TERMINAL_THEME: ${{ inputs.terminal_theme }}
         SNIPPET_THEME: ${{ inputs.snippet_theme }}
         USE_PTY: ${{ inputs.use_pty }}
+        CREATED_FILES: "created.txt"
+        DELETED_FILES: "deleted.txt"
         LOG_VERBOSE: ${{ inputs.log_verbose }}
         LOG_SAVE: "true"
         NO_CONFIRM: "true"
@@ -161,13 +163,16 @@ runs:
         echo "::group::Pushing any changes found"
         git config --local user.name 'github-actions[bot]'
         git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-        git status
-        if [[ `git status --porcelain` ]]; then
+        echo "🕵️‍♀️ Git status after run:"
+        git status -s
+        if [[ -f created.txt || -f deleted.txt ]]; then
           echo "💥 Found some changes from running rich-codex!"
           if [[ ${{ inputs.commit_changes }} ]]; then
-            git add .
+            [[ -f created.txt ]] && git add $(cat created.txt)
+            [[ -f deleted.txt ]] && git rm $(cat deleted.txt)
             git commit -m "Generate new screengrabs with rich-codex"
             git push
+            echo "🤖 Pushed commit with new changes!"
           elif [[ ${{ inputs.error_changes }} ]]; then
             echo "🤖 Tip: Use 'commit_changes' to automatically commit them next time."
             (exit 1)

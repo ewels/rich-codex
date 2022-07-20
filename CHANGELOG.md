@@ -3,6 +3,7 @@
 ## Version 1.1.0 (2022-07-21)
 
 - ✨ Added CLI flags `--created-files` and `--deleted-files` to create a file with affected file paths
+- ✨ GitHub Action: only `git add` / `git rm` files that rich-click itself created or deleted ([#21](https://github.com/ewels/rich-codex/issues/21))
 
 ## Version 1.0.2 (2022-07-08)
 

@@ -459,11 +459,13 @@ def main(
 
     # Write saved file paths to disk
     if created_files and len(saved_image_paths):
+        log.info(f"Saving list of new file paths to: [magenta]{created_files}[/]")
         with open(created_files, "w") as f:
             f.write("\n".join(saved_image_paths))
 
     # Write cleaned file paths to disk
     if deleted_files and len(cleaned_paths):
+        log.info(f"Saving list of deleted file paths to: [magenta]{deleted_files}[/]")
         with open(deleted_files, "w") as f:
             f.write("\n".join([str(path) for path in cleaned_paths]))
 
