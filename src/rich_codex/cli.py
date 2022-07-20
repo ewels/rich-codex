@@ -212,6 +212,20 @@ log = logging.getLogger()
     help="Use a pseudo-terminal for commands (may capture coloured output)",
 )
 @click.option(
+    "--created-files",
+    envvar="CREATED_FILES",
+    show_envvar=True,
+    help="Save a list of created files to this file",
+    metavar="<filename>",
+)
+@click.option(
+    "--deleted-files",
+    envvar="DELETED_FILES",
+    show_envvar=True,
+    help="SSave a list of deleted files to this file",
+    metavar="<filename>",
+)
+@click.option(
     "-v",
     "--verbose",
     is_flag=True,
@@ -265,6 +279,8 @@ def main(
     terminal_theme,
     snippet_theme,
     use_pty,
+    created_files,
+    deleted_files,
     verbose,
     save_log,
     log_file,
@@ -275,9 +291,9 @@ def main(
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
     terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
     terminal_min_width = int(terminal_min_width) if type(terminal_min_width) is str else terminal_min_width
+    saved_image_paths = []
     num_skipped_images = 0
     num_saved_images = 0
-    num_img_cleaned = 0
     img_obj = None
     codex_obj = None
 
@@ -386,6 +402,7 @@ def main(
         if img_obj.confirm_command():
             img_obj.get_output()
             img_obj.save_images()
+            saved_image_paths += img_obj.saved_img_paths
             num_saved_images += img_obj.num_img_saved
             num_skipped_images += img_obj.num_img_skipped
 
@@ -432,19 +449,30 @@ def main(
     codex_obj.collapse_duplicates()
     codex_obj.confirm_commands()
     codex_obj.save_all_images()
+    saved_image_paths += codex_obj.saved_img_paths
     num_saved_images += codex_obj.num_img_saved
     num_skipped_images += codex_obj.num_img_skipped
 
     # Clean unrecognised images
     if clean_img_paths:
-        num_img_cleaned = utils.clean_images(clean_img_paths, img_obj, codex_obj)
+        cleaned_paths = utils.clean_images(clean_img_paths, img_obj, codex_obj)
+
+    # Write saved file paths to disk
+    if created_files and len(saved_image_paths):
+        with open(created_files, "w") as f:
+            f.write("\n".join(saved_image_paths))
+
+    # Write cleaned file paths to disk
+    if deleted_files and len(cleaned_paths):
+        with open(deleted_files, "w") as f:
+            f.write("\n".join([str(path) for path in cleaned_paths]))
 
     if num_skipped_images > 0:
         log.info(f"[dim]Skipped {num_skipped_images} images 🤫")
     if num_saved_images > 0:
         log.info(f"Saved {num_saved_images} images ✨")
-    if num_img_cleaned > 0:
-        log.info(f"Deleted {num_img_cleaned} images 💥")
+    if len(cleaned_paths) > 0:
+        log.info(f"Deleted {len(cleaned_paths)} images 💥")
     if num_skipped_images == 0 and num_saved_images == 0:
         log.warning("Couldn't find anything to do 🙄")
 

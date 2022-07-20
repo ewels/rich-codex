@@ -99,6 +99,7 @@ class RichImg:
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.capture_console = None
+        self.saved_img_paths = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
         self.no_confirm = False
@@ -450,6 +451,7 @@ class RichImg:
         old_fn_relative = old_file.resolve().relative_to(Path.cwd())
         if create_file:
             self.num_img_saved += 1
+            self.saved_img_paths.append(old_fn)
             log.info(f"Saved: '{old_fn_relative}' ({log_msg})")
         else:
             self.num_img_skipped += 1

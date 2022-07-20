@@ -77,6 +77,7 @@ class CodexSearch:
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.rich_imgs = []
+        self.saved_img_paths = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
         self.class_config_attrs = [
@@ -388,5 +389,6 @@ class CodexSearch:
         for img_obj in self.rich_imgs:
             img_obj.get_output()
             img_obj.save_images()
+            self.saved_img_paths += img_obj.saved_img_paths
             self.num_img_saved += img_obj.num_img_saved
             self.num_img_skipped += img_obj.num_img_skipped

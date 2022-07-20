@@ -18,7 +18,7 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
 
     if len(clean_img_patterns) == 0:
         log.debug("[dim]Nothing found to clean in 'clean_img_paths'")
-        return 0
+        return []
 
     # Search glob patterns for images
     all_img_paths = set()
@@ -27,7 +27,7 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
             all_img_paths.add(matched_path.resolve())
     if len(all_img_paths) == 0:
         log.debug("[dim]No files found matching 'clean_img_paths' glob patterns")
-        return 0
+        return []
 
     # Collect list of generated images
     known_img_paths = set()
@@ -43,7 +43,7 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
     clean_img_paths = all_img_paths - known_img_paths
     if len(clean_img_paths) == 0:
         log.debug("[dim]All files found matching 'clean_img_paths' were generated in this run. Nothing to clean.")
-        return 0
+        return []
 
     for path in clean_img_paths:
         path_to_delete = Path(path).resolve()
@@ -51,7 +51,7 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
         log.info(f"Deleting '{path_relative}'")
         path_to_delete.unlink()
 
-    return len(clean_img_paths)
+    return clean_img_paths
 
 
 def check_git_status():

@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.1.0 (2022-07-21)
+
+- ✨ Added CLI flags `--created-files` and `--deleted-files` to create a file with affected file paths
+
 ## Version 1.0.2 (2022-07-08)
 
 - 🐛 Don't use cache in action `actions/setup-python` step
