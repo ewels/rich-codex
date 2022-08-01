@@ -395,7 +395,9 @@ class CodexSearch:
                     img_paths_src[img_path] = [ri.source]
         for img_path, src in img_paths_src.items():
             if len(src) > 1:
-                log.warning(f"Duplicate output file path: '{img_path}' found in '{', '.join(src)}'")
+                img_path_rel = Path(img_path).relative_to(Path.cwd())
+                src_paths = "', '".join(set(str(s.relative_to(Path.cwd())) for s in src))
+                log.warning(f"Duplicate output file path '{img_path_rel}' found in '{src_paths}'")
 
     def save_all_images(self):
         """Save the images that we have collected."""
