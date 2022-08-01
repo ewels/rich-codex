@@ -292,6 +292,7 @@ def main(
     terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
     terminal_min_width = int(terminal_min_width) if type(terminal_min_width) is str else terminal_min_width
     saved_image_paths = []
+    cleaned_paths = []
     num_skipped_images = 0
     num_saved_images = 0
     img_obj = None
