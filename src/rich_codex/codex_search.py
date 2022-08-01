@@ -384,6 +384,19 @@ class CodexSearch:
             self.rich_imgs = [ri for ri in self.rich_imgs if ri.confirm_command()]
             return None
 
+    def check_duplicate_paths(self):
+        """Check that we don't have any duplicate output file paths."""
+        img_paths_src = {}
+        for ri in self.rich_imgs:
+            for img_path in ri.img_paths:
+                if img_path in img_paths_src:
+                    img_paths_src[img_path].append(ri.source)
+                else:
+                    img_paths_src[img_path] = [ri.source]
+        for img_path, src in img_paths_src.items():
+            if len(src) > 1:
+                log.warning(f"Duplicate output file path: '{img_path}' found in '{', '.join(src)}'")
+
     def save_all_images(self):
         """Save the images that we have collected."""
         for img_obj in self.rich_imgs:

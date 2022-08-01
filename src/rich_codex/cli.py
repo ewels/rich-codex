@@ -451,6 +451,7 @@ def main(
             exit(1)
     codex_obj.collapse_duplicates()
     codex_obj.confirm_commands()
+    codex_obj.check_duplicate_paths()
     codex_obj.save_all_images()
     saved_image_paths += codex_obj.saved_img_paths
     num_saved_images += codex_obj.num_img_saved
