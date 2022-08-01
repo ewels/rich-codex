@@ -2,6 +2,11 @@
 
 ## Version 1.2.0.dev0
 
+## Version 1.2.0 (2022-08-01)
+
+- ✨ Log a warning if duplicate image paths are found ([#20](https://github.com/ewels/rich-codex/issues/20))
+- 🐛 Fix `UnboundLocalError` if not cleaning an image path ([#24](https://github.com/ewels/rich-codex/issues/24))
+
 ## Version 1.1.0 (2022-07-21)
 
 - ✨ Added CLI flags `--created-files` and `--deleted-files` to create a file with affected file paths
