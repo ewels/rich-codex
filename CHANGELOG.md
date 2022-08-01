@@ -1,7 +1,5 @@
 # Changelog: rich-codex
 
-## Version 1.2.0.dev0
-
 ## Version 1.2.0 (2022-08-01)
 
 - ✨ Log a warning if duplicate image paths are found ([#20](https://github.com/ewels/rich-codex/issues/20))
