@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.3.0
+
+- ✨ Drop minimum Python version to 3.7
+
 ## Version 1.2.0 (2022-08-01)
 
 - ✨ Log a warning if duplicate image paths are found ([#20](https://github.com/ewels/rich-codex/issues/20))

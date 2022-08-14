@@ -573,10 +573,10 @@ class RichImg:
 
             # Delete temprary files
             tmp_path = Path(tmp_filename)
-            if tmp_path.is_relative_to(gettempdir()):
+            if Path(gettempdir()) in tmp_path.resolve().parents:
                 tmp_path.unlink()
 
         # Delete temporary SVG file - after loop as can be reused
         tmp_svg_path = Path(svg_tmp_filename)
-        if tmp_svg_path.is_relative_to(gettempdir()):
+        if Path(gettempdir()) in tmp_svg_path.resolve().parents:
             tmp_svg_path.unlink()
