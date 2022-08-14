@@ -1,6 +1,6 @@
 # Changelog: rich-codex
 
-## Version 1.3.0
+## Version 1.2.1 (2022-08-14)
 
 - ✨ Drop minimum Python version to 3.7
 - 🐛 Handle logging error with relative paths ([#26](https://github.com/ewels/rich-codex/issues/26))
