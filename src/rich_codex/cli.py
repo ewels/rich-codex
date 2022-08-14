@@ -344,9 +344,9 @@ def main(
     if force_terminal:
         log.debug("Forcing terminal logging output")
     if terminal_width:
-        log.info(f"Setting terminal width to {terminal_width}")
+        log.debug(f"Setting terminal width to {terminal_width}")
     if terminal_min_width and not notrim:
-        log.info(f"Trimming terminal output down to a minimum of {terminal_min_width}")
+        log.debug(f"Trimming terminal output down to a minimum of {terminal_min_width}")
     if terminal_width and terminal_min_width:
         if terminal_min_width > terminal_width:
             log.error(
