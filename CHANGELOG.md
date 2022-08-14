@@ -3,6 +3,7 @@
 ## Version 1.3.0
 
 - ✨ Drop minimum Python version to 3.7
+- 🐛 Handle logging error with relative paths ([#26](https://github.com/ewels/rich-codex/issues/26))
 
 ## Version 1.2.0 (2022-08-01)
 

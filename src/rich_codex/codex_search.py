@@ -357,7 +357,11 @@ class CodexSearch:
         table.add_column("Source", justify="right")
         for img_obj in self.rich_imgs:
             if img_obj.command is not None:
-                rel_source = Path(img_obj.source).relative_to(Path.cwd())
+                try:
+                    rel_source = Path(img_obj.source).absolute().relative_to(Path.cwd().absolute())
+                except ValueError:
+                    log.debug("Couldn't find relative path")
+                    rel_source = img_obj.source
                 source = f" [grey42][link=file:{Path(img_obj.source).absolute()}]{rel_source}[/][/]"
                 table.add_row(img_obj.command, source)
 
