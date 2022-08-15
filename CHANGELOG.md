@@ -2,6 +2,7 @@
 
 ## Version 1.3.0
 
+- ✨ Log _which_ files have uncommitted changes in git ([#25](https://github.com/ewels/rich-codex/issues/25))
 - 🐛 Close temp files before deleting (bugfix for Windows) ([#27](https://github.com/ewels/rich-codex/issues/27))
 
 ## Version 1.2.1 (2022-08-14)

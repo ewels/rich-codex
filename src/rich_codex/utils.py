@@ -58,8 +58,9 @@ def check_git_status():
     """Check if the working directory is a clean git repo."""
     try:
         repo = Repo(Path.cwd().resolve(), search_parent_directories=True)
-        if repo.is_dirty():
-            return (False, "Found uncommitted changes")
+        if repo.is_dirty(untracked_files=True):
+            changedFiles = [item.a_path for item in repo.index.diff(None)]
+            return (False, f"Found uncommitted changes: {changedFiles + repo.untracked_files}")
     except InvalidGitRepositoryError:
         return (False, "Does not appear to be a git repository")
     return (True, "Git repo looks good.")
