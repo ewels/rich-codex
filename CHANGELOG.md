@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.3.0
+
+- 🐛 Close temp files before deleting (bugfix for Windows) ([#27](https://github.com/ewels/rich-codex/issues/27))
+
 ## Version 1.2.1 (2022-08-14)
 
 - ✨ Drop minimum Python version to 3.7
