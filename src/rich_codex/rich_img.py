@@ -509,11 +509,11 @@ class RichImg:
                 continue
 
             # Set filenames
-            tmp_filename = mkstemp()[1]
+            tmp_file_handle, tmp_filename = mkstemp()
 
             # We always generate an SVG first
             if svg_img is None:
-                svg_tmp_filename = mkstemp()[1]
+                svg_tmp_file_handle, svg_tmp_filename = mkstemp()
                 self.capture_console.save_svg(
                     svg_tmp_filename,
                     title=self.title,
@@ -574,9 +574,11 @@ class RichImg:
             # Delete temprary files
             tmp_path = Path(tmp_filename)
             if Path(gettempdir()) in tmp_path.resolve().parents:
+                os.close(tmp_file_handle)
                 tmp_path.unlink()
 
         # Delete temporary SVG file - after loop as can be reused
         tmp_svg_path = Path(svg_tmp_filename)
         if Path(gettempdir()) in tmp_svg_path.resolve().parents:
+            os.close(svg_tmp_file_handle)
             tmp_svg_path.unlink()
