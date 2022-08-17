@@ -39,8 +39,10 @@ Default:
 With `hide_command` set to `true`:
 
 ```markdown
+<!-- RICH-CODEX hide_command: true -->
 ![`echo "What command was used? It's a mystery.."`](../img/hide-command.svg)
 ```
+<!-- RICH-CODEX hide_command: true -->
 ![echo "What command was used? It's a mystery.."](../img/hide-command.svg)
 <!-- prettier-ignore-end -->
 
