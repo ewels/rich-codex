@@ -3,6 +3,9 @@
 ## Version 1.2.3 (2022-08-18)
 
 - ✨ Maintain order of commands in markdown, add alphabetical sort of the files to search
+- 🐛 Fix typo ([#30](https://github.com/ewels/rich-codex/pull/30))
+- 🐛 Fix GitPod edit button ([#29](https://github.com/ewels/rich-codex/pull/29))
+- 🐛 Set missing `hide_command` option in example ([#31](https://github.com/ewels/rich-codex/pull/31))
 
 ## Version 1.2.2 (2022-08-15)
 
