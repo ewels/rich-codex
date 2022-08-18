@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.2.3 (2022-08-18)
+
+- ✨ Maintain order of commands in markdown, add alphabetical sort of the files to search
+
 ## Version 1.2.2 (2022-08-15)
 
 - ✨ Log _which_ files have uncommitted changes in git ([#25](https://github.com/ewels/rich-codex/issues/25))

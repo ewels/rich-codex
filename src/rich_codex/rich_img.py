@@ -356,7 +356,7 @@ class RichImg:
         if self.snippet_syntax == "json" or self.snippet_syntax is None:
             try:
                 json_snippet = json.loads(self.snippet)
-                self.snippet = json.dumps(json_snippet, indent=4, sort_keys=True)
+                self.snippet = json.dumps(json_snippet, indent=4)
                 self.snippet_syntax = "json"
             except json.decoder.JSONDecodeError:
                 pass

@@ -146,6 +146,7 @@ class CodexSearch:
                     search_files.discard(exclude_file.resolve())
             except (ValueError, NotImplementedError):
                 pass
+        search_files = sorted(list(search_files), key=lambda x: str(x).lower())
         if len(search_files) == 0:
             log.debug("No files found to search")
         else:
@@ -330,7 +331,7 @@ class CodexSearch:
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
         # Remove exact duplicates
-        dedup_imgs = set(self.rich_imgs)
+        dedup_imgs = list(dict.fromkeys(self.rich_imgs))
         # Merge dups that are the same except for output filename
         merged_imgs = {}
         for ri in dedup_imgs:
@@ -340,7 +341,7 @@ class CodexSearch:
             else:
                 merged_imgs[ri_hash] = ri
         log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
-        self.rich_imgs = sorted(merged_imgs.values(), key=lambda x: str(x.command).lower())
+        self.rich_imgs = merged_imgs.values()
 
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
@@ -354,7 +355,7 @@ class CodexSearch:
             row_styles=["green on grey3", "magenta on grey15"],
         )
         table.add_column("Commands to run:")
-        table.add_column("Source", justify="right")
+        table.add_column("Source")
         for img_obj in self.rich_imgs:
             if img_obj.command is not None:
                 try:
