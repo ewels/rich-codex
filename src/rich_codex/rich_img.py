@@ -12,6 +12,7 @@ from tempfile import gettempdir, mkstemp
 import rich.terminal_theme
 import yaml
 from Levenshtein import ratio
+from rich import inspect
 from rich.ansi import AnsiDecoder
 from rich.console import Console
 from rich.prompt import Confirm
@@ -179,22 +180,25 @@ class RichImg:
 
         # Run before_command if set
         if self.before_command:
+
+            # Workaround to get inspect() into a string for logging
+            # https://github.com/Textualize/rich/discussions/2378
             log.debug("Running 'before_command'")
-            # TODO: Can't get inspect() to output to a log call
-            # NOTE: https://github.com/Textualize/rich/discussions/2378
-            # log.debug(
-            #     inspect(
-            subprocess.run(
-                self.before_command,
-                cwd=self.working_dir,
-                shell=True,
-                env=command_env,
-                capture_output=True,
-            )
-            #         , title="'before_command' results",
-            #         docs=False,
-            #     )
-            # )
+            inspect_console = Console(no_color=True)
+            with inspect_console.capture() as capture:
+                inspect(
+                    subprocess.run(
+                        self.before_command,
+                        cwd=self.working_dir,
+                        shell=True,
+                        env=command_env,
+                        capture_output=True,
+                    ),
+                    title="'before_command' results",
+                    docs=False,
+                    console=inspect_console,
+                )
+            log.debug(re.sub(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", "", capture.get()))
 
         # Run the command with a fake tty to try to get colours
         if run_with_pty:
@@ -275,21 +279,24 @@ class RichImg:
         # Run after_command if set
         if self.after_command:
             log.debug("Running 'after_command'")
-            # TODO: Can't get inspect() to output to a log call
-            # NOTE: https://github.com/Textualize/rich/discussions/2378
-            # log.debug(
-            #     inspect(
-            subprocess.run(
-                self.after_command,
-                cwd=self.working_dir,
-                shell=True,
-                env=command_env,
-                capture_output=True,
-            )
-            #         , title="'after_command' results",
-            #         docs=False,
-            #     )
-            # )
+
+            # Workaround to get inspect() into a string for logging
+            # https://github.com/Textualize/rich/discussions/2378
+            inspect_console = Console(no_color=True)
+            with inspect_console.capture() as capture:
+                inspect(
+                    subprocess.run(
+                        self.after_command,
+                        cwd=self.working_dir,
+                        shell=True,
+                        env=command_env,
+                        capture_output=True,
+                    ),
+                    title="'after_command' results",
+                    docs=False,
+                    console=inspect_console,
+                )
+            log.debug(re.sub(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", "", capture.get()))
 
         decoder = AnsiDecoder()
 

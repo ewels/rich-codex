@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.2.4 (2022-08-19)
+
+- ✨ Debug log `before_command` and `after_command` so that you can see return code, stderr, stdout
+
 ## Version 1.2.3 (2022-08-18)
 
 - ✨ Maintain order of commands in markdown, add alphabetical sort of the files to search
