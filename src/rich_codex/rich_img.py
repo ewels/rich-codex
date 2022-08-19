@@ -17,6 +17,7 @@ from rich.ansi import AnsiDecoder
 from rich.console import Console
 from rich.prompt import Confirm
 from rich.syntax import Syntax
+from rich.text import Text
 
 log = logging.getLogger("rich-codex")
 
@@ -198,7 +199,7 @@ class RichImg:
                     docs=False,
                     console=inspect_console,
                 )
-            log.debug(re.sub(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", "", capture.get()))
+            log.debug(Text.from_ansi(capture.get()).plain)
 
         # Run the command with a fake tty to try to get colours
         if run_with_pty:
@@ -296,7 +297,7 @@ class RichImg:
                     docs=False,
                     console=inspect_console,
                 )
-            log.debug(re.sub(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", "", capture.get()))
+            log.debug(Text.from_ansi(capture.get()).plain)
 
         decoder = AnsiDecoder()
 
