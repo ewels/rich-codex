@@ -363,7 +363,7 @@ class CodexSearch:
                 except ValueError:
                     log.debug("Couldn't find relative path")
                     rel_source = img_obj.source
-                source = f" [grey42][link=file:{Path(img_obj.source).resolve()}]{rel_source}[/][/]"
+                source = f"[grey42][link=file:{Path(img_obj.source).resolve()}]{rel_source}[/][/]"
                 table.add_row(img_obj.command, source)
 
         if table.row_count == 0:
