@@ -1,5 +1,11 @@
 # Changelog: rich-codex
 
+## Version 1.2.5 (2022-08-25)
+
+- 🐛 Tweak output whitespace, fix use of `Path.absolute()` ([#39](https://github.com/ewels/rich-codex/pull/39))
+- 🐛 Fix parsing of multiple config files ([#37](https://github.com/ewels/rich-codex/issues/37))
+- 🐛 Fixed `KeyError` for top-level config options ([#35](https://github.com/ewels/rich-codex/issues/35))
+
 ## Version 1.2.4 (2022-08-19)
 
 - ✨ Debug log `before_command` and `after_command` so that you can see return code, stderr, stdout
