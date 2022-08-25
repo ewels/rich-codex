@@ -318,7 +318,7 @@ class CodexSearch:
         # Overwrite class-level configs
         for cls in self.class_config_attrs:
             if cls in config:
-                setattr(self, cls, config["cls"])
+                setattr(self, cls, config[cls])
 
         for output in config["outputs"]:
             log.debug(f"Found valid output in '{config_fn}': {output}")
