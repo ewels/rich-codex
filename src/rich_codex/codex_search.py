@@ -309,7 +309,7 @@ class CodexSearch:
             log.info(f"Found {len(configs)} config file{'s' if len(configs) > 1 else ''}")
         for config in configs:
             with config.open() as fh:
-                self.parse_config(config_fn, yaml.safe_load(fh))
+                self.parse_config(config, yaml.safe_load(fh))
 
     def parse_config(self, config_fn, config):
         """Parse a single rich-codex config file."""
