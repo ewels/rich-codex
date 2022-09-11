@@ -35,7 +35,11 @@ jobs:
           clean_img_paths: docs/img/*.svg
 ```
 
-For a more complex example, see [`.github/workflows/examples.yml`](https://github.com/ewels/rich-codex/blob/main/.github/workflows/examples.yml) in this repository.
+<!-- prettier-ignore-start -->
+!!! tip
+    The `@v1` installs the latest rich-codex release under the `v1.x.x` version.
+    Rich-codex uses semantic versioning, so this means that your workflow will use the most up to date version without the risk of having breaking changes (which would warrant a `v2.x.x` release number).
+<!-- prettier-ignore-end -->
 
 ## Triggers
 
