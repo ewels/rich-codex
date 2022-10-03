@@ -19,63 +19,63 @@
         font-weight: 700;
     }
 
-    .terminal-1392787178-matrix {
+    .terminal-1046468031-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-1392787178-title {
+    .terminal-1046468031-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-1392787178-r1 { fill: #b9bcba }
-.terminal-1392787178-r2 { fill: #186de3 }
-.terminal-1392787178-r3 { fill: #2e706d }
-.terminal-1392787178-r4 { fill: #888987 }
-.terminal-1392787178-r5 { fill: #c5a635 }
+    .terminal-1046468031-r1 { fill: #b9bcba }
+.terminal-1046468031-r2 { fill: #186de3 }
+.terminal-1046468031-r3 { fill: #2e706d }
+.terminal-1046468031-r4 { fill: #888987 }
+.terminal-1046468031-r5 { fill: #c5a635 }
     </style>
 
     <defs>
-    <clipPath id="terminal-1392787178-clip-terminal">
+    <clipPath id="terminal-1046468031-clip-terminal">
       <rect x="0" y="0" width="975.0" height="145.39999999999998" />
     </clipPath>
-    <clipPath id="terminal-1392787178-line-0">
+    <clipPath id="terminal-1046468031-line-0">
     <rect x="0" y="1.5" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1392787178-line-1">
+<clipPath id="terminal-1046468031-line-1">
     <rect x="0" y="25.9" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1392787178-line-2">
+<clipPath id="terminal-1046468031-line-2">
     <rect x="0" y="50.3" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1392787178-line-3">
+<clipPath id="terminal-1046468031-line-3">
     <rect x="0" y="74.7" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-1392787178-line-4">
+<clipPath id="terminal-1046468031-line-4">
     <rect x="0" y="99.1" width="976" height="24.65"/>
             </clipPath>
     </defs>
 
-    <rect fill="#191919" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="194.4" rx="8"/><text class="terminal-1392787178-title" fill="#b9bcba" text-anchor="middle" x="496" y="27">DIMMED_MONOKAI</text>
+    <rect fill="#191919" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="194.4" rx="8"/><text class="terminal-1046468031-title" fill="#b9bcba" text-anchor="middle" x="496" y="27">DIMMED_MONOKAI</text>
             <g transform="translate(26,22)">
             <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
             <circle cx="22" cy="0" r="7" fill="#febc2e"/>
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-1392787178-clip-terminal)">
+    <g transform="translate(9, 41)" clip-path="url(#terminal-1046468031-clip-terminal)">
     
-    <g class="terminal-1392787178-matrix">
-    <text class="terminal-1392787178-r1" x="0" y="20" textLength="536.8" clip-path="url(#terminal-1392787178-line-0)">$&#160;rich&#160;../../setup.cfg&#160;-h&#160;5&#160;--force-terminal</text><text class="terminal-1392787178-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-1392787178-line-0)">
-</text><text class="terminal-1392787178-r2" x="0" y="44.4" textLength="122" clip-path="url(#terminal-1392787178-line-1)">[metadata]</text><text class="terminal-1392787178-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-1392787178-line-1)">
-</text><text class="terminal-1392787178-r3" x="0" y="68.8" textLength="48.8" clip-path="url(#terminal-1392787178-line-2)">name</text><text class="terminal-1392787178-r1" x="61" y="68.8" textLength="12.2" clip-path="url(#terminal-1392787178-line-2)">=</text><text class="terminal-1392787178-r5" x="85.4" y="68.8" textLength="122" clip-path="url(#terminal-1392787178-line-2)">rich-codex</text><text class="terminal-1392787178-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#terminal-1392787178-line-2)">
-</text><text class="terminal-1392787178-r3" x="0" y="93.2" textLength="85.4" clip-path="url(#terminal-1392787178-line-3)">version</text><text class="terminal-1392787178-r1" x="97.6" y="93.2" textLength="12.2" clip-path="url(#terminal-1392787178-line-3)">=</text><text class="terminal-1392787178-r5" x="122" y="93.2" textLength="341.6" clip-path="url(#terminal-1392787178-line-3)">attr:&#160;rich_codex.__version__</text><text class="terminal-1392787178-r1" x="976" y="93.2" textLength="12.2" clip-path="url(#terminal-1392787178-line-3)">
-</text><text class="terminal-1392787178-r3" x="0" y="117.6" textLength="36.6" clip-path="url(#terminal-1392787178-line-4)">url</text><text class="terminal-1392787178-r1" x="48.8" y="117.6" textLength="12.2" clip-path="url(#terminal-1392787178-line-4)">=</text><text class="terminal-1392787178-r5" x="73.2" y="117.6" textLength="427" clip-path="url(#terminal-1392787178-line-4)">https://github.com/ewels/rich-codex</text><text class="terminal-1392787178-r1" x="976" y="117.6" textLength="12.2" clip-path="url(#terminal-1392787178-line-4)">
-</text><text class="terminal-1392787178-r3" x="0" y="142" textLength="146.4" clip-path="url(#terminal-1392787178-line-5)">project_urls</text><text class="terminal-1392787178-r1" x="158.6" y="142" textLength="12.2" clip-path="url(#terminal-1392787178-line-5)">=</text><text class="terminal-1392787178-r1" x="976" y="142" textLength="12.2" clip-path="url(#terminal-1392787178-line-5)">
+    <g class="terminal-1046468031-matrix">
+    <text class="terminal-1046468031-r1" x="0" y="20" textLength="536.8" clip-path="url(#terminal-1046468031-line-0)">$&#160;rich&#160;../../setup.cfg&#160;-h&#160;5&#160;--force-terminal</text><text class="terminal-1046468031-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-1046468031-line-0)">
+</text><text class="terminal-1046468031-r2" x="0" y="44.4" textLength="122" clip-path="url(#terminal-1046468031-line-1)">[metadata]</text><text class="terminal-1046468031-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-1046468031-line-1)">
+</text><text class="terminal-1046468031-r3" x="0" y="68.8" textLength="48.8" clip-path="url(#terminal-1046468031-line-2)">name</text><text class="terminal-1046468031-r1" x="61" y="68.8" textLength="12.2" clip-path="url(#terminal-1046468031-line-2)">=</text><text class="terminal-1046468031-r5" x="85.4" y="68.8" textLength="122" clip-path="url(#terminal-1046468031-line-2)">rich-codex</text><text class="terminal-1046468031-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#terminal-1046468031-line-2)">
+</text><text class="terminal-1046468031-r3" x="0" y="93.2" textLength="85.4" clip-path="url(#terminal-1046468031-line-3)">version</text><text class="terminal-1046468031-r1" x="97.6" y="93.2" textLength="12.2" clip-path="url(#terminal-1046468031-line-3)">=</text><text class="terminal-1046468031-r5" x="122" y="93.2" textLength="341.6" clip-path="url(#terminal-1046468031-line-3)">attr:&#160;rich_codex.__version__</text><text class="terminal-1046468031-r1" x="976" y="93.2" textLength="12.2" clip-path="url(#terminal-1046468031-line-3)">
+</text><text class="terminal-1046468031-r3" x="0" y="117.6" textLength="36.6" clip-path="url(#terminal-1046468031-line-4)">url</text><text class="terminal-1046468031-r1" x="48.8" y="117.6" textLength="12.2" clip-path="url(#terminal-1046468031-line-4)">=</text><text class="terminal-1046468031-r5" x="73.2" y="117.6" textLength="427" clip-path="url(#terminal-1046468031-line-4)">https://github.com/ewels/rich-codex</text><text class="terminal-1046468031-r1" x="976" y="117.6" textLength="12.2" clip-path="url(#terminal-1046468031-line-4)">
+</text><text class="terminal-1046468031-r3" x="0" y="142" textLength="146.4" clip-path="url(#terminal-1046468031-line-5)">project_urls</text><text class="terminal-1046468031-r1" x="158.6" y="142" textLength="12.2" clip-path="url(#terminal-1046468031-line-5)">=</text><text class="terminal-1046468031-r1" x="976" y="142" textLength="12.2" clip-path="url(#terminal-1046468031-line-5)">
 </text>
     </g>
     </g>

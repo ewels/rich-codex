@@ -19,27 +19,27 @@
         font-weight: 700;
     }
 
-    .terminal-2053708125-matrix {
+    .terminal-1584539813-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-2053708125-title {
+    .terminal-1584539813-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-2053708125-r1 { fill: #c5c8c6 }
+    .terminal-1584539813-r1 { fill: #c5c8c6 }
     </style>
 
     <defs>
-    <clipPath id="terminal-2053708125-clip-terminal">
+    <clipPath id="terminal-1584539813-clip-terminal">
       <rect x="0" y="0" width="975.0" height="47.8" />
     </clipPath>
-    <clipPath id="terminal-2053708125-line-0">
+    <clipPath id="terminal-1584539813-line-0">
     <rect x="0" y="1.5" width="976" height="24.65"/>
             </clipPath>
     </defs>
@@ -51,11 +51,11 @@
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-2053708125-clip-terminal)">
+    <g transform="translate(9, 41)" clip-path="url(#terminal-1584539813-clip-terminal)">
     
-    <g class="terminal-2053708125-matrix">
-    <text class="terminal-2053708125-r1" x="0" y="20" textLength="463.6" clip-path="url(#terminal-2053708125-line-0)">$&#160;cat&#160;before_after_command_example.txt</text><text class="terminal-2053708125-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-2053708125-line-0)">
-</text><text class="terminal-2053708125-r1" x="0" y="44.4" textLength="353.8" clip-path="url(#terminal-2053708125-line-1)">This&#160;is&#160;a&#160;very&#160;simple&#160;example</text><text class="terminal-2053708125-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-2053708125-line-1)">
+    <g class="terminal-1584539813-matrix">
+    <text class="terminal-1584539813-r1" x="0" y="20" textLength="463.6" clip-path="url(#terminal-1584539813-line-0)">$&#160;cat&#160;before_after_command_example.txt</text><text class="terminal-1584539813-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-1584539813-line-0)">
+</text><text class="terminal-1584539813-r1" x="0" y="44.4" textLength="353.8" clip-path="url(#terminal-1584539813-line-1)">This&#160;is&#160;a&#160;very&#160;simple&#160;example</text><text class="terminal-1584539813-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-1584539813-line-1)">
 </text>
     </g>
     </g>

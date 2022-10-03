@@ -19,27 +19,27 @@
         font-weight: 700;
     }
 
-    .terminal-2523074728-matrix {
+    .terminal-4270989296-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-2523074728-title {
+    .terminal-4270989296-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-2523074728-r1 { fill: #c5c8c6 }
+    .terminal-4270989296-r1 { fill: #c5c8c6 }
     </style>
 
     <defs>
-    <clipPath id="terminal-2523074728-clip-terminal">
+    <clipPath id="terminal-4270989296-clip-terminal">
       <rect x="0" y="0" width="975.0" height="47.8" />
     </clipPath>
-    <clipPath id="terminal-2523074728-line-0">
+    <clipPath id="terminal-4270989296-line-0">
     <rect x="0" y="1.5" width="976" height="24.65"/>
             </clipPath>
     </defs>
@@ -51,11 +51,11 @@
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-2523074728-clip-terminal)">
+    <g transform="translate(9, 41)" clip-path="url(#terminal-4270989296-clip-terminal)">
     
-    <g class="terminal-2523074728-matrix">
-    <text class="terminal-2523074728-r1" x="0" y="20" textLength="341.6" clip-path="url(#terminal-2523074728-line-0)">$&#160;echo&#160;&quot;No&#160;custom&#160;title&#160;set&quot;</text><text class="terminal-2523074728-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-2523074728-line-0)">
-</text><text class="terminal-2523074728-r1" x="0" y="44.4" textLength="231.8" clip-path="url(#terminal-2523074728-line-1)">No&#160;custom&#160;title&#160;set</text><text class="terminal-2523074728-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-2523074728-line-1)">
+    <g class="terminal-4270989296-matrix">
+    <text class="terminal-4270989296-r1" x="0" y="20" textLength="341.6" clip-path="url(#terminal-4270989296-line-0)">$&#160;echo&#160;&quot;No&#160;custom&#160;title&#160;set&quot;</text><text class="terminal-4270989296-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-4270989296-line-0)">
+</text><text class="terminal-4270989296-r1" x="0" y="44.4" textLength="231.8" clip-path="url(#terminal-4270989296-line-1)">No&#160;custom&#160;title&#160;set</text><text class="terminal-4270989296-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-4270989296-line-1)">
 </text>
     </g>
     </g>
