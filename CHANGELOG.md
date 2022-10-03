@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.2.6 (2022-10-03)
+
+- 🐛 Handle `OSError` when creating directories with a log message instead of crashing
+
 ## Version 1.2.5 (2022-08-25)
 
 - 🐛 Tweak output whitespace, fix use of `Path.absolute()` ([#39](https://github.com/ewels/rich-codex/pull/39))

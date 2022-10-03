@@ -497,7 +497,11 @@ class RichImg:
         for filename in self.img_paths:
 
             # Make directories if necessary
-            Path(filename).parent.mkdir(parents=True, exist_ok=True)
+            try:
+                Path(filename).parent.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                log.error(f"Invalid path: {filename}")
+                continue
 
             # If already made this image, copy it from the last destination
             if filename.lower().endswith(".png") and png_img is not None:
