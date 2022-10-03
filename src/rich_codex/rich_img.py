@@ -499,7 +499,7 @@ class RichImg:
             # Make directories if necessary
             try:
                 Path(filename).parent.mkdir(parents=True, exist_ok=True)
-            except OSError:
+            except (OSError, PermissionError):
                 log.error(f"Invalid path: {filename}")
                 continue
 
