@@ -18,8 +18,13 @@ jobs:
         with:
           python-version: 3.x
 
+      - uses: actions/cache@v2
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
       - name: Install requirements for docs
-        run: pip install cowsay lolcat mkdocs-material
+        run: pip install cowsay lolcat mkdocs-material pillow cairosvg
 
       - name: Generate terminal images with rich-codex
         uses: ./ # Would normally be ewels/rich-codex@v1

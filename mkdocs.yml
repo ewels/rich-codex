@@ -60,3 +60,5 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.details
+plugins:
+  - social

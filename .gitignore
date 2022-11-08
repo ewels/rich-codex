@@ -1,5 +1,6 @@
 testing
 rich_codex_*.log
+.cache
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,linux,windows,pycharm+all,visualstudio,intellij+all,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,windows,pycharm+all,visualstudio,intellij+all,python
