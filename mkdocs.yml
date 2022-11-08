@@ -1,6 +1,7 @@
 site_name: rich-codex
 repo_name: ewels/rich-codex
 repo_url: https://github.com/ewels/rich-codex
+site_url: https://ewels.github.io/rich-codex/
 edit_uri: edit/main/docs/
 
 theme:
