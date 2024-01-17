@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.2.7 (2024-01-17)
+
+- 🐛 Remove `rich-cli` as a dependency ([#45](https://github.com/ewels/rich-codex/issues/45))
+
 ## Version 1.2.6 (2022-10-03)
 
 - 🐛 Handle `OSError` when creating directories with a log message instead of crashing

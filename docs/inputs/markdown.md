@@ -19,7 +19,8 @@ extra_env:
 
 ## Printing files
 
-Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for convenience, so you can easily produce screenshots of files with the `rich` command:
+You can use any command-line tool to print files for screenshots.
+A good option is [rich-cli](https://github.com/Textualize/rich-cli), which you can use to easily produce screenshots of files with the `rich` command with nice syntax highlighting:
 
 <!-- prettier-ignore-start -->
 !!! tip
@@ -35,6 +36,9 @@ Rich-codex bundles [rich-cli](https://github.com/Textualize/rich-cli) for conven
 
 !!! tip
     💡 Use the `--force-terminal` flag to keep colours in your screenshots
+
+!!! note
+    `rich-codex` used to bundle `rich-cli` as a requirement, but this was dropped in v1.2.7
 <!-- prettier-ignore-end -->
 
 ## Title text
