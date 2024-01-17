@@ -72,11 +72,11 @@ For example:
 
 ```markdown
 <!-- RICH-CODEX {terminal_width: 60, terminal_theme: MONOKAI} -->
-![`cowsay "Taste the rainbow" | lolcat -S 100`](../img/taste-the-rainbow.svg "Taste the rainbow")
+![`cowsay -t "Taste the rainbow" | lolcat -S 100`](../img/taste-the-rainbow.svg "Taste the rainbow")
 ```
 
 <!-- RICH-CODEX {terminal_width: 60, terminal_theme: MONOKAI} -->
-![`cowsay "Taste the rainbow" | lolcat -S 100`](../img/taste-the-rainbow.svg "Taste the rainbow")
+![`cowsay -t "Taste the rainbow" | lolcat -S 100`](../img/taste-the-rainbow.svg "Taste the rainbow")
 
 <!-- prettier-ignore-end -->
 
