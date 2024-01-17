@@ -203,7 +203,6 @@ class CodexSearch:
                     img_cmd_match = img_cmd_re.match(line)
                     img_match = img_snippet_re.match(line)
                     if (img_cmd_match or img_match) and not local_config.get("skip"):
-
                         # Logging string of original local config
                         local_config_logmsg = f" with config: {local_config}" if len(local_config) > 0 else ""
 
