@@ -181,7 +181,6 @@ class RichImg:
 
         # Run before_command if set
         if self.before_command:
-
             # Workaround to get inspect() into a string for logging
             # https://github.com/Textualize/rich/discussions/2378
             log.debug("Running 'before_command'")
@@ -421,7 +420,6 @@ class RichImg:
 
             # No point in looking for a diff if the files are identical
             if pct_change > 0:
-
                 # Regex on file diff to skip
                 skip_regexes = list(r for r in IGNORE_REGEXES.get(new_file.suffix, []))  # deep copy
                 if self.skip_change_regex:
@@ -495,7 +493,6 @@ class RichImg:
         png_img = None
         pdf_img = None
         for filename in self.img_paths:
-
             # Make directories if necessary
             try:
                 Path(filename).parent.mkdir(parents=True, exist_ok=True)
