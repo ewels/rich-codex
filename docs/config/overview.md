@@ -21,7 +21,7 @@ They are, in order of parsing / precidence (last location wins):
 An overview of all available config options in all scopes is below:
 
 | CLI                    | Environment variable | GitHub Action / Rich-codex config |
-|------------------------|----------------------|-----------------------------------|
+| ---------------------- | -------------------- | --------------------------------- |
 | `--search-include`     | `SEARCH_INCLUDE`     | `search_include`                  |
 | `--search-exclude`     | `SEARCH_EXCLUDE`     | `search_exclude`                  |
 | `--no-search`          | `NO_SEARCH`          | `no_search`                       |
