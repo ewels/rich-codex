@@ -53,6 +53,12 @@ log = logging.getLogger()
     help="Maximum run time for command (seconds)",
 )
 @click.option(
+    "--working-dir",
+    envvar="WORKING_DIR",
+    show_envvar=True,
+    help="Working directory to run command in",
+)
+@click.option(
     "--before-command",
     envvar="BEFORE_COMMAND",
     show_envvar=True,
@@ -255,6 +261,7 @@ def main(
     no_search,
     command,
     timeout,
+    working_dir,
     before_command,
     after_command,
     snippet,
@@ -376,6 +383,7 @@ def main(
             timeout=timeout,
             before_command=before_command,
             after_command=after_command,
+            working_dir=working_dir,
             fake_command=fake_command,
             hide_command=hide_command,
             title_command=title_command,

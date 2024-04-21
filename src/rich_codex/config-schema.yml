@@ -10,6 +10,7 @@ properties:
   # Shared config options
   snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
   timeout: { "$ref": "#/$defs/timeout" }
+  working_dir: { "$ref": "#/$defs/working_dir" }
   before_command: { "$ref": "#/$defs/before_command" }
   after_command: { "$ref": "#/$defs/after_command" }
   hide_command: { "$ref": "#/$defs/hide_command" }
@@ -56,8 +57,6 @@ properties:
           type: string
           message:
             required: Either command or snippet is required
-        working_dir:
-          title: Working directory to run command in
         snippet:
           title: Code snippet to use
           type: string
@@ -89,6 +88,7 @@ properties:
         # Shared config options
         snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
         timeout: { "$ref": "#/$defs/timeout" }
+        working_dir: { "$ref": "#/$defs/working_dir" }
         before_command: { "$ref": "#/$defs/before_command" }
         after_command: { "$ref": "#/$defs/after_command" }
         hide_command: { "$ref": "#/$defs/hide_command" }
@@ -114,6 +114,9 @@ properties:
   timeout:
     title: Maximum run time for command (seconds)
     type: integer
+  working_dir:
+    title: Working directory to run command in
+    type: string
   before_command:
     title: Setup commands to run before running main output command
     type: string

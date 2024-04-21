@@ -54,3 +54,78 @@ outputs:
 
 There are many other config keys also available.
 See the [configuration docs](../config/overview.md) for more details.
+
+### Install IDE Validation
+
+You can validate your `.rich-codex.yml` files in your IDEs using JSONSchema.
+
+#### VSCode
+
+1. Install the [VSCode-YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
+
+2. In your repo, create a `.vscode/settings.jsonc` or `.vscode/settings.template.jsonc` file containing the following data. This is what tells the extension which schema to associate with each file.
+
+```json
+{
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/ewels/rich-codex/main/src/rich_codex/config-schema.yml": [
+      ".rich-codex.yml",
+      ".rich-codex.yaml"
+    ]
+  }
+}
+```
+
+3. To prompt other users to install the YAML extension, create a `.vscode/extensions.json` file containing the following data inside your repo:
+
+```json
+{
+  "recommendations": ["redhat.vscode-yaml"]
+}
+```
+
+#### JetBrains (PyCharm, IntelliJ, etc.)
+
+There are two ways to set this up.
+
+You can either add the following data to your `.idea/jsonSchemas.xml`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="rich_codex">
+          <value>
+            <SchemaInfo>
+              <option name="generatedName" value="New Schema" />
+              <option name="name" value="rich-codex" />
+              <option name="relativePathToSchema" value="https://raw.githubusercontent.com/ewels/rich-codex/main/src/rich_codex/config-schema.yml" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value=".rich-codex.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value=".rich-codex.yaml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>
+```
+
+Or you can do this manually in **Preferences > Languages & Frameworks > Schemas and DTDs > Json Schema Mappings**:
+
+- **Name**: `rich-codex`
+- **Schema File or URL**: `https://raw.githubusercontent.com/dbt-labs/dbt-jsonschema/main/schemas/dbt_project.json`
+- **Schema Version:** JSON schema version 4
+- **Mappings**:
+  - `.rich-codex.yml`
+  - `.rich-codex.yaml`

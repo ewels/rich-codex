@@ -9,9 +9,9 @@ They are, in order of parsing / precidence (last location wins):
     - GitHub Action arguments
     - Environment variables
     - Command-line flags (CLI)
-    - Rich-codex config files
+    - Rich-codex config files (`.rich-codex.yml`)
 - Per-image:
-    - Rich-codex config files
+    - Rich-codex config files (`.rich-codex.yml`)
     - Markdown config
 
 <!-- prettier-ignore-end -->
@@ -27,11 +27,15 @@ An overview of all available config options in all scopes is below:
 | `--no-search`          | `NO_SEARCH`          | `no_search`                       |
 | `--command`            | `COMMAND`            | `command`                         |
 | `--timeout`            | `TIMEOUT`            | `timeout`                         |
+| `--working-dir`        | `WORKING_DIR`        | `working_dir`                     |
+| `--before-command`     | `BEFORE_COMMAND`     | `before_command`                  |
+| `--after-command`      | `AFTER_COMMAND`      | `after_command`                   |
 | `--snippet`            | `SNIPPET`            | `snippet`                         |
 | `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`                  |
 | `--img-paths`          | `IMG_PATHS`          | `img_paths`                       |
 | `--clean-img-paths`    | `CLEAN_IMG_PATHS`    | `clean_img_paths`                 |
 | `--configs`            | `RC_CONFIGS`         | `rc_configs`                      |
+| `--fake-command`       | `FAKE_COMMAND`       | `fake_command`                    |
 | `--hide-command`       | `HIDE_COMMAND`       | `hide_command`                    |
 | `--title-command`      | `TITLE_COMMAND`      | `title_command`                   |
 | `--head`               | `RC_HEAD`            | `head`                            |
@@ -48,14 +52,14 @@ An overview of all available config options in all scopes is below:
 | `--terminal-theme`     | `TERMINAL_THEME`     | `terminal_theme`                  |
 | `--snippet-theme`      | `SNIPPET_THEME`      | `snippet_theme`                   |
 | `--use-pty`            | `USE_PTY`            | `use_pty`                         |
-| `--created-files`      | `CREATED_FILES`      | `-`                               |
-| `--deleted-files`      | `DELETED_FILES`      | `-`                               |
+| `--created-files`      | `CREATED_FILES`      | -                                 |
+| `--deleted-files`      | `DELETED_FILES`      | -                                 |
 | `--verbose`            | `LOG_VERBOSE`        | `log_verbose` \*                  |
 | `--save-log`           | `LOG_SAVE`           | -                                 |
 | `--log-file`           | `LOG_FILENAME`       | -                                 |
 | -                      | -                    | `commit_changes` \*               |
 | -                      | -                    | `error_changes` \*                |
-| -                      | -                    | `title` †                         |
+| -                      | -                    | `title` †                         |
 | -                      | -                    | `extra_env` †                     |
 | -                      | -                    | `skip` †                          |
 
