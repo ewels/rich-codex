@@ -9,9 +9,9 @@ They are, in order of parsing / precidence (last location wins):
     - GitHub Action arguments
     - Environment variables
     - Command-line flags (CLI)
-    - Rich-codex config files
+    - Rich-codex config files (`.rich-codex.yml`)
 - Per-image:
-    - Rich-codex config files
+    - Rich-codex config files (`.rich-codex.yml`)
     - Markdown config
 
 <!-- prettier-ignore-end -->
