@@ -19,57 +19,58 @@
         font-weight: 700;
     }
 
-    .terminal-3132992798-matrix {
+    .terminal-1560274447-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-3132992798-title {
+    .terminal-1560274447-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-3132992798-r1 { fill: #c5c8c6 }
+    .terminal-1560274447-r1 { fill: #f8f8f2 }
+.terminal-1560274447-r2 { fill: #c5c8c6 }
     </style>
 
     <defs>
-    <clipPath id="terminal-3132992798-clip-terminal">
+    <clipPath id="terminal-1560274447-clip-terminal">
       <rect x="0" y="0" width="975.0" height="291.79999999999995" />
     </clipPath>
-    <clipPath id="terminal-3132992798-line-0">
+    <clipPath id="terminal-1560274447-line-0">
     <rect x="0" y="1.5" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-1">
+<clipPath id="terminal-1560274447-line-1">
     <rect x="0" y="25.9" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-2">
+<clipPath id="terminal-1560274447-line-2">
     <rect x="0" y="50.3" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-3">
+<clipPath id="terminal-1560274447-line-3">
     <rect x="0" y="74.7" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-4">
+<clipPath id="terminal-1560274447-line-4">
     <rect x="0" y="99.1" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-5">
+<clipPath id="terminal-1560274447-line-5">
     <rect x="0" y="123.5" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-6">
+<clipPath id="terminal-1560274447-line-6">
     <rect x="0" y="147.9" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-7">
+<clipPath id="terminal-1560274447-line-7">
     <rect x="0" y="172.3" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-8">
+<clipPath id="terminal-1560274447-line-8">
     <rect x="0" y="196.7" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-9">
+<clipPath id="terminal-1560274447-line-9">
     <rect x="0" y="221.1" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3132992798-line-10">
+<clipPath id="terminal-1560274447-line-10">
     <rect x="0" y="245.5" width="976" height="24.65"/>
             </clipPath>
     </defs>
@@ -81,21 +82,21 @@
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-3132992798-clip-terminal)">
-    <rect fill="#272822" x="0" y="1.5" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="25.9" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="50.3" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="74.7" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="99.1" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="123.5" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="147.9" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="172.3" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="196.7" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="221.1" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="245.5" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="269.9" width="976" height="24.65" shape-rendering="crispEdges"/>
-    <g class="terminal-3132992798-matrix">
-    <text class="terminal-3132992798-r1" x="0" y="20" textLength="976" clip-path="url(#terminal-3132992798-line-0)">$&#160;git&#160;push&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-3132992798-line-0)">
-</text><text class="terminal-3132992798-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-3132992798-line-1)">
-</text><text class="terminal-3132992798-r1" x="0" y="68.8" textLength="976" clip-path="url(#terminal-3132992798-line-2)">Enumerating&#160;objects:&#160;13,&#160;done.&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#terminal-3132992798-line-2)">
-</text><text class="terminal-3132992798-r1" x="0" y="93.2" textLength="976" clip-path="url(#terminal-3132992798-line-3)">Counting&#160;objects:&#160;100%&#160;(13/13),&#160;done.&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="93.2" textLength="12.2" clip-path="url(#terminal-3132992798-line-3)">
-</text><text class="terminal-3132992798-r1" x="0" y="117.6" textLength="976" clip-path="url(#terminal-3132992798-line-4)">Delta&#160;compression&#160;using&#160;up&#160;to&#160;10&#160;threads&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="117.6" textLength="12.2" clip-path="url(#terminal-3132992798-line-4)">
-</text><text class="terminal-3132992798-r1" x="0" y="142" textLength="976" clip-path="url(#terminal-3132992798-line-5)">Compressing&#160;objects:&#160;100%&#160;(6/6),&#160;done.&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="142" textLength="12.2" clip-path="url(#terminal-3132992798-line-5)">
-</text><text class="terminal-3132992798-r1" x="0" y="166.4" textLength="976" clip-path="url(#terminal-3132992798-line-6)">Writing&#160;objects:&#160;100%&#160;(7/7),&#160;608&#160;bytes&#160;|&#160;608.00&#160;KiB/s,&#160;done.&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="166.4" textLength="12.2" clip-path="url(#terminal-3132992798-line-6)">
-</text><text class="terminal-3132992798-r1" x="0" y="190.8" textLength="976" clip-path="url(#terminal-3132992798-line-7)">Total&#160;7&#160;(delta&#160;5),&#160;reused&#160;0&#160;(delta&#160;0),&#160;pack-reused&#160;0&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="190.8" textLength="12.2" clip-path="url(#terminal-3132992798-line-7)">
-</text><text class="terminal-3132992798-r1" x="0" y="215.2" textLength="976" clip-path="url(#terminal-3132992798-line-8)">remote:&#160;Resolving&#160;deltas:&#160;100%&#160;(5/5),&#160;completed&#160;with&#160;5&#160;local&#160;objects.&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="215.2" textLength="12.2" clip-path="url(#terminal-3132992798-line-8)">
-</text><text class="terminal-3132992798-r1" x="0" y="239.6" textLength="976" clip-path="url(#terminal-3132992798-line-9)">To&#160;github.com:ewels/rich-codex.git&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="239.6" textLength="12.2" clip-path="url(#terminal-3132992798-line-9)">
-</text><text class="terminal-3132992798-r1" x="0" y="264" textLength="976" clip-path="url(#terminal-3132992798-line-10)">fbbec47..482c318&#160;&#160;main&#160;-&gt;&#160;main&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</text><text class="terminal-3132992798-r1" x="976" y="264" textLength="12.2" clip-path="url(#terminal-3132992798-line-10)">
-</text><text class="terminal-3132992798-r1" x="976" y="288.4" textLength="12.2" clip-path="url(#terminal-3132992798-line-11)">
+    <g transform="translate(9, 41)" clip-path="url(#terminal-1560274447-clip-terminal)">
+    <rect fill="#272822" x="0" y="1.5" width="122" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="122" y="1.5" width="854" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="25.9" width="976" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="50.3" width="366" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="366" y="50.3" width="610" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="74.7" width="451.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="451.4" y="74.7" width="524.6" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="99.1" width="488" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="488" y="99.1" width="488" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="123.5" width="463.6" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="463.6" y="123.5" width="512.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="147.9" width="732" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="732" y="147.9" width="244" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="172.3" width="634.4" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="634.4" y="172.3" width="341.6" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="196.7" width="841.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="841.8" y="196.7" width="134.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="221.1" width="414.8" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="414.8" y="221.1" width="561.2" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="245.5" width="366" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="366" y="245.5" width="610" height="24.65" shape-rendering="crispEdges"/><rect fill="#272822" x="0" y="269.9" width="976" height="24.65" shape-rendering="crispEdges"/>
+    <g class="terminal-1560274447-matrix">
+    <text class="terminal-1560274447-r1" x="0" y="20" textLength="122" clip-path="url(#terminal-1560274447-line-0)">$&#160;git&#160;push</text><text class="terminal-1560274447-r2" x="976" y="20" textLength="12.2" clip-path="url(#terminal-1560274447-line-0)">
+</text><text class="terminal-1560274447-r2" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-1560274447-line-1)">
+</text><text class="terminal-1560274447-r1" x="0" y="68.8" textLength="366" clip-path="url(#terminal-1560274447-line-2)">Enumerating&#160;objects:&#160;13,&#160;done.</text><text class="terminal-1560274447-r2" x="976" y="68.8" textLength="12.2" clip-path="url(#terminal-1560274447-line-2)">
+</text><text class="terminal-1560274447-r1" x="0" y="93.2" textLength="451.4" clip-path="url(#terminal-1560274447-line-3)">Counting&#160;objects:&#160;100%&#160;(13/13),&#160;done.</text><text class="terminal-1560274447-r2" x="976" y="93.2" textLength="12.2" clip-path="url(#terminal-1560274447-line-3)">
+</text><text class="terminal-1560274447-r1" x="0" y="117.6" textLength="488" clip-path="url(#terminal-1560274447-line-4)">Delta&#160;compression&#160;using&#160;up&#160;to&#160;10&#160;threads</text><text class="terminal-1560274447-r2" x="976" y="117.6" textLength="12.2" clip-path="url(#terminal-1560274447-line-4)">
+</text><text class="terminal-1560274447-r1" x="0" y="142" textLength="463.6" clip-path="url(#terminal-1560274447-line-5)">Compressing&#160;objects:&#160;100%&#160;(6/6),&#160;done.</text><text class="terminal-1560274447-r2" x="976" y="142" textLength="12.2" clip-path="url(#terminal-1560274447-line-5)">
+</text><text class="terminal-1560274447-r1" x="0" y="166.4" textLength="732" clip-path="url(#terminal-1560274447-line-6)">Writing&#160;objects:&#160;100%&#160;(7/7),&#160;608&#160;bytes&#160;|&#160;608.00&#160;KiB/s,&#160;done.</text><text class="terminal-1560274447-r2" x="976" y="166.4" textLength="12.2" clip-path="url(#terminal-1560274447-line-6)">
+</text><text class="terminal-1560274447-r1" x="0" y="190.8" textLength="634.4" clip-path="url(#terminal-1560274447-line-7)">Total&#160;7&#160;(delta&#160;5),&#160;reused&#160;0&#160;(delta&#160;0),&#160;pack-reused&#160;0</text><text class="terminal-1560274447-r2" x="976" y="190.8" textLength="12.2" clip-path="url(#terminal-1560274447-line-7)">
+</text><text class="terminal-1560274447-r1" x="0" y="215.2" textLength="841.8" clip-path="url(#terminal-1560274447-line-8)">remote:&#160;Resolving&#160;deltas:&#160;100%&#160;(5/5),&#160;completed&#160;with&#160;5&#160;local&#160;objects.</text><text class="terminal-1560274447-r2" x="976" y="215.2" textLength="12.2" clip-path="url(#terminal-1560274447-line-8)">
+</text><text class="terminal-1560274447-r1" x="0" y="239.6" textLength="414.8" clip-path="url(#terminal-1560274447-line-9)">To&#160;github.com:ewels/rich-codex.git</text><text class="terminal-1560274447-r2" x="976" y="239.6" textLength="12.2" clip-path="url(#terminal-1560274447-line-9)">
+</text><text class="terminal-1560274447-r1" x="0" y="264" textLength="366" clip-path="url(#terminal-1560274447-line-10)">fbbec47..482c318&#160;&#160;main&#160;-&gt;&#160;main</text><text class="terminal-1560274447-r2" x="976" y="264" textLength="12.2" clip-path="url(#terminal-1560274447-line-10)">
+</text><text class="terminal-1560274447-r2" x="976" y="288.4" textLength="12.2" clip-path="url(#terminal-1560274447-line-11)">
 </text>
     </g>
     </g>
