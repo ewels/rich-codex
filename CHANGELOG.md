@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.2.8
+
+- ✨ Update upload-artifact action to v4 ([#49](https://github.com/ewels/rich-codex/pull/49))
+
 ## Version 1.2.7 (2024-01-17)
 
 - 🐛 Remove `rich-cli` as a dependency ([#45](https://github.com/ewels/rich-codex/issues/45))

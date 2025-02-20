@@ -184,7 +184,7 @@ runs:
 
     - name: Upload sync log file artifact
       if: ${{ always() }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Rich-codex log file
         path: rich_codex_*.log
