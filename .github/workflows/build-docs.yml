@@ -24,7 +24,7 @@ jobs:
           path: .cache
 
       - name: Install requirements for docs
-        run: pip install cowsay lolcat mkdocs-material pillow cairosvg
+        run: pip install cowsay lolcat mkdocs-material pillow cairosvg rich-cli
 
       - name: Generate terminal images with rich-codex
         uses: ./ # Would normally be ewels/rich-codex@v1
