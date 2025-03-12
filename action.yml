@@ -23,6 +23,9 @@ inputs:
   timeout:
     description: Maximum run time for command (seconds)
     required: false
+  working_dir:
+    description: Working directory to run command in (relative to root of project)
+    required: false
   before_command:
     description: Setup commands to run before running main output command
     required: false
@@ -128,6 +131,7 @@ runs:
         NO_SEARCH: ${{ inputs.no_search }}
         COMMAND: ${{ inputs.command }}
         TIMEOUT: ${{ inputs.timeout }}
+        WORKING_DIR: ${{ inputs.working_dir }}
         BEFORE_COMMAND: ${{ inputs.before_command }}
         AFTER_COMMAND: ${{ inputs.after_command }}
         SNIPPET: ${{ inputs.snippet }}

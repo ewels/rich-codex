@@ -30,6 +30,7 @@ class CodexSearch:
         no_confirm,
         snippet_syntax,
         timeout,
+        working_dir,
         before_command,
         after_command,
         hide_command,
@@ -53,12 +54,20 @@ class CodexSearch:
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
             self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
-        self.configs = [".rich-codex.yml", ".github/rich-codex.yml", "docs/img/rich-codex.yml"]
+        self.configs = [
+            ".rich-codex.yml",
+            ".rich-codex.yaml",
+            ".github/rich-codex.yml",
+            ".github/rich-codex.yaml",
+            "docs/img/rich-codex.yml",
+            "docs/img/rich-codex.yaml",
+        ]
         if configs is not None:
             self.configs.extend(self._clean_list(configs.splitlines()))
         self.no_confirm = no_confirm
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
+        self.working_dir = working_dir
         self.before_command = before_command
         self.after_command = after_command
         self.hide_command = hide_command
@@ -83,6 +92,7 @@ class CodexSearch:
         self.class_config_attrs = [
             "snippet_syntax",
             "timeout",
+            "working_dir",
             "before_command",
             "after_command",
             "hide_command",
