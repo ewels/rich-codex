@@ -1,5 +1,9 @@
 # Changelog: rich-codex
 
+## Version 1.2.10
+
+- 🐛 Fix missing required argument ([#53](https://github.com/ewels/rich-codex/pull/53))
+
 ## Version 1.2.8
 
 - ✨ Update upload-artifact action to v4 ([#49](https://github.com/ewels/rich-codex/pull/49))
