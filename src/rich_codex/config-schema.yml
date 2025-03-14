@@ -116,7 +116,6 @@ properties:
     type: integer
   working_dir:
     title: Working directory to run command in
-    type: string
   before_command:
     title: Setup commands to run before running main output command
     type: string
