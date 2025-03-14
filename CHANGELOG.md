@@ -1,10 +1,15 @@
 # Changelog: rich-codex
 
-## Version 1.2.10
+## Version 1.2.10 (2025-03-14)
 
 - 🐛 Fix missing required argument ([#53](https://github.com/ewels/rich-codex/pull/53))
 
-## Version 1.2.8
+## Version 1.2.9 (2025-03-12)
+
+- ✨ Add `working_dir` as new input to the GitHub Action, by @dwreeves in https://github.com/ewels/rich-codex/pull/47
+- ♻️ Update all GitHub actions used, by @ewels in https://github.com/ewels/rich-codex/pull/51
+
+## Version 1.2.8 (2025-02-20)
 
 - ✨ Update upload-artifact action to v4 ([#49](https://github.com/ewels/rich-codex/pull/49))
 
