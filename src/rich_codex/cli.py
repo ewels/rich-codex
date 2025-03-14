@@ -444,6 +444,7 @@ def main(
         snippet_theme=snippet_theme,
         use_pty=use_pty,
         console=console,
+        working_dir=working_dir,
     )
     try:
         codex_obj.parse_configs()
