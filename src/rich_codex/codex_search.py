@@ -274,6 +274,7 @@ class CodexSearch:
                         local_config["working_dir"] = local_config.get("working_dir", str(Path(file).parent))
                         local_config["source_type"] = local_config.get("source_type", "search")
                         local_config["source"] = local_config.get("source", str(file))
+                        local_config["source_line"] = local_config.get("source_line", line_number)
 
                         local_config = self._merge_local_class_attrs(local_config)
 
@@ -403,6 +404,8 @@ class CodexSearch:
                 except ValueError:
                     log.debug("Couldn't find relative path")
                     rel_source = img_obj.source
+                if img_obj.source_line:
+                    rel_source = f"{rel_source}:{img_obj.source_line}"
                 source = f"[grey42][link=file:{Path(img_obj.source).resolve()}]{rel_source}[/][/]"
                 table.add_row(img_obj.command, source)
 

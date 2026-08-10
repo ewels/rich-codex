@@ -82,6 +82,9 @@ properties:
         source_type:
           title: Type of input that the image came from
           type: string
+        source_line:
+          title: Line number in the source file that the image came from
+          type: integer
 
         # Shared config options
         extra_env: { "$ref": "#/$defs/extra_env" }
