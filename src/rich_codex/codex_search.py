@@ -34,6 +34,7 @@ class CodexSearch:
         search_exclude,
         configs,
         no_confirm,
+        extra_env,
         snippet_syntax,
         timeout,
         working_dir,
@@ -74,6 +75,7 @@ class CodexSearch:
         if configs is not None:
             self.configs.extend(self._clean_list(configs.splitlines()))
         self.no_confirm = no_confirm
+        self.extra_env = extra_env
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
         self.working_dir = working_dir
@@ -99,6 +101,7 @@ class CodexSearch:
         self.num_img_saved = 0
         self.num_img_skipped = 0
         self.class_config_attrs = [
+            "extra_env",
             "snippet_syntax",
             "timeout",
             "working_dir",
@@ -147,9 +150,18 @@ class CodexSearch:
         Only if not set locally and if not None at class level
         """
         for conf in self.class_config_attrs:
-            if conf not in local_config and getattr(self, conf) is not None:
+            if getattr(self, conf) is None:
+                continue
+            # Global env vars apply to every command, but local keys win
+            if conf == "extra_env":
+                local_config[conf] = self._merge_extra_env(getattr(self, conf), local_config.get(conf))
+            elif conf not in local_config:
                 local_config[conf] = getattr(self, conf)
         return local_config
+
+    def _merge_extra_env(self, base, override):
+        """Combine two sets of environment variables, with keys in 'override' winning."""
+        return {**(base or {}), **(override or {})}
 
     def search_files(self):
         """Search through a set of files for codex strings."""
@@ -338,7 +350,11 @@ class CodexSearch:
         # Overwrite class-level configs
         for cls in self.class_config_attrs:
             if cls in config:
-                setattr(self, cls, config[cls])
+                # Env vars are added to any already set, rather than replacing them
+                if cls == "extra_env":
+                    setattr(self, cls, self._merge_extra_env(self.extra_env, config[cls]))
+                else:
+                    setattr(self, cls, config[cls])
 
         # 'outputs' is optional - a config file can just set global defaults
         if "outputs" not in config:

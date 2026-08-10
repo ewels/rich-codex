@@ -32,6 +32,9 @@ inputs:
   after_command:
     description: Setup commands to run after running main output command
     required: false
+  extra_env:
+    description: Additional environment variables for all commands, one 'KEY=value' pair per line
+    required: false
   snippet:
     description: Literal code snippet to render
     required: false
@@ -163,6 +166,7 @@ runs:
         WORKING_DIR: ${{ inputs.working_dir }}
         BEFORE_COMMAND: ${{ inputs.before_command }}
         AFTER_COMMAND: ${{ inputs.after_command }}
+        EXTRA_ENV: ${{ inputs.extra_env }}
         SNIPPET: ${{ inputs.snippet }}
         SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
         IMG_PATHS: ${{ inputs.img_paths }}

@@ -54,6 +54,20 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
     return clean_img_paths
 
 
+def parse_extra_env(extra_env_raw):
+    """Parse newline-separated 'KEY=value' pairs into a dict of environment variables."""
+    extra_env = {}
+    for line in extra_env_raw.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            raise ValueError(f"Could not parse as 'KEY=value': '{line}'")
+        key, value = line.split("=", 1)
+        extra_env[key.strip()] = value.strip()
+    return extra_env
+
+
 def check_git_status():
     """Check if the working directory is a clean git repo."""
     try:

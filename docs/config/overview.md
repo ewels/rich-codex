@@ -30,6 +30,7 @@ An overview of all available config options in all scopes is below:
 | `--working-dir`        | `WORKING_DIR`        | `working_dir`                     |
 | `--before-command`     | `BEFORE_COMMAND`     | `before_command`                  |
 | `--after-command`      | `AFTER_COMMAND`      | `after_command`                   |
+| `--extra-env`          | `EXTRA_ENV`          | `extra_env`                       |
 | `--snippet`            | `SNIPPET`            | `snippet`                         |
 | `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`                  |
 | `--img-paths`          | `IMG_PATHS`          | `img_paths`                       |

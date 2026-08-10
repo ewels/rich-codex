@@ -20,6 +20,21 @@ extra_env:
     It's probably easier to set these at run-level if that's an option, these are really only if you want to customise for a single output.
 <!-- prettier-ignore-end -->
 
+To set environment variables for _every_ command instead, use the top level of a config file:
+
+```yaml
+extra_env:
+  MY_TOOL_NO_COLOR: "1"
+```
+
+..or `--extra-env` / `$EXTRA_ENV` / `extra_env` (command line / environment variable / GitHub action key), with one `KEY=value` pair per line:
+
+```bash
+rich-codex --extra-env "MY_TOOL_NO_COLOR=1"
+```
+
+Both are merged with any per-image `extra_env`, which takes precedence for keys set in both places.
+
 ## Faking simple commands
 
 Sometimes you may need to have long complicated commands to get the screenshot you need, when the typical command for an end user would be much simpler.

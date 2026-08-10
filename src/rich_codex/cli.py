@@ -70,6 +70,12 @@ log = logging.getLogger()
     help="Setup commands to run after running main output command",
 )
 @click.option(
+    "--extra-env",
+    envvar="EXTRA_ENV",
+    show_envvar=True,
+    help="Additional environment variables for all commands, one 'KEY=value' pair per line",
+)
+@click.option(
     "--snippet",
     envvar="SNIPPET",
     show_envvar=True,
@@ -263,6 +269,7 @@ def main(
     working_dir,
     before_command,
     after_command,
+    extra_env,
     snippet,
     snippet_syntax,
     img_paths,
@@ -369,6 +376,16 @@ def main(
         width=100 if getenv("GITHUB_ACTIONS") else None,
     )
 
+    # Parse environment variables to set for every command
+    if extra_env:
+        try:
+            extra_env = utils.parse_extra_env(extra_env)
+        except ValueError as e:
+            raise click.BadOptionUsage("--extra-env", str(e))
+        log.debug(f"Setting extra environment variables for all commands: {extra_env}")
+    else:
+        extra_env = None
+
     # Check for mutually exclusive options
     if command and snippet:
         raise click.BadOptionUsage("--command", "Please use either --command OR --snippet but not both")
@@ -382,6 +399,7 @@ def main(
             timeout=timeout,
             before_command=before_command,
             after_command=after_command,
+            extra_env=extra_env,
             working_dir=working_dir,
             fake_command=fake_command,
             hide_command=hide_command,
@@ -424,6 +442,7 @@ def main(
         search_exclude=search_exclude,
         configs=configs,
         no_confirm=no_confirm,
+        extra_env=extra_env,
         snippet_syntax=snippet_syntax,
         timeout=timeout,
         before_command=before_command,
