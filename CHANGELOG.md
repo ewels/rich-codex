@@ -3,6 +3,9 @@
 ## Unreleased
 
 - ✨ MDX support: `.mdx` files are now searched by default and config comments can be written as JSX comments (`{/* RICH-CODEX ... */}`), as MDX doesn't allow HTML comments
+- ⬆️ Require `rich-click>=1.9.0`, which drops support for Python 3.7
+- 🐛 Fix environment variables missing from the `--help` screenshots with rich-click 1.9
+- 🐛 Fix terminal theme screenshots in the docs, which pointed at `setup.cfg` (removed in v1.2.11)
 
 ## Version 1.2.11 (2025-04-22)
 

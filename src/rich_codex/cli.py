@@ -11,8 +11,7 @@ from rich_codex import __version__, codex_search, rich_img, utils
 
 import rich_click as click
 
-click.rich_click.OPTION_ENVVAR_FIRST = True
-click.rich_click.ENVVAR_STRING = "[env: {}]"
+click.rich_click.OPTIONS_TABLE_HELP_SECTIONS = ["envvar", "help", "deprecated", "default", "required"]
 
 log = logging.getLogger()
 
