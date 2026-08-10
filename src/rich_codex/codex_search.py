@@ -14,6 +14,12 @@ from rich_codex.utils import validate_config
 
 log = logging.getLogger("rich-codex")
 
+# Config comment styles: HTML comments for markdown, JSX comments for MDX
+# (MDX v2+ does not allow HTML comments)
+# eg. <!-- RICH-CODEX terminal_width: 60 -->
+# eg. {/* RICH-CODEX terminal_width: 60 */}
+CONFIG_COMMENT_STYLES = {"<!--": "-->", "{/*": "*/}"}
+
 
 class CodexSearch:
     """File search class for rich-codex.
@@ -50,7 +56,10 @@ class CodexSearch:
         console,
     ):
         """Initialize the search object."""
-        self.search_include = ["**/*.md"] if search_include is None else self._clean_list(search_include.splitlines())
+        if search_include is None:
+            self.search_include = ["**/*.md", "**/*.mdx"]
+        else:
+            self.search_include = self._clean_list(search_include.splitlines())
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
             self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
@@ -164,7 +173,9 @@ class CodexSearch:
 
         # eg. <!-- RICH-CODEX TERMINAL_WIDTH=60 -->
         # eg. <!-- RICH-CODEX
-        config_comment_re = re.compile(r"\s*<!\-\-\s*RICH-CODEX\s*(?P<config_str>.*)")
+        # eg. {/* RICH-CODEX TERMINAL_WIDTH=60 */}  (MDX files can't use HTML comments)
+        comment_starts = "|".join(re.escape(start) for start in CONFIG_COMMENT_STYLES)
+        config_comment_re = re.compile(rf"\s*(?P<comment_start>{comment_starts})\s*RICH-CODEX\s*(?P<config_str>.*)")
 
         # eg. ![`rich --help`](rich-cli-help.svg)
         img_cmd_re = re.compile(r"\s*!\[`(?P<cmd>[^`]+)`\]\((?P<img_path>.*?)(?=\"|\))(?P<title>[\"'].*[\"'])?\)")
@@ -182,6 +193,7 @@ class CodexSearch:
             with open(file, "r") as fh:
                 line_number = 0
                 in_config = False
+                comment_end = None
                 local_config_str = ""
                 for line in fh:
                     line_number += 1
@@ -189,9 +201,9 @@ class CodexSearch:
                     # Keep saving config if we're in a config block
                     if in_config:
                         local_config_str += line
-                        if "-->" in line:
+                        if comment_end in line:
                             in_config = False
-                            local_config_str = local_config_str.split("-->")[0]
+                            local_config_str = local_config_str.split(comment_end)[0]
                             continue
 
                     # Parse +  validate config yaml
@@ -287,13 +299,14 @@ class CodexSearch:
                     config_match = config_comment_re.match(line)
                     if config_match:
                         m = config_match.groupdict()
+                        comment_end = CONFIG_COMMENT_STYLES[m["comment_start"]]
 
                         # If we don't end the comment on this line, must be a snippet
-                        if "-->" not in line:
+                        if comment_end not in line:
                             in_config = True
 
                         # Save config
-                        local_config_str = m.get("config_str", "").split("-->")[0] + "\n"
+                        local_config_str = m.get("config_str", "").split(comment_end)[0] + "\n"
 
         if num_commands > 0:
             log.info(f"Search: Found {num_commands} commands")

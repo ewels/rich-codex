@@ -71,7 +71,7 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
 - 🖼 [Markdown images](inputs/markdown.md)
     - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](img/rich-codex-help.svg) ``
 - 💬 [Markdown comments](inputs/markdown.md#code-snippets)
-    - Search markdown files for special HTML comments.
+    - Search markdown files for special HTML comments (or JSX comments, for [MDX files](inputs/markdown.md#mdx-files)).
 - ➡️ [Command-line / action inputs](inputs/direct_inputs.md)
     - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](inputs/config_file.md)

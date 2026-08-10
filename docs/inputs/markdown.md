@@ -80,6 +80,38 @@ For example:
 
 <!-- prettier-ignore-end -->
 
+## MDX files
+
+Rich-codex searches both `.md` and `.mdx` files by default (see [`--search-include`](../config/overview.md)).
+
+MDX (v2 and above, used by Docusaurus, Next.js and others) doesn't allow HTML comments, so config comments can also be written as JSX comments (`{/* … */}`):
+
+<!-- prettier-ignore-start -->
+
+```markdown
+{/* RICH-CODEX {terminal_width: 60, terminal_theme: MONOKAI} */}
+![`cowsay -t "Taste the rainbow" | lolcat -S 100`](../img/taste-the-rainbow.svg "Taste the rainbow")
+```
+
+Multi-line config comments work in the same way, closing the block with `*/}`:
+
+```markdown
+{/* RICH-CODEX
+terminal_width: 120
+notrim: true
+extra_env:
+  TERMINAL_WIDTH: 120
+*/}
+![`rich-codex --help`](../img/rich-codex-help.svg)
+```
+
+!!! note
+    The `RICH-CODEX` keyword must be on the same line as the opening `{/*`, just as it must be with `<!--`.
+
+Both comment styles are recognised in every file that is searched, so you can use JSX comments in `.md` files and HTML comments in `.mdx` files if you prefer (though the latter won't compile as MDX).
+
+<!-- prettier-ignore-end -->
+
 ## Code snippets
 
 In addition to running commands, you can format code blocks or "snippets".
