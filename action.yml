@@ -116,25 +116,32 @@ inputs:
     description: If true, skip Python setup (or skip uv setup if `use_uv` is true). Only use this if you already set up Python in a previous step, e.g. to install additional dependencies. When combined with `use_uv`, this assumes you already ran the `astral-sh/setup-uv` action.
     default: "false"
     required: false
+  python_version:
+    description: Which version of Python to use when setting up Python or uv. Defaults to '3.x'.
+    required: false
   python_verison:
-    description: Which version of Python to use when setting up Python or uv.
-    default: "3"
+    description: "Deprecated: misspelling of 'python_version', which should be used instead."
     required: false
 
 runs:
   using: "composite"
   steps:
+    - name: Warn about deprecated inputs
+      if: inputs.python_verison != ''
+      run: echo "::warning::The 'python_verison' input is a typo and is deprecated. Please use 'python_version'."
+      shell: bash
+
     - name: Set up uv
       if: inputs.skip_python_setup != 'true' && inputs.use_uv == 'true'
       uses: astral-sh/setup-uv@v5
       with:
-        python-version: 3.x
+        python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
 
     - name: Set up Python
       if: inputs.skip_python_setup != 'true' && inputs.use_uv != 'true'
       uses: actions/setup-python@v5
       with:
-        python-version: 3.x
+        python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
 
     - name: Install rich-codex with uv
       if: inputs.use_uv == 'true'
