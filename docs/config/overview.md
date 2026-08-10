@@ -61,7 +61,6 @@ An overview of all available config options in all scopes is below:
 | -                      | -                    | `commit_changes` \*               |
 | -                      | -                    | `error_changes` \*                |
 | -                      | -                    | `title` †                         |
-| -                      | -                    | `extra_env` †                     |
 | -                      | -                    | `skip` †                          |
 
 - `*` - GitHub Action only

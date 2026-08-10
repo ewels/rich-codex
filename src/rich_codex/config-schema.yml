@@ -77,6 +77,7 @@ properties:
             type: string
             title: An image path
             pattern: "(?i)\\.(svg|png|pdf)$"
+        # Internal fields, set by rich-codex rather than by the user
         source:
           title: Filename / meta about where the image came from
         source_type:

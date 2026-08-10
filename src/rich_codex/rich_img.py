@@ -27,8 +27,11 @@ with config_schema_fn.open() as fh:
     config_schema = yaml.safe_load(fh)
 RICH_IMG_ATTRS = config_schema["properties"]["outputs"]["items"]["properties"].keys()
 
-# Line numbers say where an image was defined, not what it renders, so are ignored when deduplicating
+# Line numbers say where an image was defined, not what it renders, so are ignored when deduplicating.
+# 'source' is deliberately kept, so that identical commands in different files stay distinct
+# and can be reported by CodexSearch.check_duplicate_paths().
 HASH_ATTRS = [attr for attr in RICH_IMG_ATTRS if attr != "source_line"]
+HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr != "img_paths"]
 
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
@@ -128,7 +131,7 @@ class RichImg:
 
     def _hash_no_fn(self):
         """Hash stable identifier of RichImg object based without output filenames."""
-        attrs = str([getattr(self, attr) for attr in HASH_ATTRS if attr != "img_paths"])
+        attrs = str([getattr(self, attr) for attr in HASH_ATTRS_NO_FN])
         return hash(attrs)
 
     def confirm_command(self):

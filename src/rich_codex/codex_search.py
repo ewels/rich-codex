@@ -10,7 +10,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from rich_codex import rich_img
-from rich_codex.utils import validate_config
+from rich_codex.utils import clean_list, validate_config
 
 log = logging.getLogger("rich-codex")
 
@@ -60,10 +60,10 @@ class CodexSearch:
         if search_include is None:
             self.search_include = ["**/*.md", "**/*.mdx"]
         else:
-            self.search_include = self._clean_list(search_include.splitlines())
+            self.search_include = clean_list(search_include.splitlines())
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
-            self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
+            self.search_exclude.extend(clean_list(search_exclude.splitlines()))
         self.configs = [
             ".rich-codex.yml",
             ".rich-codex.yaml",
@@ -73,7 +73,7 @@ class CodexSearch:
             "docs/img/rich-codex.yaml",
         ]
         if configs is not None:
-            self.configs.extend(self._clean_list(configs.splitlines()))
+            self.configs.extend(clean_list(configs.splitlines()))
         self.no_confirm = no_confirm
         self.extra_env = extra_env
         self.snippet_syntax = snippet_syntax
@@ -96,6 +96,7 @@ class CodexSearch:
         self.snippet_theme = snippet_theme
         self.use_pty = use_pty
         self.console = Console() if console is None else console
+        self.cwd = Path.cwd().resolve()
         self.rich_imgs = []
         self.saved_img_paths = []
         self.num_img_saved = 0
@@ -122,12 +123,14 @@ class CodexSearch:
             "snippet_theme",
             "use_pty",
         ]
+        # Config options that combine with more specific config, instead of being replaced by it
+        self.merged_config_attrs = ["extra_env"]
 
         # Look in .gitignore to add to search_exclude
         try:
             with open(".gitignore", "r") as fh:
                 log.debug("Appending contents of .gitignore to 'SEARCH_EXCLUDE'")
-                self.search_exclude.extend(self._clean_list(fh.readlines()))
+                self.search_exclude.extend(clean_list(fh.readlines()))
         except IOError:
             pass
 
@@ -136,15 +139,6 @@ class CodexSearch:
         with config_schema_fn.open() as fh:
             self.config_schema = yaml.safe_load(fh)
 
-    def _clean_list(self, unclean_lines):
-        """Remove empty strings from a list."""
-        clean_lines = []
-        for line in unclean_lines:
-            line = line.strip()
-            if not line.startswith("#") and line:
-                clean_lines.append(line)
-        return clean_lines
-
     def _merge_local_class_attrs(self, local_config):
         """Update local config with class params.
         Only if not set locally and if not None at class level
@@ -152,15 +146,15 @@ class CodexSearch:
         for conf in self.class_config_attrs:
             if getattr(self, conf) is None:
                 continue
-            # Global env vars apply to every command, but local keys win
-            if conf == "extra_env":
-                local_config[conf] = self._merge_extra_env(getattr(self, conf), local_config.get(conf))
+            # Global config applies to every image, but local keys win
+            if conf in self.merged_config_attrs:
+                local_config[conf] = self._merge_config_values(getattr(self, conf), local_config.get(conf))
             elif conf not in local_config:
                 local_config[conf] = getattr(self, conf)
         return local_config
 
-    def _merge_extra_env(self, base, override):
-        """Combine two sets of environment variables, with keys in 'override' winning."""
+    def _merge_config_values(self, base, override):
+        """Combine two dicts of config values, with keys in 'override' winning."""
         return {**(base or {}), **(override or {})}
 
     def search_files(self):
@@ -274,7 +268,7 @@ class CodexSearch:
                         local_config["working_dir"] = local_config.get("working_dir", str(Path(file).parent))
                         local_config["source_type"] = local_config.get("source_type", "search")
                         local_config["source"] = local_config.get("source", str(file))
-                        local_config["source_line"] = local_config.get("source_line", line_number)
+                        local_config["source_line"] = line_number
 
                         local_config = self._merge_local_class_attrs(local_config)
 
@@ -351,9 +345,9 @@ class CodexSearch:
         # Overwrite class-level configs
         for cls in self.class_config_attrs:
             if cls in config:
-                # Env vars are added to any already set, rather than replacing them
-                if cls == "extra_env":
-                    setattr(self, cls, self._merge_extra_env(self.extra_env, config[cls]))
+                # Merged options are added to anything already set, rather than replacing it
+                if cls in self.merged_config_attrs:
+                    setattr(self, cls, self._merge_config_values(getattr(self, cls), config[cls]))
                 else:
                     setattr(self, cls, config[cls])
 
@@ -387,10 +381,14 @@ class CodexSearch:
     def _relative_path(self, path):
         """Path relative to the working directory, if it's inside it."""
         try:
-            return str(Path(path).resolve().relative_to(Path.cwd().resolve()))
+            return str(Path(path).resolve().relative_to(self.cwd))
         except ValueError:
             log.debug(f"Couldn't find relative path for '{path}'")
             return str(path)
+
+    def _path_link(self, path, label=None):
+        """Rich markup for a file path, hyperlinked to the file itself."""
+        return f"[grey42][link=file:{Path(path).resolve()}]{label or self._relative_path(path)}[/][/]"
 
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
@@ -411,11 +409,8 @@ class CodexSearch:
                 rel_source = self._relative_path(img_obj.source)
                 if img_obj.source_line:
                     rel_source = f"{rel_source}:{img_obj.source_line}"
-                source = f"[grey42][link=file:{Path(img_obj.source).resolve()}]{rel_source}[/][/]"
-                outputs = "\n".join(
-                    f"[grey42][link=file:{Path(p).resolve()}]{self._relative_path(p)}[/][/]" for p in img_obj.img_paths
-                )
-                table.add_row(img_obj.command, outputs, source)
+                outputs = "\n".join(self._path_link(p) for p in img_obj.img_paths)
+                table.add_row(img_obj.command, outputs, self._path_link(img_obj.source, rel_source))
 
         if table.row_count == 0:
             return True

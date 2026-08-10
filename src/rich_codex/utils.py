@@ -54,13 +54,20 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
     return clean_img_paths
 
 
+def clean_list(unclean_lines):
+    """Remove empty strings and comments from a list of config lines."""
+    clean_lines = []
+    for line in unclean_lines:
+        line = line.strip()
+        if not line.startswith("#") and line:
+            clean_lines.append(line)
+    return clean_lines
+
+
 def parse_extra_env(extra_env_raw):
     """Parse newline-separated 'KEY=value' pairs into a dict of environment variables."""
     extra_env = {}
-    for line in extra_env_raw.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
+    for line in clean_list(extra_env_raw.splitlines()):
         if "=" not in line:
             raise ValueError(f"Could not parse as 'KEY=value': '{line}'")
         key, value = line.split("=", 1)
