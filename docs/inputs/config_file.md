@@ -28,6 +28,7 @@ If any validation errors are found, rich-codex will provide a log and exit with 
 ### Structure
 
 Config files can have both top-level configuration options that apply to all files and also an `outputs` array of different things to create.
+Both are optional, so a config file can be used purely to set global defaults for images found by searching markdown.
 
 Each `outputs` array item must contain an `img_paths` array of output filenames and either a `command` or a `snippet`.
 You can optionally add `title` to customise the terminal window title.

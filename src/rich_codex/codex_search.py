@@ -340,7 +340,11 @@ class CodexSearch:
             if cls in config:
                 setattr(self, cls, config[cls])
 
-        for output in config["outputs"]:
+        # 'outputs' is optional - a config file can just set global defaults
+        if "outputs" not in config:
+            log.debug(f"No 'outputs' found in '{config_fn}', using it for global config only")
+
+        for output in config.get("outputs") or []:
             log.debug(f"Found valid output in '{config_fn}': {output}")
             output["img_paths"] = [str(Path(img_path_str.strip()).resolve()) for img_path_str in output["img_paths"]]
             output["source_type"] = "config"
