@@ -12,6 +12,60 @@ from rich_codex import __version__, codex_search, rich_img, utils
 import rich_click as click
 
 click.rich_click.OPTIONS_TABLE_HELP_SECTIONS = ["envvar", "help", "deprecated", "default", "required"]
+click.rich_click.OPTION_GROUPS = {
+    "rich-codex": [
+        {
+            "name": "Inputs",
+            "options": ["--search-include", "--search-exclude", "--no-search", "--configs", "--command", "--snippet"],
+        },
+        {
+            "name": "Outputs",
+            "options": ["--img-paths", "--clean-img-paths", "--created-files", "--deleted-files"],
+        },
+        {
+            "name": "Running commands",
+            "options": [
+                "--timeout",
+                "--working-dir",
+                "--before-command",
+                "--after-command",
+                "--extra-env",
+                "--use-pty",
+            ],
+        },
+        {
+            "name": "Screenshot contents",
+            "options": [
+                "--fake-command",
+                "--hide-command",
+                "--title-command",
+                "--head",
+                "--tail",
+                "--trim-after",
+                "--truncated-text",
+            ],
+        },
+        {
+            "name": "Terminal appearance",
+            "options": [
+                "--terminal-width",
+                "--terminal-min-width",
+                "--notrim",
+                "--terminal-theme",
+                "--snippet-syntax",
+                "--snippet-theme",
+            ],
+        },
+        {
+            "name": "Updating images",
+            "options": ["--min-pct-diff", "--skip-change-regex", "--skip-git-checks", "--no-confirm"],
+        },
+        {
+            "name": "Logging",
+            "options": ["--verbose", "--save-log", "--log-file", "--help"],
+        },
+    ]
+}
 
 log = logging.getLogger()
 
