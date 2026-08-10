@@ -281,14 +281,14 @@ log = logging.getLogger()
     envvar="CREATED_FILES",
     show_envvar=True,
     help="Save a list of created files to this file",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 @click.option(
     "--deleted-files",
     envvar="DELETED_FILES",
     show_envvar=True,
     help="Save a list of deleted files to this file",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 @click.option(
     "-v",
@@ -304,7 +304,7 @@ log = logging.getLogger()
     envvar="LOG_SAVE",
     show_envvar=True,
     help="Save a verbose log to a file (automatic filename).",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 @click.option(
     "-l",
@@ -312,7 +312,7 @@ log = logging.getLogger()
     envvar="LOG_FILENAME",
     show_envvar=True,
     help="Save a verbose log to a file (specific filename).",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 def main(
     search_include,
