@@ -384,6 +384,14 @@ class CodexSearch:
         log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
         self.rich_imgs = merged_imgs.values()
 
+    def _relative_path(self, path):
+        """Path relative to the working directory, if it's inside it."""
+        try:
+            return str(Path(path).resolve().relative_to(Path.cwd().resolve()))
+        except ValueError:
+            log.debug(f"Couldn't find relative path for '{path}'")
+            return str(path)
+
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
         table = Table(
@@ -396,18 +404,18 @@ class CodexSearch:
             row_styles=["green on grey3", "magenta on grey15"],
         )
         table.add_column("Commands to run:")
+        table.add_column("Output")
         table.add_column("Source")
         for img_obj in self.rich_imgs:
             if img_obj.command is not None:
-                try:
-                    rel_source = Path(img_obj.source).resolve().relative_to(Path.cwd().resolve())
-                except ValueError:
-                    log.debug("Couldn't find relative path")
-                    rel_source = img_obj.source
+                rel_source = self._relative_path(img_obj.source)
                 if img_obj.source_line:
                     rel_source = f"{rel_source}:{img_obj.source_line}"
                 source = f"[grey42][link=file:{Path(img_obj.source).resolve()}]{rel_source}[/][/]"
-                table.add_row(img_obj.command, source)
+                outputs = "\n".join(
+                    f"[grey42][link=file:{Path(p).resolve()}]{self._relative_path(p)}[/][/]" for p in img_obj.img_paths
+                )
+                table.add_row(img_obj.command, outputs, source)
 
         if table.row_count == 0:
             return True
@@ -443,8 +451,8 @@ class CodexSearch:
                     img_paths_src[img_path] = [ri.source]
         for img_path, src in img_paths_src.items():
             if len(src) > 1:
-                img_path_rel = Path(img_path).relative_to(Path.cwd())
-                src_paths = "', '".join(set(str(s.relative_to(Path.cwd())) for s in src))
+                img_path_rel = self._relative_path(img_path)
+                src_paths = "', '".join(set(self._relative_path(s) for s in src))
                 log.warning(f"Duplicate output file path '{img_path_rel}' found in '{src_paths}'")
 
     def save_all_images(self):
