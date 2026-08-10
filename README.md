@@ -67,7 +67,7 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
 - 🖼 [Markdown images](https://ewels.github.io/rich-codex/inputs/markdown/)
   - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](docs/img/rich-codex-help.svg) ``
 - 💬 [Markdown comments](https://ewels.github.io/rich-codex/inputs/markdown/#code-snippets)
-  - Search markdown files for special HTML comments.
+  - Search markdown files for special HTML / JSX comments.
 - ➡️ [Command-line / action inputs](https://ewels.github.io/rich-codex/inputs/direct_inputs/)
   - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](https://ewels.github.io/rich-codex/inputs/config_file/)
