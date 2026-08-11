@@ -147,7 +147,7 @@ log = logging.getLogger()
     "--snippet-syntax",
     envvar="SNIPPET_SYNTAX",
     show_envvar=True,
-    help="Language to use for snippet sytax highlighting",
+    help="Language to use for snippet syntax highlighting",
 )
 @click.option(
     "--img-paths",

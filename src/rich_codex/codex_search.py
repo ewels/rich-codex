@@ -145,7 +145,8 @@ class CodexSearch:
 
     def _merge_local_class_attrs(self, local_config):
         """Update local config with class params.
-        Only if not set locally and if not None at class level
+
+        Only if not set locally and if not None at class level.
         """
         for conf in self.class_config_attrs:
             if getattr(self, conf) is None:

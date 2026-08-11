@@ -1,7 +1,7 @@
 ## Config locations
 
 Rich-codex can be run in several different ways and get configuration from multiple different locations.
-They are, in order of parsing / precidence (last location wins):
+They are, in order of parsing / precedence (last location wins):
 
 <!-- prettier-ignore-start -->
 
@@ -91,7 +91,7 @@ A brief description of each option follows.
 - `--trim-after`: Don't print any more lines after this string is found
 - `--truncated-text`: Text to show when --head or --tail truncate content
 - `--snippet`: Literal code snippet to render
-- `--snippet-syntax`: Language to use for snippet sytax highlighting
+- `--snippet-syntax`: Language to use for snippet syntax highlighting
 - `--img-paths`: Path to image filenames if using 'command' or 'snippet'
 - `--clean-img-paths`: Remove any matching files that are not generated
 - `--configs`: Paths to YAML config files

@@ -4,7 +4,7 @@
 
 By default, rich-codex will run your command / parse your snippet and check the length of all output lines. The terminal width will be set to that of the longest line.
 
-A mimimum width is used to prevent very narrow images. The default for this is `80` characters and can be customised using `--terminal-min-width` / `$TERMINAL_MIN_WIDTH` / `terminal_min_width` (CLI, env var, action/config).
+A minimum width is used to prevent very narrow images. The default for this is `80` characters and can be customised using `--terminal-min-width` / `$TERMINAL_MIN_WIDTH` / `terminal_min_width` (CLI, env var, action/config).
 
 To turn off trimming, use `--notrim` / `$NOTRIM` / `notrim`.
 

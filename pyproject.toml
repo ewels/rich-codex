@@ -1,10 +1,16 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools>=45",
+]
+
 [project]
 name = "rich-codex"
 description = "Generate rich images for the GitHub Action 'rich-codex'"
 readme = "README.md"
 license = "MIT"
-maintainers = [{ name = "Phil Ewels", email = "phil@ewels.co.uk" }]
-authors = [{ name = "Phil Ewels", email = "phil@ewels.co.uk" }]
+maintainers = [ { name = "Phil Ewels", email = "phil@ewels.co.uk" } ]
+authors = [ { name = "Phil Ewels", email = "phil@ewels.co.uk" } ]
 requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -18,75 +24,78 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-dynamic = [
-    "version"
-]
-dependencies = [
-    "rich>=12.4.3",
-    "rich-click>=1.9.0",
-    "pyyaml",
-    "levenshtein>=0.18.1",
-    "jsonschema",
-    "GitPython"
-]
-[project.optional-dependencies]
-dev = [
-    "pre-commit",
+dynamic = [ "version" ]
+dependencies = [ "gitpython", "jsonschema", "levenshtein>=0.18.1", "pyyaml", "rich>=12.4.3", "rich-click>=1.9" ]
+optional-dependencies.cairo = [ "cairosvg>=2.5.2" ]
+optional-dependencies.dev = [
+    "prek",
     "pytest",
     "pytest-cov",
+    "ruff",
 ]
-cairo = [
-    "CairoSVG>=2.5.2"
+urls."Issue Tracker" = "https://github.com/ewels/rich-codex/issues"
+urls."Source Code" = "https://github.com/ewels/rich-codex"
+urls.Documentation = "https://github.com/ewels/rich-codex"
+scripts.rich-codex = "rich_codex.cli:main"
+
+[tool.setuptools]
+packages.find.where = [ "src" ]
+package-data.rich_codex = [ "config-schema.yml" ]
+dynamic.version = { attr = "rich_codex.__version__" }
+
+# Ruff covers formatting, linting, import order and syntax modernisation.
+# The Python version for 'UP' rules is taken from 'requires-python' above.
+[tool.ruff]
+line-length = 120
+lint.select = [
+    "D",    # pydocstyle
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I001", # isort
+    "UP",   # pyupgrade
+    "W",    # pycodestyle
 ]
-
-[project.urls]
-Documentation = "https://github.com/ewels/rich-codex"
-"Source Code" = "https://github.com/ewels/rich-codex"
-"Issue Tracker" = "https://github.com/ewels/rich-codex/issues"
-[project.scripts]
-rich-codex = "rich_codex.cli:main"
-
-[build-system]
-build-backend = "setuptools.build_meta"
-requires = [
-    "setuptools>=45",
+lint.ignore = [
+    "D100", # Missing docstring in public module
+    "D102", # Missing docstring in public method
+    "D105", # Missing docstring in magic method
+    "D203", # 1 blank line required before class docstring
+    "D205", # 1 blank line required between summary line and description
+    "D213", # Multi-line docstring summary should start at the second line
+    "E731", # Do not assign a lambda expression, use a def
 ]
+lint.exclude = [
+    "examples/**",
+]
+lint.per-file-ignores."tests/**/*.py" = [
+    "D",
+]
+lint.isort.known-first-party = [ "rich_codex" ]
+# Keep 'import rich_click as click' in a section of its own, after everything else
+lint.isort.section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+    "richclick",
+]
+lint.isort.sections.richclick = [ "rich_click" ]
 
-[tool.setuptools.dynamic]
-version = { attr = "rich_codex.__version__" }
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-data]
-rich_codex = ["config-schema.yml"]
-
-[tool.black]
-line-length=120
-target-version=['py310']
-
-[tool.isort]
-line_length = 120
-multi_line_output = 3
-force_alphabetical_sort_within_sections = "True"
-force_sort_within_sections = "False"
-known_richclick = ["rich_click"]
-sections=["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER", "RICHCLICK"]
-profile = "black"
+[tool.pyproject-fmt]
+indent = 4
 
 [tool.mypy]
 ignore_missing_imports = "True"
 scripts_are_modules = "True"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-ra"
+[tool.pytest]
+ini_options.testpaths = [ "tests" ]
+ini_options.addopts = "-ra"
 
-[tool.coverage.run]
-source = ["src/rich_codex"]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
+[tool.coverage]
+run.source = [ "src/rich_codex" ]
+report.exclude_lines = [
     'if __name__ == "__main__":',
+    "pragma: no cover",
 ]

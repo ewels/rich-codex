@@ -42,7 +42,7 @@ inputs:
     description: Literal code snippet to render
     required: false
   snippet_syntax:
-    description: Language to use for snippet sytax highlighting
+    description: Language to use for snippet syntax highlighting
     required: false
   img_paths:
     description: Path to image filenames if using 'command' or 'snippet'

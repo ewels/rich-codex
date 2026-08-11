@@ -25,7 +25,7 @@ snippet: |
 
 ## Hiding the command
 
-By default, rich-codex shows a command prompt with the command that was used to generate the iamge.
+By default, rich-codex shows a command prompt with the command that was used to generate the image.
 This can be disabled by setting using `--hide-command` / `$HIDE_COMMAND` / `hide_command` (CLI, env var, action/config).
 
 <!-- prettier-ignore-start -->

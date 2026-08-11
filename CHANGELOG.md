@@ -31,6 +31,7 @@
 - 🐛 The Docker image now installs the `cairo` extra, so that PNG and PDF output works
 - 🐛 Fix two broken links on the docs homepage, found by building the docs with `--strict`
 - 🐛 Fix terminal theme screenshots in the docs, which pointed at `setup.cfg` (removed in v1.2.11)
+- 🐛 Fix a typo in the `snippet_syntax` description ("sytax"), shown in `--help` and in the action inputs, plus four more in the docs
 
 ### Removed
 
@@ -50,7 +51,7 @@
 - ⬆️ Require `rich-click>=1.9.0`, which also drops support for Python 3.7
 - ✨ Python 3.10 - 3.14 are all tested in CI on every push
 - ⬆️ The Docker image is now based on `python:3.14-alpine`, up from `python:3.10-alpine`
-- ♻️ Modernise the code for Python 3.10+ and add a `pyupgrade` pre-commit hook to keep it that way
+- ♻️ Modernise the code for Python 3.10+, with ruff's `UP` rules to keep it that way
 
 ### CI
 
@@ -58,6 +59,13 @@
 - ✨ New `Test action` workflow, covering both of the action's install paths (`pip` and `uv`), neither of which was tested before
 - ✨ The Docker image is now built (but not published) on pull requests, so that a broken `Dockerfile` is caught before it's merged
 - 🔒 Give every workflow job an explicit `permissions` block and stop persisting git credentials where they aren't needed
+
+### Developer tooling
+
+- ♻️ Git hooks now run with [prek](https://prek.j178.dev) instead of pre-commit, configured in `prek.toml`. It's a single Rust binary with no Python runtime of its own, and the TOML config is harder to get wrong than the YAML equivalent
+- ♻️ [Ruff](https://docs.astral.sh/ruff/) replaces black, flake8, isort and pyupgrade, configured in `pyproject.toml`. `.flake8` is gone, along with the `[tool.black]` and `[tool.isort]` sections
+- ✨ New hooks: `actionlint` for the workflow files, `pyproject-fmt` for `pyproject.toml`, and `codespell` for the docs
+- ✨ All hooks are pinned to a commit SHA, matching the versions used in the sister project [rich-click](https://github.com/ewels/rich-click)
 
 ## Version 1.2.11 (2025-04-22)
 
