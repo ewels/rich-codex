@@ -23,7 +23,7 @@ Main new feature is the ability to run with `.mdx` files as well as `.md`, using
 
 ### Updates
 
-- ♻️ Stopped `/CreationDate` changes in PDFs as it never worked. Use `min_pct_diff` for PDF outputs instead ([#60](https://github.com/ewels/rich-codex/pull/60))
+- ♻️ Removed `/CreationDate` filter for PDFs as it never worked. Use `min_pct_diff` for PDF outputs instead ([#60](https://github.com/ewels/rich-codex/pull/60))
 - ♻️ New unit test suite ([#60](https://github.com/ewels/rich-codex/pull/60)), type annotations checked with mypy ([#62](https://github.com/ewels/rich-codex/pull/62)), prek and ruff in place of pre-commit, black, flake8 and isort, and CI across Python 3.10 - 3.14 ([#61](https://github.com/ewels/rich-codex/pull/61))
 
 ### Bugs fixed
