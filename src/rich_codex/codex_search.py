@@ -34,6 +34,7 @@ class CodexSearch:
         search_exclude,
         configs,
         no_confirm,
+        no_dedupe,
         extra_env,
         snippet_syntax,
         timeout,
@@ -75,6 +76,7 @@ class CodexSearch:
         if configs is not None:
             self.configs.extend(clean_list(configs.splitlines()))
         self.no_confirm = no_confirm
+        self.no_dedupe = no_dedupe
         self.extra_env = extra_env
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
@@ -365,6 +367,11 @@ class CodexSearch:
 
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
+        # Commands run in series can give different output each time, so this can be disabled
+        if self.no_dedupe:
+            log.debug(f"Keeping all {len(self.rich_imgs)} image requests separate, as deduplication is disabled")
+            return
+
         # Remove exact duplicates
         dedup_imgs = list(dict.fromkeys(self.rich_imgs))
         # Merge dups that are the same except for output filename

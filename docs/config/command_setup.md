@@ -35,6 +35,23 @@ rich-codex --extra-env "MY_TOOL_NO_COLOR=1"
 
 Both are merged with any per-image `extra_env`, which takes precedence for keys set in both places.
 
+## Repeated commands
+
+If the same command is found more than once, rich-codex runs it once and saves the result to every filename that asked for it.
+This keeps runs fast and the images consistent, which is usually what you want when an example is shown in more than one place.
+
+Sometimes it isn't. If you're documenting a sequence of steps, the same command can legitimately give different output each time it runs.
+Say a document runs `./count.sh` twice, saving to `first-run.svg` and `second-run.svg`: by default the script runs once and both images show the same output.
+
+<!-- prettier-ignore-start -->
+
+Use `--no-dedupe` / `$NO_DEDUPE` / `no_dedupe` (command line / environment variable / GitHub action key) to run every command where it's found, so that each screenshot captures its own run.
+
+!!! note
+    With deduplication disabled, two images that use the same command _and_ the same filename will both be generated, one overwriting the other. Rich-codex warns about duplicate output paths when this happens.
+
+<!-- prettier-ignore-end -->
+
 ## Faking simple commands
 
 Sometimes you may need to have long complicated commands to get the screenshot you need, when the typical command for an end user would be much simpler.

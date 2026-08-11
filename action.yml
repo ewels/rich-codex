@@ -35,6 +35,9 @@ inputs:
   extra_env:
     description: Additional environment variables for all commands, one 'KEY=value' pair per line
     required: false
+  no_dedupe:
+    description: Set to 'true' to run duplicate commands separately, instead of once with a shared screenshot
+    required: false
   snippet:
     description: Literal code snippet to render
     required: false
@@ -184,6 +187,7 @@ runs:
         BEFORE_COMMAND: ${{ inputs.before_command }}
         AFTER_COMMAND: ${{ inputs.after_command }}
         EXTRA_ENV: ${{ inputs.extra_env }}
+        NO_DEDUPE: ${{ inputs.no_dedupe }}
         SNIPPET: ${{ inputs.snippet }}
         SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
         IMG_PATHS: ${{ inputs.img_paths }}

@@ -31,6 +31,7 @@ An overview of all available config options in all scopes is below:
 | `--before-command`     | `BEFORE_COMMAND`     | `before_command`                  |
 | `--after-command`      | `AFTER_COMMAND`      | `after_command`                   |
 | `--extra-env`          | `EXTRA_ENV`          | `extra_env`                       |
+| `--no-dedupe`          | `NO_DEDUPE`          | `no_dedupe`                       |
 | `--snippet`            | `SNIPPET`            | `snippet`                         |
 | `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`                  |
 | `--img-paths`          | `IMG_PATHS`          | `img_paths`                       |
@@ -82,6 +83,7 @@ A brief description of each option follows.
 - `--no-search`: Set to disable searching for rich-codex comments
 - `--command`: Specify a command to run to capture output
 - `--timeout`: Maximum run time for command (seconds)
+- `--no-dedupe`: Run duplicate commands separately, instead of once with a shared screenshot (see below)
 - `--hide-command`: Hide the terminal prompt with the command at the top of the output
 - `--title-command`: Use the command as the terminal title if not set explicitly
 - `--head`: Show only the first N lines of output

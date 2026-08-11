@@ -30,6 +30,7 @@ click.rich_click.OPTION_GROUPS = {
                 "--before-command",
                 "--after-command",
                 "--extra-env",
+                "--no-dedupe",
                 "--use-pty",
             ],
         },
@@ -128,6 +129,13 @@ log = logging.getLogger()
     envvar="EXTRA_ENV",
     show_envvar=True,
     help="Additional environment variables for all commands, one 'KEY=value' pair per line",
+)
+@click.option(
+    "--no-dedupe",
+    is_flag=True,
+    envvar="NO_DEDUPE",
+    show_envvar=True,
+    help="Run duplicate commands separately, instead of once with a shared screenshot",
 )
 @click.option(
     "--snippet",
@@ -324,6 +332,7 @@ def main(
     before_command,
     after_command,
     extra_env,
+    no_dedupe,
     snippet,
     snippet_syntax,
     img_paths,
@@ -496,6 +505,7 @@ def main(
         search_exclude=search_exclude,
         configs=configs,
         no_confirm=no_confirm,
+        no_dedupe=no_dedupe,
         extra_env=extra_env,
         snippet_syntax=snippet_syntax,
         timeout=timeout,

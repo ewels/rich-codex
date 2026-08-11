@@ -7,6 +7,7 @@
 - ✨ Show the source line number and output filenames in the table of commands to confirm ([#57](https://github.com/ewels/rich-codex/issues/57))
 - ✨ Group the CLI options into panels in `--help` ([#57](https://github.com/ewels/rich-codex/issues/57))
 - ✨ New action input `skip_install`, for when you want to install rich-codex yourself (a specific version, a branch, or a local checkout)
+- ✨ New `--no-dedupe` / `$NO_DEDUPE` / `no_dedupe` option, to run duplicate commands separately instead of sharing one screenshot ([#33](https://github.com/ewels/rich-codex/issues/33))
 - 🐛 `outputs` is now optional in config files, which previously crashed with a `KeyError` ([#57](https://github.com/ewels/rich-codex/issues/57))
 - 🐛 Fix the `python_verison` action input typo, now `python_version` (old name deprecated). It was also being ignored, and is now passed to the Python / uv setup ([#57](https://github.com/ewels/rich-codex/issues/57))
 - ⬆️ Require `rich-click>=1.9.0`, which drops support for Python 3.7
