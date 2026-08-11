@@ -546,7 +546,10 @@ def main(
 
     # Clean unrecognised images
     if clean_img_paths:
-        cleaned_paths = utils.clean_images(clean_img_paths, img_obj, codex_obj)
+        generated_img_paths = list(img_obj.img_paths) if img_obj else []
+        if codex_obj:
+            generated_img_paths += [path for img in codex_obj.rich_imgs for path in img.img_paths]
+        cleaned_paths = utils.clean_images(clean_img_paths, generated_img_paths)
 
     # Write saved file paths to disk
     if created_files and len(saved_image_paths):

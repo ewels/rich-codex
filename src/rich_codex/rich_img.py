@@ -142,6 +142,21 @@ class RichImg:
             return True
         return Confirm.ask(f"Command: [white on black] {self.command} [/] Run?", console=self.console)
 
+    def _new_capture_console(self, longest_line: int = 0) -> Console:
+        """Build the console that records the output, wide enough for the content."""
+        width = self.terminal_width
+        if not self.notrim and self.terminal_min_width:
+            width = max(self.terminal_min_width, longest_line)
+            log.debug(f"Setting terminal width to {width}")
+        return Console(
+            file=io.StringIO(),
+            force_terminal=True,
+            color_system="truecolor",
+            highlight=False,
+            record=True,
+            width=width,
+        )
+
     def run_command(self) -> None:
         """Capture output from a supplied command and save to an image."""
         if self.command is None:
@@ -317,20 +332,7 @@ class RichImg:
             print_lines.append(True)
             max_line_length = max(len(line), max_line_length)
 
-        # If terminal_min_width is set, find longest line
-        t_width = self.terminal_width
-        if not self.notrim and self.terminal_min_width:
-            t_width = self.terminal_min_width
-            t_width = max(t_width, max_line_length)
-            log.debug(f"Setting terminal width to {t_width}")
-        self.capture_console = Console(
-            file=io.StringIO(),
-            force_terminal=True,
-            color_system="truecolor",
-            highlight=False,
-            record=True,
-            width=t_width,
-        )
+        self.capture_console = self._new_capture_console(max_line_length)
 
         # Set head / tail print set
         if self.head and self.head >= len(print_lines):
@@ -349,15 +351,16 @@ class RichImg:
             self.capture_console.print(f"$ {self.fake_command if self.fake_command else self.command}")
 
         # Decode and print the output (captured)
+        truncated = False
         for idx, line in enumerate(decoder.decode(output)):
             if print_lines[idx]:
                 self.capture_console.print(line)
                 # Trim text after trim_after
                 if self.trim_after and self.trim_after in line:
                     break
-            elif (self.head is not None or self.tail is not None) and self.truncated_text:
+            elif not truncated and self.truncated_text and (self.head is not None or self.tail is not None):
                 self.capture_console.print(self.truncated_text, style="italic dim")
-                self.truncated_text = None
+                truncated = True
 
     def format_snippet(self) -> None:
         """Take a text snippet and format it using rich."""
@@ -374,22 +377,8 @@ class RichImg:
             except json.decoder.JSONDecodeError:
                 pass
 
-        # Adjust terminal width if min-width set
-        t_width = self.terminal_width
-        if not self.notrim and self.terminal_min_width:
-            t_width = self.terminal_min_width
-            for line in self.snippet.splitlines():
-                t_width = max(len(line), t_width)
-            log.debug(f"Setting terminal width to {t_width}")
-
-        self.capture_console = Console(
-            file=io.StringIO(),
-            force_terminal=True,
-            color_system="truecolor",
-            highlight=False,
-            record=True,
-            width=t_width,
-        )
+        longest_line = max((len(line) for line in self.snippet.splitlines()), default=0)
+        self.capture_console = self._new_capture_console(longest_line)
 
         # Print with rich Syntax highlighter
         log.debug(f"Formatting snippet as {self.snippet_syntax}")

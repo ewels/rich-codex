@@ -398,7 +398,7 @@ class CodexSearch:
             return text
         return f"[grey42][link=file:{Path(path).resolve()}]{text}[/][/]"
 
-    def confirm_commands(self) -> bool | None:
+    def confirm_commands(self) -> None:
         """Prompt the user to confirm running the commands."""
         table = Table(
             title_style="blue",
@@ -421,27 +421,24 @@ class CodexSearch:
                 table.add_row(img_obj.command, outputs, self._path_link(img_obj.source, rel_source))
 
         if table.row_count == 0:
-            return True
+            return
 
         self.console.print(table)
 
         if self.no_confirm:
-            return True
+            return
 
         confirm = Prompt.ask(
             "Do you want to run these commands? (All / Some / None)", choices=["a", "s", "n"], console=self.console
         )
         if confirm == "a":
             log.info("Running all commands")
-            return True
         elif confirm == "n":
             log.info("Skipping all outputs that require running a command")
             self.rich_imgs = [ri for ri in self.rich_imgs if ri.command is None]
-            return False
         else:
             log.info("Please select commands individually")
             self.rich_imgs = [ri for ri in self.rich_imgs if ri.confirm_command()]
-            return None
 
     def check_duplicate_paths(self) -> None:
         """Check that we don't have any duplicate output file paths."""

@@ -498,16 +498,19 @@ class TestPathHelpers:
 class TestConfirmCommands:
     """Tests for CodexSearch.confirm_commands()."""
 
-    def test_no_commands_needs_no_confirmation(self, tmp_cwd, codex_search):
+    def test_no_commands_needs_no_confirmation(self, tmp_cwd, codex_search, monkeypatch):
+        monkeypatch.setattr(codex_search_module.Prompt, "ask", lambda *a, **kw: pytest.fail("prompted"))
         cs = codex_search()
         cs.rich_imgs = [RichImg(snippet="hi", img_paths=["a.svg"])]
-        assert cs.confirm_commands() is True
+        cs.confirm_commands()
+        assert [img.snippet for img in cs.rich_imgs] == ["hi"]
 
     def test_no_confirm_skips_the_prompt(self, tmp_cwd, codex_search, monkeypatch):
         monkeypatch.setattr(codex_search_module.Prompt, "ask", lambda *a, **kw: pytest.fail("prompted"))
         cs = codex_search(no_confirm=True)
         cs.rich_imgs = [RichImg(command="echo hi", img_paths=["a.svg"], source="README.md")]
-        assert cs.confirm_commands() is True
+        cs.confirm_commands()
+        assert [img.command for img in cs.rich_imgs] == ["echo hi"]
 
     def test_table_is_printed(self, tmp_cwd, codex_search, console):
         # The codex_search factory already injects this same console
@@ -522,7 +525,7 @@ class TestConfirmCommands:
         monkeypatch.setattr(codex_search_module.Prompt, "ask", lambda *a, **kw: "a")
         cs = codex_search(no_confirm=False)
         cs.rich_imgs = [RichImg(command="echo hi", img_paths=["a.svg"], source="README.md")]
-        assert cs.confirm_commands() is True
+        cs.confirm_commands()
         assert len(cs.rich_imgs) == 1
 
     def test_answering_none_drops_commands(self, tmp_cwd, codex_search, monkeypatch):
@@ -532,7 +535,7 @@ class TestConfirmCommands:
             RichImg(command="echo hi", img_paths=["a.svg"], source="README.md"),
             RichImg(snippet="hi", img_paths=["b.svg"], source="README.md"),
         ]
-        assert cs.confirm_commands() is False
+        cs.confirm_commands()
         assert [img.snippet for img in cs.rich_imgs] == ["hi"]
 
     def test_answering_some_asks_per_command(self, tmp_cwd, codex_search, monkeypatch):
@@ -544,7 +547,7 @@ class TestConfirmCommands:
             RichImg(command="echo yes", img_paths=["a.svg"], source="README.md"),
             RichImg(command="echo no", img_paths=["b.svg"], source="README.md"),
         ]
-        assert cs.confirm_commands() is None
+        cs.confirm_commands()
         assert [img.command for img in cs.rich_imgs] == ["echo yes"]
 
 

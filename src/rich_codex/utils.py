@@ -1,16 +1,12 @@
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
-
-# Importing codex_search at runtime would be circular
-if TYPE_CHECKING:
-    from rich_codex.codex_search import CodexSearch
-    from rich_codex.rich_img import RichImg
 
 log = logging.getLogger("rich-codex")
 
@@ -28,11 +24,7 @@ def relative_path(path: str | Path | None, base: Path | None = None) -> str:
         return str(path)
 
 
-def clean_images(
-    clean_img_paths_raw: str | None,
-    img_obj: "RichImg | None",
-    codex_obj: "CodexSearch | None",
-) -> list[Path]:
+def clean_images(clean_img_paths_raw: str | None, generated_img_paths: Iterable[str]) -> list[Path]:
     """Delete any images matching CLEAN_IMG_PATHS that were not generated.
 
     Useful to remove existing files when a target filename is changed.
@@ -52,15 +44,7 @@ def clean_images(
         log.debug("[dim]No files found matching 'clean_img_paths' glob patterns")
         return []
 
-    # Collect list of generated images
-    known_img_paths: set[Path] = set()
-    if img_obj:
-        for img_path in img_obj.img_paths:
-            known_img_paths.add(Path(img_path).resolve())
-    if codex_obj:
-        for img in codex_obj.rich_imgs:
-            for img_path in img.img_paths:
-                known_img_paths.add(Path(img_path).resolve())
+    known_img_paths = {Path(img_path).resolve() for img_path in generated_img_paths}
 
     # Paths found by glob that weren't generated, in a stable order
     clean_img_paths = sorted(all_img_paths - known_img_paths)

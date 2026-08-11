@@ -76,7 +76,10 @@
 - 🐛 `save_images()` now warns and returns instead of raising `AttributeError` if it's called before any output has been rendered
 - ♻️ Each rendered image no longer leaves a `/dev/null` file handle open for the lifetime of the run, which could exhaust the open-file limit on a repo with many images
 - ♻️ `run_command()` always returns `None`; it used to return `False` when a command was refused. Check `.aborted` for that, as it always could
-- ♻️ `clean_images()` returns a sorted list of deleted paths, rather than a set on success and an empty list otherwise. Deletions and the `--deleted-files` list are now in a stable order
+- ♻️ `clean_images()` returns a sorted list of deleted paths, rather than a set on success and an empty list otherwise. Deletions and the `--deleted-files` list are now in a stable order. It also takes the generated image paths directly, instead of the two objects it used to reach into for them
+- ♻️ `confirm_commands()` returns `None`, rather than a three-way answer that nothing looked at. The prompt's effect is visible in the list of images to render, as before
+- ♻️ `run_command()` and `format_snippet()` share one method for building the recording console, instead of a copy each of the same width logic
+- ♻️ `truncated_text` is no longer blanked out while rendering to mark the truncation message as printed
 - ♻️ Pass a lexer name to rich's `Syntax` rather than `None`, and stop passing the validator object to `ValidationError`, which expects a name. Neither changes any output
 
 ## Version 1.2.11 (2025-04-22)
