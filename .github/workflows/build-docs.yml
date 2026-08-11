@@ -23,14 +23,19 @@ jobs:
           key: ${{ github.ref }}
           path: .cache
 
-      - name: Install requirements for docs
-        run: pip install cowsay lolcat mkdocs-material pillow cairosvg rich-cli
+      # Install rich-codex from this checkout, so that screenshots of its own
+      # CLI show the code in this branch and not the last release on PyPI
+      - name: Install rich-codex and requirements for docs
+        run: pip install -e ".[cairo]" cowsay lolcat mkdocs-material pillow rich-cli
 
       - name: Generate terminal images with rich-codex
         uses: ./ # Would normally be ewels/rich-codex@v1
         with:
           commit_changes: "true"
           clean_img_paths: docs/img/*.svg
+          skip_python_setup: "true" # Set up above, so that the install below is the one used
+          skip_install: "true" # Installed from this checkout above
 
       - name: Build and deploy docs
+        if: github.ref == 'refs/heads/main'
         run: mkdocs gh-deploy --force

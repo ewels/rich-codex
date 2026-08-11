@@ -60,6 +60,7 @@ An overview of all available config options in all scopes is below:
 | `--log-file`           | `LOG_FILENAME`       | -                                 |
 | -                      | -                    | `commit_changes` \*               |
 | -                      | -                    | `error_changes` \*                |
+| -                      | -                    | `skip_install` \*                 |
 | -                      | -                    | `title` †                         |
 | -                      | -                    | `skip` †                          |
 
@@ -109,5 +110,6 @@ A brief description of each option follows.
 - `--log-file`: Save a verbose log to a file (specific filename).
 - `commit_changes`: Automatically commit changes to the repository
 - `error_changes`: Exit with an error if changes are found (Ignored if `commit_changes` is true)
+- `skip_install`: Don't install rich-codex, because a previous step already did (see below)
 - `title`: Title for the terminal title bar
 - `skip`: Skip / ignore this image

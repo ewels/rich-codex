@@ -116,6 +116,10 @@ inputs:
     description: If true, skip Python setup (or skip uv setup if `use_uv` is true). Only use this if you already set up Python in a previous step, e.g. to install additional dependencies. When combined with `use_uv`, this assumes you already ran the `astral-sh/setup-uv` action.
     default: "false"
     required: false
+  skip_install:
+    description: If true, skip installing rich-codex. Only use this if you already installed it in a previous step, e.g. from a local checkout or a specific version.
+    default: "false"
+    required: false
   python_version:
     description: Which version of Python to use when setting up Python or uv. Defaults to '3.x'.
     required: false
@@ -143,20 +147,26 @@ runs:
       with:
         python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
 
+    # Needed for screenshots even when rich-codex itself is already installed
+    - name: Install fonts
+      run: |
+        echo "::group::Installing fonts"
+        sudo apt install fonts-firacode
+        echo "::endgroup::"
+      shell: bash
+
     - name: Install rich-codex with uv
-      if: inputs.use_uv == 'true'
+      if: inputs.use_uv == 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        sudo apt install fonts-firacode
         uv pip install "rich-codex[cairo]"
         echo "::endgroup::"
       shell: bash
 
     - name: Install rich-codex with pip
-      if: inputs.use_uv != 'true'
+      if: inputs.use_uv != 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        sudo apt install fonts-firacode
         pip install "rich-codex[cairo]"
         echo "::endgroup::"
       shell: bash
