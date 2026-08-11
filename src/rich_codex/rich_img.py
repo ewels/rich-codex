@@ -36,9 +36,6 @@ HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr != "img_paths"]
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
 
-# Base list of diff regexes to ignore, split up by filetype suffix
-IGNORE_REGEXES = {".pdf": [r"/CreationDate"]}
-
 
 class RichImg:
     """Image generation for rich-codex.
@@ -431,12 +428,11 @@ class RichImg:
             # No point in looking for a diff if the files are identical
             if pct_change > 0:
                 # Regex on file diff to skip.
-                # Keyed on the target filename: new_file is often a suffix-less temporary file.
-                skip_regexes = list(IGNORE_REGEXES.get(old_file.suffix.lower(), []))  # deep copy
+                # Drop blank lines only: an empty pattern would match every line.
+                # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
+                skip_regexes = []
                 if self.skip_change_regex:
-                    # Drop blank lines only: an empty pattern would match every line.
-                    # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
-                    skip_regexes.extend(ln for ln in self.skip_change_regex.splitlines() if ln.strip())
+                    skip_regexes = [ln for ln in self.skip_change_regex.splitlines() if ln.strip()]
                 if len(skip_regexes) > 0:
                     new_file_lines = new_file_bytes.decode(errors="ignore").splitlines()
                     old_file_lines = old_file_bytes.decode(errors="ignore").splitlines()

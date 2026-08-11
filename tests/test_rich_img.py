@@ -466,23 +466,36 @@ class TestEnoughImageDifference:
         img = rich_img(skip_change_regex="generated:")
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
-    @pytest.mark.parametrize(
-        ("new_name", "old_name"),
-        [
-            ("new.pdf", "old.pdf"),
-            # The new file is normally a suffix-less temp file, so the target picks the regexes
-            ("tmp1234", "old.pdf"),
-            ("tmp1234", "old.PDF"),
-        ],
-    )
-    def test_builtin_pdf_regex_is_used(self, rich_img, tmp_cwd, new_name, old_name):
-        """Ignore the /CreationDate line, which always differs between two PDFs."""
-        new_file = tmp_cwd / new_name
-        old_file = tmp_cwd / old_name
+    def test_multiple_regexes_over_a_rendered_svg(self, rich_img, tmp_cwd):
+        """The documented recipe: a timestamp plus Rich's content-derived SVG id."""
+        img = rich_img(
+            command="printf 'stable output\\nGenerated at 111\\n'",
+            skip_change_regex="Generated at\nterminal-\\d+",
+            img_paths=[str(tmp_cwd / "out.svg")],
+        )
+        img.run_command()
+        img.save_images()
+        assert img.num_img_saved == 1
+
+        changed = rich_img(
+            command="printf 'stable output\\nGenerated at 999\\n'",
+            skip_change_regex="Generated at\nterminal-\\d+",
+            img_paths=[str(tmp_cwd / "out.svg")],
+        )
+        changed.run_command()
+        changed.save_images()
+        assert changed.num_img_skipped == 1
+        assert changed.num_img_saved == 0
+
+    def test_no_regexes_means_no_diffing(self, rich_img, tmp_cwd, caplog):
+        """Without skip_change_regex there is nothing to match, so we don't diff at all."""
+        new_file = tmp_cwd / "new.pdf"
+        old_file = tmp_cwd / "old.pdf"
         new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
         old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
         img = rich_img()
-        assert img._enough_image_difference(str(new_file), str(old_file)) is False
+        assert img._enough_image_difference(str(new_file), str(old_file)) is True
+        assert "Checking diff" not in caplog.text
 
     def test_no_lost_lines_to_match(self, rich_img, tmp_cwd, caplog):
         """The old file only gained lines, so there is nothing for the regexes to match."""
@@ -500,7 +513,7 @@ class TestEnoughImageDifference:
         old_file = tmp_cwd / "old.pdf"
         new_file.write_bytes(b"\xff\xfe\xff")
         old_file.write_bytes(b"\xfd")
-        img = rich_img()
+        img = rich_img(skip_change_regex="anything")
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
         assert "no text to diff" in caplog.text
 
