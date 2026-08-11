@@ -136,7 +136,7 @@ steps:
       python-version: "3.x"
 
   - name: Install rich-codex
-    run: pip install -e ".[cairo]"
+    run: pip install "rich-codex[cairo]==1.2.11"
 
   - name: Generate terminal images with rich-codex
     uses: ewels/rich-codex@v1
@@ -148,7 +148,8 @@ steps:
 
 Set up Python yourself as well, as above, so that the action doesn't set up a second interpreter that your install isn't visible to.
 
-This is how rich-codex generates the screenshots in its own documentation, so that images of its CLI show the current code rather than the last release.
+Anything pip understands works here, such as `git+https://github.com/ewels/rich-codex@main`.
+Rich-codex itself uses `pip install -e ".[cairo]"` to generate the screenshots in its own documentation, so that images of its CLI show the current code rather than the last release.
 
 ## GitHub Action Inputs
 

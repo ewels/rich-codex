@@ -37,8 +37,9 @@ Both are merged with any per-image `extra_env`, which takes precedence for keys 
 
 ## Repeated commands
 
-If the same command is found more than once, rich-codex runs it once and saves the result to every filename that asked for it.
+If the same command is found more than once in a file, rich-codex runs it once and saves the result to every filename that asked for it.
 This keeps runs fast and the images consistent, which is usually what you want when an example is shown in more than one place.
+Commands found in different files always run separately.
 
 Sometimes it isn't: if you're documenting a sequence of steps, the same command can legitimately give different output each time it runs.
 Use `--no-dedupe` / `$NO_DEDUPE` / `no_dedupe` (command line / environment variable / GitHub action key) to run every command where it's found, so that each screenshot captures its own run.
