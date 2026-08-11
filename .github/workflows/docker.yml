@@ -8,6 +8,19 @@ on:
     branches: ["main"]
     tags:
       - "v*"
+  # Build (but don't publish) on pull requests, so that a broken
+  # Dockerfile is caught before it's merged
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - "pyproject.toml"
+      - "src/**"
+      - ".github/workflows/docker.yml"
+
+# Cancel if a newer run is started
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-push-image:
@@ -18,10 +31,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -29,14 +45,24 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/ewels/rich-codex
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          load: ${{ github.event_name == 'pull_request' }}
+
+      # Only meaningful on pull requests, where the image was loaded locally instead of pushed
+      - name: Check that the image runs
+        if: github.event_name == 'pull_request'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          tag="$(echo "$TAGS" | head -n 1)"
+          docker run --rm "$tag" --help

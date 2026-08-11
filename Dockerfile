@@ -8,7 +8,7 @@
 #
 ##################################################################
 
-FROM python:3.10-alpine
+FROM python:3.14-alpine
 
 # Install Cairo for SVG -> PNG / PDF conversion
 # From: https://phauer.com/2018/install-cairo-cairosvg-alpine-docker/
@@ -18,8 +18,9 @@ RUN apk add --no-cache \
     jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev
 
 # Install requirements
+# The 'cairo' extra is what actually uses the Cairo libraries installed above
 COPY . .
-RUN pip install .
+RUN pip install ".[cairo]"
 
 # Prepare GitHub Action
 ENTRYPOINT ["rich-codex"]

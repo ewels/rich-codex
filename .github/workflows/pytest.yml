@@ -13,14 +13,20 @@ concurrency:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        # Keep the lower bound in sync with 'requires-python' in pyproject.toml,
+        # and the upper bound at the latest stable Python release
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -35,9 +41,45 @@ jobs:
 
       # Coverage roughly doubles the runtime, so only measure it once
       - name: Run pytest
-        if: matrix.python-version != '3.12'
+        if: matrix.python-version != '3.14'
         run: pytest
 
       - name: Run pytest with coverage
-        if: matrix.python-version == '3.12'
+        if: matrix.python-version == '3.14'
         run: pytest --cov=rich_codex --cov-report=term-missing
+
+      # The unit tests import the package. These run the installed copy instead, which is
+      # what catches packaging mistakes: a missing console script or absent package data.
+      # They run in a scratch directory, so they can't pick up this repo's own docs.
+      - name: Check that the installed CLI runs
+        run: rich-codex --help
+
+      # Writing SVG, PNG and PDF in one run also covers reusing a rendered SVG for the
+      # other formats, which is easy to break and hard to see in a unit test
+      - name: Generate images from direct input
+        working-directory: ${{ runner.temp }}
+        run: |
+          rich-codex --no-confirm --skip-git-checks --no-search \
+            --snippet '{"rich":"codex"}' --img-paths snippet.svg
+          rich-codex --no-confirm --skip-git-checks --no-search \
+            --command "echo hello from rich-codex" \
+            --img-paths "$(printf 'out.svg\nout.png\nout.pdf')"
+          test -s snippet.svg
+          test -s out.svg && test -s out.png && test -s out.pdf
+
+      # Covers both comment styles: HTML comments in markdown, JSX comments in MDX
+      - name: Generate images by searching markdown and MDX
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir -p search-test
+          cat > search-test/test.md <<'EOF'
+          <!-- RICH-CODEX terminal_width: 60 -->
+          ![`echo markdown search`](img/markdown.svg)
+          EOF
+          cat > search-test/test.mdx <<'EOF'
+          {/* RICH-CODEX terminal_width: 60 */}
+          ![`echo mdx search`](img/mdx.svg)
+          EOF
+          rich-codex --no-confirm --skip-git-checks --search-include "search-test/*"
+          test -s search-test/img/markdown.svg
+          test -s search-test/img/mdx.svg
