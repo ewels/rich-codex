@@ -365,8 +365,8 @@ def main(
     # Sensible defaults
     no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
-    terminal_width = int(terminal_width) if type(terminal_width) is str else terminal_width
-    terminal_min_width = int(terminal_min_width) if type(terminal_min_width) is str else terminal_min_width
+    terminal_width = int(terminal_width) if isinstance(terminal_width, str) else terminal_width
+    terminal_min_width = int(terminal_min_width) if isinstance(terminal_min_width, str) else terminal_min_width
     saved_image_paths = []
     cleaned_paths = []
     num_skipped_images = 0
@@ -426,9 +426,8 @@ def main(
     if terminal_width and terminal_min_width:
         if terminal_min_width > terminal_width:
             log.error(
-                "terminal_min_width ({}) > terminal_width ({})! Disabling terminal_min_width".format(
-                    terminal_min_width, terminal_width
-                )
+                f"terminal_min_width ({terminal_min_width}) > terminal_width ({terminal_width})! "
+                "Disabling terminal_min_width"
             )
             terminal_min_width = None
 

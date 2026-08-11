@@ -234,7 +234,7 @@ class RichImg:
                     shell=True,
                     env=command_env,
                     close_fds=True,
-                    preexec_fn=os.setsid,
+                    start_new_session=True,  # Needed for subprocess termination
                     stdin=write_end,
                     stdout=write_end,
                     stderr=write_end,
@@ -342,11 +342,7 @@ class RichImg:
 
         # Print the command
         if not self.hide_command:
-            self.capture_console.print(
-                "$ {}".format(
-                    self.fake_command if self.fake_command else self.command,
-                )
-            )
+            self.capture_console.print(f"$ {self.fake_command if self.fake_command else self.command}")
 
         # Decode and print the output (captured)
         for idx, line in enumerate(decoder.decode(output)):
@@ -514,9 +510,8 @@ class RichImg:
                 terminal_theme = getattr(rich.terminal_theme, self.terminal_theme)
             except AttributeError:
                 log.error(
-                    "[red]Theme '{}' not found![/] Falling back to default for [magenta]{}".format(
-                        self.terminal_theme, ", ".join(self.img_paths)
-                    )
+                    f"[red]Theme '{self.terminal_theme}' not found![/] "
+                    f"Falling back to default for [magenta]{', '.join(self.img_paths)}"
                 )
 
         # Save image as requested with $IMG_PATHS
@@ -533,7 +528,7 @@ class RichImg:
                 # Make directories if necessary
                 try:
                     Path(filename).parent.mkdir(parents=True, exist_ok=True)
-                except (OSError, PermissionError):
+                except OSError:  # Covers PermissionError, which is a subclass
                     log.error(f"Invalid path: {filename}")
                     continue
 
@@ -578,7 +573,8 @@ class RichImg:
                     except ImportError as e:
                         log.debug(e)
                         log.error("CairoSVG not installed, cannot convert SVG to PNG or PDF.")
-                        log.info("Please install with cairo extra: 'rich-codex[cairo]'")
+                        # Square brackets are escaped, so that rich doesn't read '[cairo]' as markup
+                        log.info(r"Please install with cairo extra: 'rich-codex\[cairo]'")
                         continue
                     except OSError as e:
                         log.debug(e)

@@ -135,10 +135,10 @@ class CodexSearch:
 
         # Look in .gitignore to add to search_exclude
         try:
-            with open(".gitignore", "r") as fh:
+            with open(".gitignore") as fh:
                 log.debug("Appending contents of .gitignore to 'SEARCH_EXCLUDE'")
                 self.search_exclude.extend(clean_list(fh.readlines()))
-        except IOError:
+        except OSError:
             pass
 
         self.config_schema = CONFIG_SCHEMA
@@ -175,7 +175,7 @@ class CodexSearch:
                     search_files.discard(exclude_file.resolve())
             except (ValueError, NotImplementedError):
                 pass
-        search_files = sorted(list(search_files), key=lambda x: str(x).lower())
+        search_files = sorted(search_files, key=lambda x: str(x).lower())
         if len(search_files) == 0:
             log.debug("No files found to search")
         else:
@@ -200,7 +200,7 @@ class CodexSearch:
         for file in search_files:
             file_rel_fn = Path(file).relative_to(Path.cwd())
             log.debug(f"Searching: [magenta]{file_rel_fn}[/]")
-            with open(file, "r") as fh:
+            with open(file) as fh:
                 line_number = 0
                 in_config = False
                 comment_end = None
@@ -284,14 +284,10 @@ class CodexSearch:
                             num_errors += 1
                             continue
 
+                        quote = "'" if local_config.get("command") else ""
                         log.debug(
-                            "Found markdown {0}, line {1}: {3}{2}{3}{4}".format(
-                                img_type,
-                                line_number,
-                                local_config.get("command", ""),
-                                "'" if local_config.get("command") else "",
-                                local_config_logmsg,
-                            )
+                            f"Found markdown {img_type}, line {line_number}: "
+                            f"{quote}{local_config.get('command', '')}{quote}{local_config_logmsg}"
                         )
                         img_obj = rich_img.RichImg(**local_config)
 
@@ -457,7 +453,7 @@ class CodexSearch:
         for img_path, src in img_paths_src.items():
             if len(src) > 1:
                 img_path_rel = self._relative_path(img_path)
-                src_paths = "', '".join(set(self._relative_path(s) for s in src))
+                src_paths = "', '".join({self._relative_path(s) for s in src})
                 log.warning(f"Duplicate output file path '{img_path_rel}' found in '{src_paths}'")
 
     def save_all_images(self):

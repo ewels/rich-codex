@@ -13,6 +13,18 @@ repos:
       - id: prettier
   - repo: local
     hooks:
+      # Keep this above black / isort, as it rewrites code that they then format
+      - id: pyupgrade
+        name: pyupgrade - Modernise syntax.
+        description: Rewrites code to use syntax available in the minimum supported Python version.
+        entry: pyupgrade
+        args: ["--py310-plus"]
+        language: python
+        types: [python]
+        exclude: ^examples/
+        require_serial: true
+        additional_dependencies:
+          - pyupgrade
       - id: isort
         name: iSort - Sorts imports.
         description: Sorts your import for you.
