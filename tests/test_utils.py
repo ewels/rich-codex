@@ -74,7 +74,7 @@ class TestCleanImages:
         assert utils.clean_images("\n\n", None, None) == []
         assert utils.clean_images("# *.svg\n", None, None) == []
         assert stale.exists()
-        assert utils.clean_images("\n  *.svg  \n\n", None, None) == {stale}
+        assert utils.clean_images("\n  *.svg  \n\n", None, None) == [stale]
 
     def test_no_matching_files(self, tmp_cwd):
         assert utils.clean_images("img/*.svg", None, None) == []
@@ -83,7 +83,7 @@ class TestCleanImages:
         stale = tmp_cwd / "stale.svg"
         stale.write_text("<svg />")
         cleaned = utils.clean_images("*.svg", None, None)
-        assert cleaned == {stale}
+        assert cleaned == [stale]
         assert not stale.exists()
 
     def test_keeps_images_generated_by_img_obj(self, tmp_cwd):
@@ -101,7 +101,7 @@ class TestCleanImages:
         codex_obj = codex_search()
         codex_obj.rich_imgs = [RichImg(img_paths=[str(kept)])]
         cleaned = utils.clean_images("*.svg", None, codex_obj)
-        assert cleaned == {stale}
+        assert cleaned == [stale]
         assert kept.exists()
         assert not stale.exists()
 
@@ -112,7 +112,7 @@ class TestCleanImages:
         for path in (one, two):
             path.write_text("x")
         cleaned = utils.clean_images("*.svg\nimg/*.png", None, None)
-        assert cleaned == {one, two}
+        assert cleaned == sorted([one, two])
 
 
 class TestCheckGitStatus:

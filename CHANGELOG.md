@@ -67,6 +67,18 @@
 - ✨ New hooks: `actionlint` for the workflow files, `pyproject-fmt` for `pyproject.toml`, and `codespell` for the docs
 - ✨ All hooks are pinned to a commit SHA, matching the versions used in the sister project [rich-click](https://github.com/ewels/rich-click)
 
+### Type checking
+
+- ✨ Everything in `src/` now has type annotations, checked by [mypy](https://mypy-lang.org/) with `disallow_untyped_defs`, as a prek hook and in CI. The `[tool.mypy]` config was previously unused, so nothing was actually being checked
+- 🐛 `--terminal-width` / `$TERMINAL_WIDTH` now reports a usage error for a non-numeric value, instead of exiting with an unhandled `ValueError` traceback. It was the only numeric option that wasn't parsed as an integer
+- 🐛 `clean_img_paths` no longer crashes part-way through deleting when a matched file resolves to somewhere outside the working directory (a symlink pointing out of the repo)
+- 🐛 `--img-paths` now ignores blank lines, like every other newline-separated option
+- 🐛 `save_images()` now warns and returns instead of raising `AttributeError` if it's called before any output has been rendered
+- ♻️ Each rendered image no longer leaves a `/dev/null` file handle open for the lifetime of the run, which could exhaust the open-file limit on a repo with many images
+- ♻️ `run_command()` always returns `None`; it used to return `False` when a command was refused. Check `.aborted` for that, as it always could
+- ♻️ `clean_images()` returns a sorted list of deleted paths, rather than a set on success and an empty list otherwise. Deletions and the `--deleted-files` list are now in a stable order
+- ♻️ Pass a lexer name to rich's `Syntax` rather than `None`, and stop passing the validator object to `ValidationError`, which expects a name. Neither changes any output
+
 ## Version 1.2.11 (2025-04-22)
 
 - 🐛 Fix validation error ([#55](https://github.com/ewels/rich-codex/pull/55))

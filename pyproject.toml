@@ -28,10 +28,12 @@ dynamic = [ "version" ]
 dependencies = [ "gitpython", "jsonschema", "levenshtein>=0.18.1", "pyyaml", "rich>=12.4.3", "rich-click>=1.9" ]
 optional-dependencies.cairo = [ "cairosvg>=2.5.2" ]
 optional-dependencies.dev = [
+    "mypy",
     "prek",
     "pytest",
     "pytest-cov",
     "ruff",
+    "types-pyyaml",
 ]
 urls."Issue Tracker" = "https://github.com/ewels/rich-codex/issues"
 urls."Source Code" = "https://github.com/ewels/rich-codex"
@@ -85,9 +87,16 @@ lint.isort.sections.richclick = [ "rich_click" ]
 [tool.pyproject-fmt]
 indent = 4
 
+# Only 'src' is annotated so far, so that's all mypy is pointed at. The tests are
+# excluded rather than annotated, which would be a much larger job for less benefit.
 [tool.mypy]
-ignore_missing_imports = "True"
-scripts_are_modules = "True"
+files = [ "src" ]
+ignore_missing_imports = true
+python_version = "3.10"
+disallow_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+scripts_are_modules = true
 
 [tool.pytest]
 ini_options.testpaths = [ "tests" ]

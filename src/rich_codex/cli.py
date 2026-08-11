@@ -245,6 +245,7 @@ log = logging.getLogger()
 )
 @click.option(
     "--terminal-width",
+    type=int,
     envvar="TERMINAL_WIDTH",
     show_envvar=True,
     help="Width of the terminal",
@@ -323,50 +324,48 @@ log = logging.getLogger()
     metavar="FILENAME",
 )
 def main(
-    search_include,
-    search_exclude,
-    no_search,
-    command,
-    timeout,
-    working_dir,
-    before_command,
-    after_command,
-    extra_env,
-    no_dedupe,
-    snippet,
-    snippet_syntax,
-    img_paths,
-    clean_img_paths,
-    configs,
-    fake_command,
-    hide_command,
-    title_command,
-    head,
-    tail,
-    trim_after,
-    truncated_text,
-    skip_git_checks,
-    no_confirm,
-    min_pct_diff,
-    skip_change_regex,
-    terminal_width,
-    terminal_min_width,
-    notrim,
-    terminal_theme,
-    snippet_theme,
-    use_pty,
-    created_files,
-    deleted_files,
-    verbose,
-    save_log,
-    log_file,
-):
+    search_include: str | None,
+    search_exclude: str | None,
+    no_search: bool,
+    command: str | None,
+    timeout: int,
+    working_dir: str | None,
+    before_command: str | None,
+    after_command: str | None,
+    extra_env: str | None,
+    no_dedupe: bool,
+    snippet: str | None,
+    snippet_syntax: str | None,
+    img_paths: str | None,
+    clean_img_paths: str | None,
+    configs: str | None,
+    fake_command: str | None,
+    hide_command: bool,
+    title_command: bool,
+    head: int | None,
+    tail: int | None,
+    trim_after: str | None,
+    truncated_text: str,
+    skip_git_checks: bool,
+    no_confirm: bool,
+    min_pct_diff: float,
+    skip_change_regex: str | None,
+    terminal_width: int | None,
+    terminal_min_width: int | None,
+    notrim: bool,
+    terminal_theme: str | None,
+    snippet_theme: str | None,
+    use_pty: bool,
+    created_files: str | None,
+    deleted_files: str | None,
+    verbose: bool,
+    save_log: bool,
+    log_file: str | None,
+) -> None:
     """Create rich code images for your docs."""
     # Sensible defaults
     no_confirm = True if not no_confirm and getenv("GITHUB_ACTIONS") else no_confirm
     force_terminal = True if getenv("GITHUB_ACTIONS") or getenv("FORCE_COLOR") or getenv("PY_COLORS") else None
-    terminal_width = int(terminal_width) if isinstance(terminal_width, str) else terminal_width
-    terminal_min_width = int(terminal_min_width) if isinstance(terminal_min_width, str) else terminal_min_width
     saved_image_paths = []
     cleaned_paths = []
     num_skipped_images = 0
@@ -423,13 +422,12 @@ def main(
         log.debug(f"Setting terminal width to {terminal_width}")
     if terminal_min_width and not notrim:
         log.debug(f"Trimming terminal output down to a minimum of {terminal_min_width}")
-    if terminal_width and terminal_min_width:
-        if terminal_min_width > terminal_width:
-            log.error(
-                f"terminal_min_width ({terminal_min_width}) > terminal_width ({terminal_width})! "
-                "Disabling terminal_min_width"
-            )
-            terminal_min_width = None
+    if terminal_width and terminal_min_width and terminal_min_width > terminal_width:
+        log.error(
+            f"terminal_min_width ({terminal_min_width}) > terminal_width ({terminal_width})! "
+            "Disabling terminal_min_width"
+        )
+        terminal_min_width = None
 
     # Console for printing to stdout
     console = Console(
@@ -439,14 +437,13 @@ def main(
     )
 
     # Parse environment variables to set for every command
+    parsed_extra_env: dict[str, str] | None = None
     if extra_env:
         try:
-            extra_env = utils.parse_extra_env(extra_env)
+            parsed_extra_env = utils.parse_extra_env(extra_env)
         except ValueError as e:
             raise click.BadOptionUsage("--extra-env", str(e))
-        log.debug(f"Setting extra environment variables for all commands: {extra_env}")
-    else:
-        extra_env = None
+        log.debug(f"Setting extra environment variables for all commands: {parsed_extra_env}")
 
     # Check for mutually exclusive options
     if command and snippet:
@@ -461,7 +458,7 @@ def main(
             timeout=timeout,
             before_command=before_command,
             after_command=after_command,
-            extra_env=extra_env,
+            extra_env=parsed_extra_env,
             working_dir=working_dir,
             fake_command=fake_command,
             hide_command=hide_command,
@@ -488,7 +485,7 @@ def main(
             log_snippet = snippet[0:30].replace("\n", " ")
             log.info(f"Snippet: [white on black] {log_snippet}... [/]")
             img_obj.snippet = snippet
-        img_obj.img_paths = img_paths.splitlines() if img_paths else []
+        img_obj.img_paths = utils.clean_list(img_paths.splitlines()) if img_paths else []
         if img_obj.confirm_command():
             img_obj.get_output()
             img_obj.save_images()
@@ -505,7 +502,7 @@ def main(
         configs=configs,
         no_confirm=no_confirm,
         no_dedupe=no_dedupe,
-        extra_env=extra_env,
+        extra_env=parsed_extra_env,
         snippet_syntax=snippet_syntax,
         timeout=timeout,
         before_command=before_command,

@@ -1,15 +1,38 @@
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
 
+# Importing codex_search at runtime would be circular
+if TYPE_CHECKING:
+    from rich_codex.codex_search import CodexSearch
+    from rich_codex.rich_img import RichImg
+
 log = logging.getLogger("rich-codex")
 
 
-def clean_images(clean_img_paths_raw, img_obj, codex_obj):
+def relative_path(path: str | Path | None, base: Path | None = None) -> str:
+    """Path relative to the working directory, or as given if it's outside it."""
+    if path is None:
+        return ""
+    if base is None:
+        base = Path.cwd()
+    try:
+        return str(Path(path).resolve().relative_to(base))
+    except ValueError:
+        log.debug(f"Couldn't find relative path for '{path}'")
+        return str(path)
+
+
+def clean_images(
+    clean_img_paths_raw: str | None,
+    img_obj: "RichImg | None",
+    codex_obj: "CodexSearch | None",
+) -> list[Path]:
     """Delete any images matching CLEAN_IMG_PATHS that were not generated.
 
     Useful to remove existing files when a target filename is changed.
@@ -21,7 +44,7 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
         return []
 
     # Search glob patterns for images
-    all_img_paths = set()
+    all_img_paths: set[Path] = set()
     for pattern in clean_img_patterns:
         for matched_path in Path.cwd().glob(pattern):
             all_img_paths.add(matched_path.resolve())
@@ -30,7 +53,7 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
         return []
 
     # Collect list of generated images
-    known_img_paths = set()
+    known_img_paths: set[Path] = set()
     if img_obj:
         for img_path in img_obj.img_paths:
             known_img_paths.add(Path(img_path).resolve())
@@ -39,24 +62,23 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
             for img_path in img.img_paths:
                 known_img_paths.add(Path(img_path).resolve())
 
-    # Paths found by glob that weren't generated
-    clean_img_paths = all_img_paths - known_img_paths
+    # Paths found by glob that weren't generated, in a stable order
+    clean_img_paths = sorted(all_img_paths - known_img_paths)
     if len(clean_img_paths) == 0:
         log.debug("[dim]All files found matching 'clean_img_paths' were generated in this run. Nothing to clean.")
         return []
 
+    cwd = Path.cwd()
     for path in clean_img_paths:
-        path_to_delete = Path(path).resolve()
-        path_relative = path_to_delete.relative_to(Path.cwd())
-        log.info(f"Deleting '{path_relative}'")
-        path_to_delete.unlink()
+        log.info(f"Deleting '{relative_path(path, cwd)}'")
+        path.unlink()
 
     return clean_img_paths
 
 
-def clean_list(unclean_lines):
+def clean_list(unclean_lines: list[str]) -> list[str]:
     """Remove empty strings and comments from a list of config lines."""
-    clean_lines = []
+    clean_lines: list[str] = []
     for line in unclean_lines:
         line = line.strip()
         if not line.startswith("#") and line:
@@ -64,9 +86,9 @@ def clean_list(unclean_lines):
     return clean_lines
 
 
-def parse_extra_env(extra_env_raw):
+def parse_extra_env(extra_env_raw: str) -> dict[str, str]:
     """Parse newline-separated 'KEY=value' pairs into a dict of environment variables."""
-    extra_env = {}
+    extra_env: dict[str, str] = {}
     for line in clean_list(extra_env_raw.splitlines()):
         if "=" not in line:
             raise ValueError(f"Could not parse as 'KEY=value': '{line}'")
@@ -75,7 +97,7 @@ def parse_extra_env(extra_env_raw):
     return extra_env
 
 
-def check_git_status():
+def check_git_status() -> tuple[bool, str]:
     """Check if the working directory is a clean git repo."""
     try:
         repo = Repo(Path.cwd().resolve(), search_parent_directories=True)
@@ -87,7 +109,12 @@ def check_git_status():
     return (True, "Git repo looks good.")
 
 
-def validate_config(schema, config, filename, line_number=None):
+def validate_config(
+    schema: dict[str, Any],
+    config: dict[str, Any],
+    filename: str | Path,
+    line_number: int | None = None,
+) -> None:
     """Validate a config file string against the rich-codex JSON schema."""
     ln_text = f"line {line_number} " if line_number else ""
     v = Draft4Validator(schema)
@@ -100,4 +127,4 @@ def validate_config(schema, config, filename, line_number=None):
                 err_msg += ":"
             for suberror in sorted(error.context, key=lambda e: e.schema_path):
                 err_msg += f"\n     * {suberror.message}"
-        raise ValidationError(err_msg, v)
+        raise ValidationError(err_msg)
