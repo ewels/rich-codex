@@ -140,13 +140,20 @@ runs:
 
     - name: Set up uv
       if: inputs.skip_python_setup != 'true' && inputs.use_uv == 'true'
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
       with:
-        python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
+        # No '3.x' fallback here: that's setup-python syntax, which uv rejects.
+        # Left empty, uv picks a Python version itself.
+        python-version: ${{ inputs.python_version || inputs.python_verison }}
+        # 'uv pip install' needs a virtual environment to install into. Keep it outside
+        # the workspace, so that it isn't picked up as an untracked file in the repo.
+        activate-environment: true
+        venv-path: ${{ runner.temp }}/rich-codex-venv
+        no-project: true
 
     - name: Set up Python
       if: inputs.skip_python_setup != 'true' && inputs.use_uv != 'true'
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
 
@@ -217,6 +224,11 @@ runs:
 
     - name: Add and commit new images
       shell: bash
+      # Inputs go via the environment rather than being expanded straight into the
+      # script, so that their contents can't be interpreted as shell code
+      env:
+        COMMIT_CHANGES: ${{ inputs.commit_changes }}
+        ERROR_CHANGES: ${{ inputs.error_changes }}
       run: |
         echo "::group::Pushing any changes found"
         git config --local user.name 'github-actions[bot]'
@@ -225,13 +237,14 @@ runs:
         git status -s
         if [[ -f created.txt || -f deleted.txt ]]; then
           echo "💥 Found some changes from running rich-codex!"
-          if [[ ${{ inputs.commit_changes }} ]]; then
+          # Any value other than empty or 'false' counts as true
+          if [[ -n "$COMMIT_CHANGES" && "$COMMIT_CHANGES" != "false" ]]; then
             [[ -f created.txt ]] && git add $(cat created.txt)
             [[ -f deleted.txt ]] && git rm $(cat deleted.txt)
             git commit -m "Generate new screengrabs with rich-codex"
             git push
             echo "🤖 Pushed commit with new changes!"
-          elif [[ ${{ inputs.error_changes }} ]]; then
+          elif [[ -n "$ERROR_CHANGES" && "$ERROR_CHANGES" != "false" ]]; then
             echo "🤖 Tip: Use 'commit_changes' to automatically commit them next time."
             (exit 1)
           fi
@@ -242,7 +255,9 @@ runs:
 
     - name: Upload sync log file artifact
       if: ${{ always() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: Rich-codex log file
+        # Artifact names have to be unique within a workflow run, so include the job
+        # (and its matrix index) to allow the action to be used more than once per run
+        name: Rich-codex log file (${{ github.job }}-${{ strategy.job-index || '0' }})
         path: rich_codex_*.log
