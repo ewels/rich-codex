@@ -40,6 +40,14 @@ IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
 IGNORE_REGEXES = {".pdf": [r"/CreationDate"]}
 
 
+def _delete_tmp_file(file_handle, filename):
+    """Close and delete a file made by mkstemp(), if it really is in the temp directory."""
+    os.close(file_handle)
+    tmp_path = Path(filename)
+    if Path(gettempdir()).resolve() in tmp_path.resolve().parents:
+        tmp_path.unlink()
+
+
 class RichImg:
     """Image generation for rich-codex.
 
@@ -428,8 +436,9 @@ class RichImg:
 
             # No point in looking for a diff if the files are identical
             if pct_change > 0:
-                # Regex on file diff to skip
-                skip_regexes = list(r for r in IGNORE_REGEXES.get(new_file.suffix, []))  # deep copy
+                # Regex on file diff to skip.
+                # Keyed on the target filename: new_file is often a suffix-less temporary file.
+                skip_regexes = list(IGNORE_REGEXES.get(old_file.suffix.lower(), []))  # deep copy
                 if self.skip_change_regex:
                     skip_regexes.extend(self.skip_change_regex.splitlines())
                 if len(skip_regexes) > 0:
@@ -439,20 +448,16 @@ class RichImg:
 
                     # Only continue if we found something to diff with
                     if len(new_file_lines) > 0 or len(old_file_lines) > 0:
-                        log.info("starting..")
                         diffs = difflib.Differ().compare(new_file_lines, old_file_lines)
-                        log.info("generated diff ")
-                        log.info(f"len: {len(list(diffs))}")
                         lost_lines = [d for d in diffs if d.startswith("-")]
 
                         # Only continue if there was some diff
-                        log.info(f"Found {lost_lines} lines")
                         if len(lost_lines) > 0:
-                            matched_lost_lines = []
-                            for skip_regex in skip_regexes:
-                                for line in lost_lines:
-                                    if re.search(skip_regex, line):
-                                        matched_lost_lines.append(line)
+                            matched_lost_lines = [
+                                line
+                                for line in lost_lines
+                                if any(re.search(skip_regex, line) for skip_regex in skip_regexes)
+                            ]
 
                             log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
                             if len(matched_lost_lines) == len(lost_lines):
@@ -500,6 +505,8 @@ class RichImg:
         svg_img = None
         png_img = None
         pdf_img = None
+        svg_tmp_file_handle = None
+        svg_tmp_filename = None
         for filename in self.img_paths:
             # Make directories if necessary
             try:
@@ -525,25 +532,24 @@ class RichImg:
                     copyfile(svg_img, filename)
                 continue
 
-            # Set filenames
-            tmp_file_handle, tmp_filename = mkstemp()
-
-            # We always generate an SVG first
-            if svg_img is None:
-                svg_tmp_file_handle, svg_tmp_filename = mkstemp()
-                self.capture_console.save_svg(
-                    svg_tmp_filename,
-                    title=self.title,
-                    theme=terminal_theme,
-                )
+            # We always generate an SVG first, then reuse it for every other output
+            if svg_img is not None:
+                # Use the SVG that we already saved to its final destination
+                svg_source = svg_img
             else:
-                # Use already-generated SVG
-                svg_tmp_filename = svg_img
+                if svg_tmp_filename is None:
+                    svg_tmp_file_handle, svg_tmp_filename = mkstemp()
+                    self.capture_console.save_svg(
+                        svg_tmp_filename,
+                        title=self.title,
+                        theme=terminal_theme,
+                    )
+                svg_source = svg_tmp_filename
 
             # Save the SVG image if requested
             if filename.lower().endswith(".svg"):
-                if self._enough_image_difference(svg_tmp_filename, filename):
-                    copyfile(svg_tmp_filename, filename)
+                if self._enough_image_difference(svg_source, filename):
+                    copyfile(svg_source, filename)
                 svg_img = filename
 
             # Lazy-load PNG / PDF libraries if needed
@@ -564,38 +570,36 @@ class RichImg:
                     )
                     continue
 
-                # Convert to PNG if requested
-                if filename.lower().endswith(".png"):
-                    log.debug(f"Converting SVG '{svg_tmp_filename}' to PNG '{filename}'")
-                    svg2png(
-                        file_obj=open(svg_tmp_filename, "rb"),
-                        write_to=tmp_filename,
-                        dpi=300,
-                        output_width=4000,
-                    )
-                    if self._enough_image_difference(tmp_filename, filename):
-                        copyfile(tmp_filename, filename)
-                        png_img = filename
+                tmp_file_handle, tmp_filename = mkstemp()
+                try:
+                    # Convert to PNG if requested
+                    if filename.lower().endswith(".png"):
+                        log.debug(f"Converting SVG '{svg_source}' to PNG '{filename}'")
+                        with open(svg_source, "rb") as svg_fh:
+                            svg2png(
+                                file_obj=svg_fh,
+                                write_to=tmp_filename,
+                                dpi=300,
+                                output_width=4000,
+                            )
+                        if self._enough_image_difference(tmp_filename, filename):
+                            copyfile(tmp_filename, filename)
+                            png_img = filename
 
-                # Convert to PDF if requested
-                if filename.lower().endswith(".pdf"):
-                    log.debug(f"Converting SVG '{svg_tmp_filename}' to PDF '{filename}'")
-                    svg2pdf(
-                        file_obj=open(svg_tmp_filename, "rb"),
-                        write_to=tmp_filename,
-                    )
-                    if self._enough_image_difference(tmp_filename, filename):
-                        copyfile(tmp_filename, filename)
-                        pdf_img = filename
+                    # Convert to PDF if requested
+                    if filename.lower().endswith(".pdf"):
+                        log.debug(f"Converting SVG '{svg_source}' to PDF '{filename}'")
+                        with open(svg_source, "rb") as svg_fh:
+                            svg2pdf(
+                                file_obj=svg_fh,
+                                write_to=tmp_filename,
+                            )
+                        if self._enough_image_difference(tmp_filename, filename):
+                            copyfile(tmp_filename, filename)
+                            pdf_img = filename
+                finally:
+                    _delete_tmp_file(tmp_file_handle, tmp_filename)
 
-            # Delete temprary files
-            tmp_path = Path(tmp_filename)
-            if Path(gettempdir()) in tmp_path.resolve().parents:
-                os.close(tmp_file_handle)
-                tmp_path.unlink()
-
-        # Delete temporary SVG file - after loop as can be reused
-        tmp_svg_path = Path(svg_tmp_filename)
-        if Path(gettempdir()) in tmp_svg_path.resolve().parents:
-            os.close(svg_tmp_file_handle)
-            tmp_svg_path.unlink()
+        # Delete the temporary SVG file - after the loop, as it is reused
+        if svg_tmp_filename is not None:
+            _delete_tmp_file(svg_tmp_file_handle, svg_tmp_filename)

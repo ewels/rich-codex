@@ -209,25 +209,21 @@ class TestSearchFiles:
         assert cs.search_files() == 1
         assert "Error parsing config YAML" in caplog.text
 
-    def test_non_dict_yaml_escapes_as_an_exception(self, tmp_cwd, codex_search):
-        """The ValidationError raised for a non-dict config isn't caught by the enclosing 'except'.
-
-        Only yaml.YAMLError is handled there, so this aborts the whole search instead of
-        being counted alongside the other config errors.
-        """
+    def test_non_dict_yaml_is_an_error(self, tmp_cwd, codex_search, caplog):
+        """Counted as an error and the config dropped, exactly like unparseable YAML."""
         write(tmp_cwd / "README.md", "<!-- RICH-CODEX just a string -->\n![`echo hi`](img/hi.svg)\n")
         cs = codex_search()
-        with pytest.raises(ValidationError, match="Config YAML is not a dictionary"):
-            cs.search_files()
+        assert cs.search_files() == 1
+        assert "config YAML is not a dictionary" in caplog.text
+        assert cs.rich_imgs[0].terminal_width is None
 
-    @pytest.mark.xfail(
-        reason="'Config YAML is not a dictionary' is raised inside a try block that only catches YAMLError",
-        raises=ValidationError,
-        strict=True,
-    )
-    def test_non_dict_yaml_should_be_counted_as_an_error(self, tmp_cwd, codex_search):
-        write(tmp_cwd / "README.md", "<!-- RICH-CODEX just a string -->\n![`echo hi`](img/hi.svg)\n")
-        assert codex_search().search_files() == 1
+    def test_search_continues_after_a_non_dict_config(self, tmp_cwd, codex_search):
+        """A bad config in one file shouldn't abort the rest of the search."""
+        write(tmp_cwd / "a-bad.md", "<!-- RICH-CODEX just a string -->\n![`echo bad`](img/bad.svg)\n")
+        write(tmp_cwd / "b-good.md", "![`echo good`](img/good.svg)\n")
+        cs = codex_search()
+        assert cs.search_files() == 1
+        assert "echo good" in [img.command for img in cs.rich_imgs]
 
     def test_schema_violation_is_an_error(self, tmp_cwd, codex_search, caplog):
         write(tmp_cwd / "README.md", "<!-- RICH-CODEX terminal_width: wide -->\n![`echo hi`](img/hi.svg)\n")

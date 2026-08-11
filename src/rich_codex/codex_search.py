@@ -219,10 +219,8 @@ class CodexSearch:
                         try:
                             local_config = yaml.safe_load(local_config_str)
                             if not isinstance(local_config, dict):
-                                raise ValidationError(
-                                    f"Config YAML is not a dictionary: '{file_rel_fn}', line {line_number}"
-                                )
-                        except yaml.YAMLError as e:
+                                raise ValueError("config YAML is not a dictionary")
+                        except (yaml.YAMLError, ValueError) as e:
                             log.error(f"[red][✗] Error parsing config YAML in '{file_rel_fn}' line {line_number}: {e}")
                             log.debug(f"Config block:\n{local_config_str}")
                             local_config = {}
@@ -257,7 +255,7 @@ class CodexSearch:
                         else:
                             log.debug(f"[dim]Skipped markdown image, line {line_number}: {m}")
                             if len(local_config) > 0:
-                                log.warn(f"Skipped image but local_config was not empty: {local_config}")
+                                log.warning(f"Skipped image but local_config was not empty: {local_config}")
                             local_config = {}
                             local_config_str = ""
                             continue

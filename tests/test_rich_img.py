@@ -432,14 +432,6 @@ class TestEnoughImageDifference:
         img = rich_img(min_pct_diff=10)
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
-    # The diff generator is consumed by the `len(list(diffs))` log line just above it in
-    # _enough_image_difference(), so `lost_lines` is always empty and no regex ever matches.
-    DIFF_GENERATOR_BUG = pytest.mark.xfail(
-        reason="_enough_image_difference() exhausts the difflib generator when logging its length",
-        strict=True,
-    )
-
-    @DIFF_GENERATOR_BUG
     def test_skip_change_regex_matching_all_diffs(self, rich_img, tmp_cwd):
         new_file = tmp_cwd / "new.svg"
         old_file = tmp_cwd / "old.svg"
@@ -465,7 +457,6 @@ class TestEnoughImageDifference:
         img = rich_img(skip_change_regex="generated:")
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
-    @DIFF_GENERATOR_BUG
     def test_builtin_pdf_regex_is_used(self, rich_img, tmp_cwd):
         """Ignore the /CreationDate line, which always differs between two PDFs."""
         new_file = tmp_cwd / "new.pdf"
@@ -474,6 +465,33 @@ class TestEnoughImageDifference:
         old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
         img = rich_img()
         assert img._enough_image_difference(str(new_file), str(old_file)) is False
+
+    def test_builtin_regexes_key_off_the_target_filename(self, rich_img, tmp_cwd):
+        """The new file is usually a suffix-less temporary file, so the target picks the regexes."""
+        new_file = tmp_cwd / "tmp1234"
+        old_file = tmp_cwd / "old.pdf"
+        new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
+        old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
+        img = rich_img()
+        assert img._enough_image_difference(str(new_file), str(old_file)) is False
+
+    def test_builtin_regexes_ignore_suffix_case(self, rich_img, tmp_cwd):
+        new_file = tmp_cwd / "tmp1234"
+        old_file = tmp_cwd / "old.PDF"
+        new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
+        old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
+        img = rich_img()
+        assert img._enough_image_difference(str(new_file), str(old_file)) is False
+
+    def test_no_lost_lines_to_match(self, rich_img, tmp_cwd, caplog):
+        """The old file only gained lines, so there is nothing for the regexes to match."""
+        new_file = tmp_cwd / "new.svg"
+        old_file = tmp_cwd / "old.svg"
+        new_file.write_text("first line\nsecond line\n")
+        old_file.write_text("first line\nsecond line\nthird line\n")
+        img = rich_img(skip_change_regex="line")
+        assert img._enough_image_difference(str(new_file), str(old_file)) is True
+        assert "no diff found" in caplog.text
 
     def test_binary_files_with_no_decodable_text(self, rich_img, tmp_cwd, caplog):
         """Undecodable bytes leave nothing to run the skip regexes against."""
@@ -635,13 +653,6 @@ class TestSaveImages:
         assert all(p.exists() for p in paths)
         assert img.num_img_saved == 2
 
-    @pytest.mark.xfail(
-        reason=(
-            "When a PNG/PDF follows an SVG output, save_images() points svg_tmp_filename at the saved "
-            "SVG and then deletes it in the temp-file cleanup, if the output lives under the temp dir"
-        ),
-        strict=False,  # only reproduces when the output directory is inside gettempdir()
-    )
     def test_all_three_formats_share_one_svg(self, rich_img, tmp_cwd):
         pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
         paths = [tmp_cwd / f"out.{suffix}" for suffix in ("svg", "png", "pdf")]

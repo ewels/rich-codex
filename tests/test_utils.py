@@ -72,9 +72,13 @@ class TestCleanImages:
         assert utils.clean_images(None, None, None) == []
         assert utils.clean_images("", None, None) == []
 
-    @pytest.mark.xfail(reason="clean_images doesn't run its patterns through clean_list()", raises=ValueError)
-    def test_blank_pattern_lines_are_ignored(self, tmp_cwd):
+    def test_blank_and_comment_pattern_lines_are_ignored(self, tmp_cwd):
+        stale = tmp_cwd / "stale.svg"
+        stale.write_text("<svg />")
         assert utils.clean_images("\n\n", None, None) == []
+        assert utils.clean_images("# *.svg\n", None, None) == []
+        assert stale.exists()
+        assert utils.clean_images("\n  *.svg  \n\n", None, None) == {stale}
 
     def test_no_matching_files(self, tmp_cwd):
         assert utils.clean_images("img/*.svg", None, None) == []
