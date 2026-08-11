@@ -40,16 +40,12 @@ Both are merged with any per-image `extra_env`, which takes precedence for keys 
 If the same command is found more than once, rich-codex runs it once and saves the result to every filename that asked for it.
 This keeps runs fast and the images consistent, which is usually what you want when an example is shown in more than one place.
 
-Sometimes it isn't. If you're documenting a sequence of steps, the same command can legitimately give different output each time it runs.
-Say a document runs `./count.sh` twice, saving to `first-run.svg` and `second-run.svg`: by default the script runs once and both images show the same output.
-
-<!-- prettier-ignore-start -->
-
+Sometimes it isn't: if you're documenting a sequence of steps, the same command can legitimately give different output each time it runs.
 Use `--no-dedupe` / `$NO_DEDUPE` / `no_dedupe` (command line / environment variable / GitHub action key) to run every command where it's found, so that each screenshot captures its own run.
 
+<!-- prettier-ignore-start -->
 !!! note
-    With deduplication disabled, two images that use the same command _and_ the same filename will both be generated, one overwriting the other. Rich-codex warns about duplicate output paths when this happens.
-
+    Identical requests - same command, same config, same filenames - are still collapsed into one, as running them separately would only overwrite the same file twice.
 <!-- prettier-ignore-end -->
 
 ## Faking simple commands

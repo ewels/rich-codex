@@ -83,7 +83,7 @@ A brief description of each option follows.
 - `--no-search`: Set to disable searching for rich-codex comments
 - `--command`: Specify a command to run to capture output
 - `--timeout`: Maximum run time for command (seconds)
-- `--no-dedupe`: Run duplicate commands separately, instead of once with a shared screenshot (see below)
+- `--no-dedupe`: Run duplicate commands separately, instead of once with a shared screenshot (see [repeated commands](command_setup.md#repeated-commands))
 - `--hide-command`: Hide the terminal prompt with the command at the top of the output
 - `--title-command`: Use the command as the terminal title if not set explicitly
 - `--head`: Show only the first N lines of output
@@ -112,6 +112,6 @@ A brief description of each option follows.
 - `--log-file`: Save a verbose log to a file (specific filename).
 - `commit_changes`: Automatically commit changes to the repository
 - `error_changes`: Exit with an error if changes are found (Ignored if `commit_changes` is true)
-- `skip_install`: Don't install rich-codex, because a previous step already did (see below)
+- `skip_install`: Don't install rich-codex, because a previous step already did (see [installing rich-codex yourself](../usage/github_action.md#installing-rich-codex-yourself))
 - `title`: Title for the terminal title bar
 - `skip`: Skip / ignore this image

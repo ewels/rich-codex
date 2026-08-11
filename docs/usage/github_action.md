@@ -125,10 +125,15 @@ jobs:
 By default, the action installs the latest release of rich-codex from PyPI.
 If you'd rather choose the version yourself - a specific release, a git branch, or a local checkout - install it in an earlier step and set `skip_install`:
 
-```yaml title=".github/workflows/screenshots.yml" linenums="1" hl_lines="6 12"
+```yaml title=".github/workflows/screenshots.yml" linenums="1" hl_lines="11 17 18"
 steps:
   - name: Check out the repo
     uses: actions/checkout@v4
+
+  - name: Set up Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: "3.x"
 
   - name: Install rich-codex
     run: pip install -e ".[cairo]"
@@ -137,15 +142,13 @@ steps:
     uses: ewels/rich-codex@v1
     with:
       commit_changes: "true"
+      skip_python_setup: "true"
       skip_install: "true"
 ```
 
-This is how rich-codex generates the screenshots in its own documentation, so that images of its CLI show the current code rather than the last release.
+Set up Python yourself as well, as above, so that the action doesn't set up a second interpreter that your install isn't visible to.
 
-<!-- prettier-ignore-start -->
-!!! note
-    Set `skip_python_setup: "true"` as well if you set up Python yourself, so that the action doesn't set up a second interpreter that your install isn't visible to.
-<!-- prettier-ignore-end -->
+This is how rich-codex generates the screenshots in its own documentation, so that images of its CLI show the current code rather than the last release.
 
 ## GitHub Action Inputs
 

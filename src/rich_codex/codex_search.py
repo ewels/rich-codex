@@ -367,13 +367,15 @@ class CodexSearch:
 
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
-        # Commands run in series can give different output each time, so this can be disabled
+        # Remove exact duplicates - identical requests would only overwrite one another
+        dedup_imgs = list(dict.fromkeys(self.rich_imgs))
+
+        # Commands run in series can give different output each time, so merging can be disabled
         if self.no_dedupe:
-            log.debug(f"Keeping all {len(self.rich_imgs)} image requests separate, as deduplication is disabled")
+            log.debug(f"Running all {len(dedup_imgs)} image requests separately, as deduplication is disabled")
+            self.rich_imgs = dedup_imgs
             return
 
-        # Remove exact duplicates
-        dedup_imgs = list(dict.fromkeys(self.rich_imgs))
         # Merge dups that are the same except for output filename
         merged_imgs = {}
         for ri in dedup_imgs:

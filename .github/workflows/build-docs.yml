@@ -18,23 +18,30 @@ jobs:
         with:
           python-version: 3.x
 
-      - uses: actions/cache@v4
-        with:
-          key: ${{ github.ref }}
-          path: .cache
-
       # Install rich-codex from this checkout, so that screenshots of its own
-      # CLI show the code in this branch and not the last release on PyPI
-      - name: Install rich-codex and requirements for docs
-        run: pip install -e ".[cairo]" cowsay lolcat mkdocs-material pillow rich-cli
+      # CLI show the code in this branch and not the last release on PyPI.
+      # The action is told to skip both, as they're set up here instead.
+      - name: Install rich-codex and the tools used in screenshots
+        run: pip install -e ".[cairo]" cowsay lolcat rich-cli
 
       - name: Generate terminal images with rich-codex
         uses: ./ # Would normally be ewels/rich-codex@v1
         with:
           commit_changes: "true"
           clean_img_paths: docs/img/*.svg
-          skip_python_setup: "true" # Set up above, so that the install below is the one used
-          skip_install: "true" # Installed from this checkout above
+          skip_python_setup: "true"
+          skip_install: "true"
+
+      # Docs are only published from main, so everything below is skipped on branches
+      - uses: actions/cache@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
+      - name: Install requirements for docs
+        if: github.ref == 'refs/heads/main'
+        run: pip install mkdocs-material pillow
 
       - name: Build and deploy docs
         if: github.ref == 'refs/heads/main'
