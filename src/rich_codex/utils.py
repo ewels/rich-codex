@@ -14,7 +14,7 @@ def clean_images(clean_img_paths_raw, img_obj, codex_obj):
 
     Useful to remove existing files when a target filename is changed.
     """
-    clean_img_patterns = clean_img_paths_raw.splitlines() if clean_img_paths_raw else []
+    clean_img_patterns = clean_list(clean_img_paths_raw.splitlines()) if clean_img_paths_raw else []
 
     if len(clean_img_patterns) == 0:
         log.debug("[dim]Nothing found to clean in 'clean_img_paths'")

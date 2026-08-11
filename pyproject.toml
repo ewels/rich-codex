@@ -32,6 +32,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pre-commit",
+    "pytest",
+    "pytest-cov",
 ]
 cairo = [
     "CairoSVG>=2.5.2"
@@ -75,3 +77,16 @@ profile = "black"
 [tool.mypy]
 ignore_missing_imports = "True"
 scripts_are_modules = "True"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["src/rich_codex"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    'if __name__ == "__main__":',
+]

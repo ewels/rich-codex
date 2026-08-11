@@ -26,11 +26,22 @@ For example, if a timestamp caused this file to change by 4.34% on every commit,
 
 Percentage changes in files is quick and simple, but a little crude. If you prefer, you may be able to use regular expressions instead with `--skip-change-regex` / `$SKIP_CHANGE_REGEX` / `skip_change_regex` (CLI, env var, action/config).
 
-If there is a > 0% change in files, a rich diff will be generated. Any diff lines matching the supplied regexes will be removed and if none remain, the changeset will be ignored.
+If there is a > 0% change in files, a diff will be generated. Any diff lines matching the supplied regexes will be removed and if none remain, the changeset will be ignored.
 
-Rich-codex ships with one default, applied for PDF files: if the only change is a line with `"/CreationDate"` then the changeset will be ignored.
+One regex per line, and blank lines are ignored. An empty pattern would match every line, which would freeze the image forever.
+
+The regexes are matched against the lines of the image file, not against your terminal output, so remember that SVG writes spaces as `&#160;`. Matching a single word avoids the problem:
 
 <!-- prettier-ignore-start -->
-!!! warning
-    Please note that generating diffs between file pairs can be _very_ slow. Use with caution.
+```markdown
+<!-- RICH-CODEX skip_change_regex: 'Generated&#160;at' -->
+![`my-tool --version`](../img/my-tool-version.svg)
+```
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+!!! note
+    This only works for text-based outputs such as SVG. PNG and PDF files are compressed,
+    so a one-character change to a timestamp scrambles the whole file and there are no
+    readable lines for a regex to match. Use `min_pct_diff` for those instead.
 <!-- prettier-ignore-end -->

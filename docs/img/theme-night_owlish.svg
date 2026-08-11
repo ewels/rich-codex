@@ -19,62 +19,62 @@
         font-weight: 700;
     }
 
-    .terminal-3699878720-matrix {
+    .rich-codex-3189181458-matrix {
         font-family: Fira Code, monospace;
         font-size: 20px;
         line-height: 24.4px;
         font-variant-east-asian: full-width;
     }
 
-    .terminal-3699878720-title {
+    .rich-codex-3189181458-title {
         font-size: 18px;
         font-weight: bold;
         font-family: arial;
     }
 
-    .terminal-3699878720-r1 { fill: #403f53 }
-.terminal-3699878720-r2 { fill: #5ca7e4 }
-.terminal-3699878720-r3 { fill: #7a8181 }
-.terminal-3699878720-r4 { fill: #daaa01 }
+    .rich-codex-3189181458-r1 { fill: #403f53 }
+.rich-codex-3189181458-r2 { fill: #5ca7e4 }
+.rich-codex-3189181458-r3 { fill: #7a8181 }
+.rich-codex-3189181458-r4 { fill: #daaa01 }
     </style>
 
     <defs>
-    <clipPath id="terminal-3699878720-clip-terminal">
+    <clipPath id="rich-codex-3189181458-clip-terminal">
       <rect x="0" y="0" width="975.0" height="145.39999999999998" />
     </clipPath>
-    <clipPath id="terminal-3699878720-line-0">
+    <clipPath id="rich-codex-3189181458-line-0">
     <rect x="0" y="1.5" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3699878720-line-1">
+<clipPath id="rich-codex-3189181458-line-1">
     <rect x="0" y="25.9" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3699878720-line-2">
+<clipPath id="rich-codex-3189181458-line-2">
     <rect x="0" y="50.3" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3699878720-line-3">
+<clipPath id="rich-codex-3189181458-line-3">
     <rect x="0" y="74.7" width="976" height="24.65"/>
             </clipPath>
-<clipPath id="terminal-3699878720-line-4">
+<clipPath id="rich-codex-3189181458-line-4">
     <rect x="0" y="99.1" width="976" height="24.65"/>
             </clipPath>
     </defs>
 
-    <rect fill="#ffffff" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="194.4" rx="8"/><text class="terminal-3699878720-title" fill="#403f53" text-anchor="middle" x="496" y="27">NIGHT_OWLISH</text>
+    <rect fill="#ffffff" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="194.4" rx="8"/><text class="rich-codex-3189181458-title" fill="#403f53" text-anchor="middle" x="496" y="27">NIGHT_OWLISH</text>
             <g transform="translate(26,22)">
             <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
             <circle cx="22" cy="0" r="7" fill="#febc2e"/>
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
         
-    <g transform="translate(9, 41)" clip-path="url(#terminal-3699878720-clip-terminal)">
+    <g transform="translate(9, 41)" clip-path="url(#rich-codex-3189181458-clip-terminal)">
     
-    <g class="terminal-3699878720-matrix">
-    <text class="terminal-3699878720-r1" x="0" y="20" textLength="597.8" clip-path="url(#terminal-3699878720-line-0)">$&#160;rich&#160;../../pyproject.toml&#160;-h&#160;5&#160;--force-terminal</text><text class="terminal-3699878720-r1" x="976" y="20" textLength="12.2" clip-path="url(#terminal-3699878720-line-0)">
-</text><text class="terminal-3699878720-r2" x="0" y="44.4" textLength="12.2" clip-path="url(#terminal-3699878720-line-1)">[</text><text class="terminal-3699878720-r2" x="12.2" y="44.4" textLength="85.4" clip-path="url(#terminal-3699878720-line-1)">project</text><text class="terminal-3699878720-r2" x="97.6" y="44.4" textLength="12.2" clip-path="url(#terminal-3699878720-line-1)">]</text><text class="terminal-3699878720-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-3699878720-line-1)">
-</text><text class="terminal-3699878720-r1" x="0" y="68.8" textLength="48.8" clip-path="url(#terminal-3699878720-line-2)">name</text><text class="terminal-3699878720-r1" x="61" y="68.8" textLength="12.2" clip-path="url(#terminal-3699878720-line-2)">=</text><text class="terminal-3699878720-r4" x="85.4" y="68.8" textLength="12.2" clip-path="url(#terminal-3699878720-line-2)">&quot;</text><text class="terminal-3699878720-r4" x="97.6" y="68.8" textLength="122" clip-path="url(#terminal-3699878720-line-2)">rich-codex</text><text class="terminal-3699878720-r4" x="219.6" y="68.8" textLength="12.2" clip-path="url(#terminal-3699878720-line-2)">&quot;</text><text class="terminal-3699878720-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#terminal-3699878720-line-2)">
-</text><text class="terminal-3699878720-r1" x="0" y="93.2" textLength="134.2" clip-path="url(#terminal-3699878720-line-3)">description</text><text class="terminal-3699878720-r1" x="146.4" y="93.2" textLength="12.2" clip-path="url(#terminal-3699878720-line-3)">=</text><text class="terminal-3699878720-r4" x="170.8" y="93.2" textLength="12.2" clip-path="url(#terminal-3699878720-line-3)">&quot;</text><text class="terminal-3699878720-r4" x="183" y="93.2" textLength="671" clip-path="url(#terminal-3699878720-line-3)">Generate&#160;rich&#160;images&#160;for&#160;the&#160;GitHub&#160;Action&#160;&#x27;rich-codex&#x27;</text><text class="terminal-3699878720-r4" x="854" y="93.2" textLength="12.2" clip-path="url(#terminal-3699878720-line-3)">&quot;</text><text class="terminal-3699878720-r1" x="976" y="93.2" textLength="12.2" clip-path="url(#terminal-3699878720-line-3)">
-</text><text class="terminal-3699878720-r1" x="0" y="117.6" textLength="73.2" clip-path="url(#terminal-3699878720-line-4)">readme</text><text class="terminal-3699878720-r1" x="85.4" y="117.6" textLength="12.2" clip-path="url(#terminal-3699878720-line-4)">=</text><text class="terminal-3699878720-r4" x="109.8" y="117.6" textLength="12.2" clip-path="url(#terminal-3699878720-line-4)">&quot;</text><text class="terminal-3699878720-r4" x="122" y="117.6" textLength="109.8" clip-path="url(#terminal-3699878720-line-4)">README.md</text><text class="terminal-3699878720-r4" x="231.8" y="117.6" textLength="12.2" clip-path="url(#terminal-3699878720-line-4)">&quot;</text><text class="terminal-3699878720-r1" x="976" y="117.6" textLength="12.2" clip-path="url(#terminal-3699878720-line-4)">
-</text><text class="terminal-3699878720-r1" x="0" y="142" textLength="85.4" clip-path="url(#terminal-3699878720-line-5)">license</text><text class="terminal-3699878720-r1" x="97.6" y="142" textLength="12.2" clip-path="url(#terminal-3699878720-line-5)">=</text><text class="terminal-3699878720-r4" x="122" y="142" textLength="12.2" clip-path="url(#terminal-3699878720-line-5)">&quot;</text><text class="terminal-3699878720-r4" x="134.2" y="142" textLength="36.6" clip-path="url(#terminal-3699878720-line-5)">MIT</text><text class="terminal-3699878720-r4" x="170.8" y="142" textLength="12.2" clip-path="url(#terminal-3699878720-line-5)">&quot;</text><text class="terminal-3699878720-r1" x="976" y="142" textLength="12.2" clip-path="url(#terminal-3699878720-line-5)">
+    <g class="rich-codex-3189181458-matrix">
+    <text class="rich-codex-3189181458-r1" x="0" y="20" textLength="597.8" clip-path="url(#rich-codex-3189181458-line-0)">$&#160;rich&#160;../../pyproject.toml&#160;-h&#160;5&#160;--force-terminal</text><text class="rich-codex-3189181458-r1" x="976" y="20" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-0)">
+</text><text class="rich-codex-3189181458-r2" x="0" y="44.4" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-1)">[</text><text class="rich-codex-3189181458-r2" x="12.2" y="44.4" textLength="85.4" clip-path="url(#rich-codex-3189181458-line-1)">project</text><text class="rich-codex-3189181458-r2" x="97.6" y="44.4" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-1)">]</text><text class="rich-codex-3189181458-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-1)">
+</text><text class="rich-codex-3189181458-r1" x="0" y="68.8" textLength="48.8" clip-path="url(#rich-codex-3189181458-line-2)">name</text><text class="rich-codex-3189181458-r1" x="61" y="68.8" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-2)">=</text><text class="rich-codex-3189181458-r4" x="85.4" y="68.8" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-2)">&quot;</text><text class="rich-codex-3189181458-r4" x="97.6" y="68.8" textLength="122" clip-path="url(#rich-codex-3189181458-line-2)">rich-codex</text><text class="rich-codex-3189181458-r4" x="219.6" y="68.8" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-2)">&quot;</text><text class="rich-codex-3189181458-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-2)">
+</text><text class="rich-codex-3189181458-r1" x="0" y="93.2" textLength="134.2" clip-path="url(#rich-codex-3189181458-line-3)">description</text><text class="rich-codex-3189181458-r1" x="146.4" y="93.2" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-3)">=</text><text class="rich-codex-3189181458-r4" x="170.8" y="93.2" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-3)">&quot;</text><text class="rich-codex-3189181458-r4" x="183" y="93.2" textLength="671" clip-path="url(#rich-codex-3189181458-line-3)">Generate&#160;rich&#160;images&#160;for&#160;the&#160;GitHub&#160;Action&#160;&#x27;rich-codex&#x27;</text><text class="rich-codex-3189181458-r4" x="854" y="93.2" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-3)">&quot;</text><text class="rich-codex-3189181458-r1" x="976" y="93.2" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-3)">
+</text><text class="rich-codex-3189181458-r1" x="0" y="117.6" textLength="73.2" clip-path="url(#rich-codex-3189181458-line-4)">readme</text><text class="rich-codex-3189181458-r1" x="85.4" y="117.6" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-4)">=</text><text class="rich-codex-3189181458-r4" x="109.8" y="117.6" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-4)">&quot;</text><text class="rich-codex-3189181458-r4" x="122" y="117.6" textLength="109.8" clip-path="url(#rich-codex-3189181458-line-4)">README.md</text><text class="rich-codex-3189181458-r4" x="231.8" y="117.6" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-4)">&quot;</text><text class="rich-codex-3189181458-r1" x="976" y="117.6" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-4)">
+</text><text class="rich-codex-3189181458-r1" x="0" y="142" textLength="85.4" clip-path="url(#rich-codex-3189181458-line-5)">license</text><text class="rich-codex-3189181458-r1" x="97.6" y="142" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-5)">=</text><text class="rich-codex-3189181458-r4" x="122" y="142" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-5)">&quot;</text><text class="rich-codex-3189181458-r4" x="134.2" y="142" textLength="36.6" clip-path="url(#rich-codex-3189181458-line-5)">MIT</text><text class="rich-codex-3189181458-r4" x="170.8" y="142" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-5)">&quot;</text><text class="rich-codex-3189181458-r1" x="976" y="142" textLength="12.2" clip-path="url(#rich-codex-3189181458-line-5)">
 </text>
     </g>
     </g>
