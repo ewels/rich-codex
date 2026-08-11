@@ -6,7 +6,6 @@ from jsonschema.exceptions import ValidationError
 
 from rich_codex import utils
 from rich_codex.codex_search import CONFIG_SCHEMA
-from rich_codex.rich_img import RichImg
 
 
 @pytest.fixture
@@ -65,43 +64,40 @@ class TestCleanImages:
     """Tests for utils.clean_images()."""
 
     def test_no_patterns(self, tmp_cwd):
-        assert utils.clean_images(None, None, None) == []
-        assert utils.clean_images("", None, None) == []
+        assert utils.clean_images(None, []) == []
+        assert utils.clean_images("", []) == []
 
     def test_blank_and_comment_pattern_lines_are_ignored(self, tmp_cwd):
         stale = tmp_cwd / "stale.svg"
         stale.write_text("<svg />")
-        assert utils.clean_images("\n\n", None, None) == []
-        assert utils.clean_images("# *.svg\n", None, None) == []
+        assert utils.clean_images("\n\n", []) == []
+        assert utils.clean_images("# *.svg\n", []) == []
         assert stale.exists()
-        assert utils.clean_images("\n  *.svg  \n\n", None, None) == {stale}
+        assert utils.clean_images("\n  *.svg  \n\n", []) == [stale]
 
     def test_no_matching_files(self, tmp_cwd):
-        assert utils.clean_images("img/*.svg", None, None) == []
+        assert utils.clean_images("img/*.svg", []) == []
 
     def test_deletes_unknown_images(self, tmp_cwd):
         stale = tmp_cwd / "stale.svg"
         stale.write_text("<svg />")
-        cleaned = utils.clean_images("*.svg", None, None)
-        assert cleaned == {stale}
+        cleaned = utils.clean_images("*.svg", [])
+        assert cleaned == [stale]
         assert not stale.exists()
 
-    def test_keeps_images_generated_by_img_obj(self, tmp_cwd):
+    def test_keeps_generated_images(self, tmp_cwd):
         kept = tmp_cwd / "kept.svg"
         kept.write_text("<svg />")
-        img_obj = RichImg(img_paths=[str(kept)])
-        assert utils.clean_images("*.svg", img_obj, None) == []
+        assert utils.clean_images("*.svg", [str(kept)]) == []
         assert kept.exists()
 
-    def test_keeps_images_generated_by_codex_obj(self, tmp_cwd, codex_search):
+    def test_keeps_only_the_generated_ones(self, tmp_cwd):
         kept = tmp_cwd / "kept.svg"
         stale = tmp_cwd / "stale.svg"
         for path in (kept, stale):
             path.write_text("<svg />")
-        codex_obj = codex_search()
-        codex_obj.rich_imgs = [RichImg(img_paths=[str(kept)])]
-        cleaned = utils.clean_images("*.svg", None, codex_obj)
-        assert cleaned == {stale}
+        cleaned = utils.clean_images("*.svg", [str(kept)])
+        assert cleaned == [stale]
         assert kept.exists()
         assert not stale.exists()
 
@@ -111,8 +107,8 @@ class TestCleanImages:
         two = tmp_cwd / "img" / "two.png"
         for path in (one, two):
             path.write_text("x")
-        cleaned = utils.clean_images("*.svg\nimg/*.png", None, None)
-        assert cleaned == {one, two}
+        cleaned = utils.clean_images("*.svg\nimg/*.png", [])
+        assert cleaned == sorted([one, two])
 
 
 class TestCheckGitStatus:

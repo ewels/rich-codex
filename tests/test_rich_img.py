@@ -130,7 +130,7 @@ class TestRunCommand:
     @pytest.mark.parametrize("command", ["rm -rf /", "cp a b", "mv a b", "sudo rm x"])
     def test_dangerous_commands_are_aborted(self, rich_img, command):
         img = rich_img(command=command)
-        assert img.run_command() is False
+        img.run_command()
         assert img.aborted is True
 
     def test_similar_but_safe_command_is_allowed(self, rich_img, tmp_cwd):
@@ -771,5 +771,7 @@ class TestModuleConstants:
 
 def test_ignored_commands_are_matched_as_prefixes(rich_img, tmp_cwd):
     """Anything starting with an ignored command is refused, even 'rmdir'."""
-    assert rich_img(command="rmdir foo").run_command() is False
+    img = rich_img(command="rmdir foo")
+    img.run_command()
+    assert img.aborted is True
     assert rich_img(command="echo rm").aborted is False

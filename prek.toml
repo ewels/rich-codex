@@ -36,6 +36,23 @@ hooks = [
   { id = "ruff-format", name = "Ruff format" }
 ]
 
+# mypy runs from the dev dependencies rather than its own hook environment, so that it
+# sees the installed packages and their type stubs. Paths come from pyproject.toml.
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "mypy",
+    name = "mypy - Static type checking",
+    description = "Mypy helps ensure that we use our functions and variables correctly by checking the types.",
+    entry = "mypy",
+    language = "system",
+    types = ["python"],
+    pass_filenames = false,
+    require_serial = true
+  }
+]
+
 [[repos]]
 repo = "https://github.com/codespell-project/codespell"
 rev = "57b21406f092110c18776e39b0bda50d37c945c8" # frozen: v2.4.3

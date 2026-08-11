@@ -1,4 +1,5 @@
 import difflib
+import io
 import json
 import logging
 import os
@@ -19,6 +20,8 @@ from rich.console import Console
 from rich.prompt import Confirm
 from rich.syntax import Syntax
 from rich.text import Text
+
+from rich_codex.utils import relative_path
 
 log = logging.getLogger("rich-codex")
 
@@ -46,36 +49,36 @@ class RichImg:
 
     def __init__(
         self,
-        command=None,
-        working_dir=None,
-        snippet=None,
-        img_paths=None,
-        snippet_syntax=None,
-        timeout=5,
-        before_command=None,
-        after_command=None,
-        title=None,
-        fake_command=None,
-        hide_command=False,
-        title_command=False,
-        extra_env=None,
-        head=None,
-        tail=None,
-        trim_after=None,
-        truncated_text="[..truncated..]",
-        min_pct_diff=0,
-        skip_change_regex=None,
-        terminal_width=None,
-        terminal_min_width=80,
-        notrim=False,
-        terminal_theme=None,
-        snippet_theme=None,
-        use_pty=False,
-        console=None,
-        source_type=None,
-        source=None,
-        source_line=None,
-    ):
+        command: str | None = None,
+        working_dir: str | Path | None = None,
+        snippet: str | None = None,
+        img_paths: list[str] | None = None,
+        snippet_syntax: str | None = None,
+        timeout: int = 5,
+        before_command: str | None = None,
+        after_command: str | None = None,
+        title: str | None = None,
+        fake_command: str | None = None,
+        hide_command: bool = False,
+        title_command: bool = False,
+        extra_env: dict[str, str] | None = None,
+        head: int | str | None = None,
+        tail: int | str | None = None,
+        trim_after: str | None = None,
+        truncated_text: str | None = "[..truncated..]",
+        min_pct_diff: float = 0,
+        skip_change_regex: str | None = None,
+        terminal_width: int | str | None = None,
+        terminal_min_width: int | str | None = 80,
+        notrim: bool = False,
+        terminal_theme: str | None = None,
+        snippet_theme: str | None = None,
+        use_pty: bool = False,
+        console: Console | None = None,
+        source_type: str | None = None,
+        source: str | Path | None = None,
+        source_line: int | None = None,
+    ) -> None:
         """Initialise the RichImg object with core console options."""
         self.command = command
         self.working_dir = Path.cwd() if working_dir is None else Path(working_dir)
@@ -105,8 +108,9 @@ class RichImg:
         self.snippet_theme = snippet_theme
         self.use_pty = use_pty
         self.console = Console() if console is None else console
-        self.capture_console = None
-        self.saved_img_paths = []
+        # Only set once the output has been rendered, by run_command() or format_snippet()
+        self.capture_console: Console | None = None
+        self.saved_img_paths: list[str] = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
         self.no_confirm = False
@@ -115,30 +119,45 @@ class RichImg:
         self.source = Path(source) if source is not None else None
         self.source_line = source_line
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Compare RichImg objects for equality."""
         if not isinstance(other, RichImg):
             # don't attempt to compare against unrelated types
             return NotImplemented
         return all(getattr(self, attr) == getattr(other, attr) for attr in HASH_ATTRS)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Hash stable identifier of RichImg object based on important attributes."""
         attrs = str([getattr(self, attr) for attr in HASH_ATTRS])
         return hash(attrs)
 
-    def _hash_no_fn(self):
+    def _hash_no_fn(self) -> int:
         """Hash stable identifier of RichImg object based without output filenames."""
         attrs = str([getattr(self, attr) for attr in HASH_ATTRS_NO_FN])
         return hash(attrs)
 
-    def confirm_command(self):
+    def confirm_command(self) -> bool:
         """Prompt user to confirm running command."""
         if self.command is None or self.no_confirm:
             return True
         return Confirm.ask(f"Command: [white on black] {self.command} [/] Run?", console=self.console)
 
-    def run_command(self):
+    def _new_capture_console(self, longest_line: int = 0) -> Console:
+        """Build the console that records the output, wide enough for the content."""
+        width = self.terminal_width
+        if not self.notrim and self.terminal_min_width:
+            width = max(self.terminal_min_width, longest_line)
+            log.debug(f"Setting terminal width to {width}")
+        return Console(
+            file=io.StringIO(),
+            force_terminal=True,
+            color_system="truecolor",
+            highlight=False,
+            record=True,
+            width=width,
+        )
+
+    def run_command(self) -> None:
         """Capture output from a supplied command and save to an image."""
         if self.command is None:
             log.debug("Tried to generate image with no command")
@@ -150,7 +169,7 @@ class RichImg:
             if any(cmd_part.strip().startswith(ignore) for cmd_part in self.command.split("&;")):
                 log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.command} [/]")
                 self.aborted = True
-                return False
+                return
 
         if self.title == "" and self.title_command:
             self.title = self.fake_command if self.fake_command else self.command
@@ -217,8 +236,8 @@ class RichImg:
 
             # Rewrite size with selected terminal width if set
             if self.terminal_width is not None:
-                data = struct.unpack("HHHH", size)
-                size = struct.pack("HHHH", data[0], self.terminal_width, 0, 0)
+                winsize = struct.unpack("HHHH", size)
+                size = struct.pack("HHHH", winsize[0], self.terminal_width, 0, 0)
 
             # Issue command to pty to resize
             fcntl.ioctl(write_end, termios.TIOCSWINSZ, size)
@@ -239,13 +258,13 @@ class RichImg:
                     stdout=write_end,
                     stderr=write_end,
                 )
-                process.wait(timeout=float(self.timeout))
+                process.wait(timeout=self.timeout)
             except subprocess.TimeoutExpired:
                 log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             os.close(write_end)
 
-            output_arr = []
+            output_arr: list[bytes] = []
 
             # This loop will keep going until no more data is incoming (child process closed their pipe)
             while True:
@@ -275,12 +294,12 @@ class RichImg:
                     env=command_env,
                     start_new_session=True,  # Needed for subprocess termination
                 )
-                output, errs = process.communicate(timeout=float(self.timeout))
+                output_bytes, _ = process.communicate(timeout=self.timeout)
             except subprocess.TimeoutExpired:
                 log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
                 os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-                output, errs = process.communicate()
-            output = output.decode("utf-8")
+                output_bytes, _ = process.communicate()
+            output = output_bytes.decode("utf-8")
 
         # Run after_command if set
         if self.after_command:
@@ -313,20 +332,7 @@ class RichImg:
             print_lines.append(True)
             max_line_length = max(len(line), max_line_length)
 
-        # If terminal_min_width is set, find longest line
-        t_width = int(self.terminal_width) if self.terminal_width else None
-        if not self.notrim and self.terminal_min_width:
-            t_width = int(self.terminal_min_width)
-            t_width = max(t_width, max_line_length)
-            log.debug(f"Setting terminal width to {t_width}")
-        self.capture_console = Console(
-            file=open(os.devnull, "w"),
-            force_terminal=True,
-            color_system="truecolor",
-            highlight=False,
-            record=True,
-            width=t_width,
-        )
+        self.capture_console = self._new_capture_console(max_line_length)
 
         # Set head / tail print set
         if self.head and self.head >= len(print_lines):
@@ -345,17 +351,18 @@ class RichImg:
             self.capture_console.print(f"$ {self.fake_command if self.fake_command else self.command}")
 
         # Decode and print the output (captured)
+        truncated = False
         for idx, line in enumerate(decoder.decode(output)):
             if print_lines[idx]:
                 self.capture_console.print(line)
                 # Trim text after trim_after
                 if self.trim_after and self.trim_after in line:
                     break
-            elif (self.head is not None or self.tail is not None) and self.truncated_text:
+            elif not truncated and self.truncated_text and (self.head is not None or self.tail is not None):
                 self.capture_console.print(self.truncated_text, style="italic dim")
-                self.truncated_text = None
+                truncated = True
 
-    def format_snippet(self):
+    def format_snippet(self) -> None:
         """Take a text snippet and format it using rich."""
         if self.snippet is None:
             log.debug("Tried to format snippet with no snippet")
@@ -370,30 +377,16 @@ class RichImg:
             except json.decoder.JSONDecodeError:
                 pass
 
-        # Adjust terminal width if min-width set
-        t_width = int(self.terminal_width) if self.terminal_width else None
-        if not self.notrim and self.terminal_min_width:
-            t_width = int(self.terminal_min_width)
-            for line in self.snippet.splitlines():
-                t_width = max(len(line), t_width)
-            log.debug(f"Setting terminal width to {t_width}")
-
-        self.capture_console = Console(
-            file=open(os.devnull, "w"),
-            force_terminal=True,
-            color_system="truecolor",
-            highlight=False,
-            record=True,
-            width=t_width,
-        )
+        longest_line = max((len(line) for line in self.snippet.splitlines()), default=0)
+        self.capture_console = self._new_capture_console(longest_line)
 
         # Print with rich Syntax highlighter
         log.debug(f"Formatting snippet as {self.snippet_syntax}")
         snippet_theme = "monokai" if self.snippet_theme is None else self.snippet_theme  # Same default as Rich
-        syntax = Syntax(self.snippet, self.snippet_syntax, theme=snippet_theme)
+        syntax = Syntax(self.snippet, self.snippet_syntax or "text", theme=snippet_theme)
         self.capture_console.print(syntax)
 
-    def get_output(self):
+    def get_output(self) -> None:
         """Either run command or format snippet, depending on what is set."""
         if self.command is not None:
             self.run_command()
@@ -402,7 +395,11 @@ class RichImg:
         else:
             log.warning("Tried to get output with no command or snippet")
 
-    def _enough_image_difference(self, new_fn, old_fn):
+    def _enough_image_difference(self, new_fn: str, old_fn: str) -> bool:
+        """Decide whether the newly rendered image differs enough from the saved one.
+
+        Also logs the outcome and updates the saved / skipped counters.
+        """
         new_file = Path(new_fn)
         old_file = Path(old_fn)
         create_file = True
@@ -418,7 +415,7 @@ class RichImg:
             new_file_bytes = new_file.read_bytes()
             old_file_bytes = old_file.read_bytes()
             pct_change = (1 - ratio(new_file_bytes, old_file_bytes)) * 100.0
-            if pct_change <= float(self.min_pct_diff):
+            if pct_change <= self.min_pct_diff:
                 create_file = False
             log_msg = f"{pct_change:.2f}% change"
 
@@ -427,7 +424,7 @@ class RichImg:
                 # Regex on file diff to skip.
                 # Drop blank lines only: an empty pattern would match every line.
                 # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
-                skip_regexes = []
+                skip_regexes: list[str] = []
                 if self.skip_change_regex:
                     skip_regexes = [ln for ln in self.skip_change_regex.splitlines() if ln.strip()]
                 if len(skip_regexes) > 0:
@@ -459,11 +456,7 @@ class RichImg:
                     else:
                         log_msg += ", no text to diff"
 
-        try:
-            old_fn_relative = old_file.resolve().relative_to(Path.cwd())
-        except ValueError:
-            # Output isn't inside the working directory, so log the path as it was given
-            old_fn_relative = old_file
+        old_fn_relative = relative_path(old_file)
         if create_file:
             self.num_img_saved += 1
             if old_fn in self.saved_img_paths:
@@ -477,7 +470,7 @@ class RichImg:
 
         return create_file
 
-    def _svg_unique_id(self):
+    def _svg_unique_id(self) -> str:
         """Build a stable ID to prefix the SVG's CSS classes and node IDs with.
 
         Rich defaults to a checksum of the rendered content, which changes whenever the
@@ -495,12 +488,15 @@ class RichImg:
             path = Path(path.name)
         return "rich-codex-" + str(zlib.adler32(str(path).encode("utf-8")))
 
-    def save_images(self):
+    def save_images(self) -> None:
         """Save the images to the specified filenames."""
         if self.aborted:
             return
         if len(self.img_paths) == 0:
             log.warning("Tried to save images with no paths")
+            return
+        if self.capture_console is None:
+            log.warning("Tried to save images before any output was rendered")
             return
 
         # Set up theme
