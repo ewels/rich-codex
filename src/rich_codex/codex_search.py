@@ -10,7 +10,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from rich_codex import rich_img
-from rich_codex.utils import validate_config
+from rich_codex.utils import clean_list, validate_config
 
 log = logging.getLogger("rich-codex")
 
@@ -34,6 +34,8 @@ class CodexSearch:
         search_exclude,
         configs,
         no_confirm,
+        no_dedupe,
+        extra_env,
         snippet_syntax,
         timeout,
         working_dir,
@@ -59,10 +61,10 @@ class CodexSearch:
         if search_include is None:
             self.search_include = ["**/*.md", "**/*.mdx"]
         else:
-            self.search_include = self._clean_list(search_include.splitlines())
+            self.search_include = clean_list(search_include.splitlines())
         self.search_exclude = ["**/.git*", "**/.git*/**", "**/node_modules/**"]
         if search_exclude is not None:
-            self.search_exclude.extend(self._clean_list(search_exclude.splitlines()))
+            self.search_exclude.extend(clean_list(search_exclude.splitlines()))
         self.configs = [
             ".rich-codex.yml",
             ".rich-codex.yaml",
@@ -72,8 +74,10 @@ class CodexSearch:
             "docs/img/rich-codex.yaml",
         ]
         if configs is not None:
-            self.configs.extend(self._clean_list(configs.splitlines()))
+            self.configs.extend(clean_list(configs.splitlines()))
         self.no_confirm = no_confirm
+        self.no_dedupe = no_dedupe
+        self.extra_env = extra_env
         self.snippet_syntax = snippet_syntax
         self.timeout = timeout
         self.working_dir = working_dir
@@ -94,11 +98,13 @@ class CodexSearch:
         self.snippet_theme = snippet_theme
         self.use_pty = use_pty
         self.console = Console() if console is None else console
+        self.cwd = Path.cwd().resolve()
         self.rich_imgs = []
         self.saved_img_paths = []
         self.num_img_saved = 0
         self.num_img_skipped = 0
         self.class_config_attrs = [
+            "extra_env",
             "snippet_syntax",
             "timeout",
             "working_dir",
@@ -119,12 +125,14 @@ class CodexSearch:
             "snippet_theme",
             "use_pty",
         ]
+        # Config options that combine with more specific config, instead of being replaced by it
+        self.merged_config_attrs = ["extra_env"]
 
         # Look in .gitignore to add to search_exclude
         try:
             with open(".gitignore", "r") as fh:
                 log.debug("Appending contents of .gitignore to 'SEARCH_EXCLUDE'")
-                self.search_exclude.extend(self._clean_list(fh.readlines()))
+                self.search_exclude.extend(clean_list(fh.readlines()))
         except IOError:
             pass
 
@@ -133,23 +141,23 @@ class CodexSearch:
         with config_schema_fn.open() as fh:
             self.config_schema = yaml.safe_load(fh)
 
-    def _clean_list(self, unclean_lines):
-        """Remove empty strings from a list."""
-        clean_lines = []
-        for line in unclean_lines:
-            line = line.strip()
-            if not line.startswith("#") and line:
-                clean_lines.append(line)
-        return clean_lines
-
     def _merge_local_class_attrs(self, local_config):
         """Update local config with class params.
         Only if not set locally and if not None at class level
         """
         for conf in self.class_config_attrs:
-            if conf not in local_config and getattr(self, conf) is not None:
+            if getattr(self, conf) is None:
+                continue
+            # Global config applies to every image, but local keys win
+            if conf in self.merged_config_attrs:
+                local_config[conf] = self._merge_config_values(getattr(self, conf), local_config.get(conf))
+            elif conf not in local_config:
                 local_config[conf] = getattr(self, conf)
         return local_config
+
+    def _merge_config_values(self, base, override):
+        """Combine two dicts of config values, with keys in 'override' winning."""
+        return {**(base or {}), **(override or {})}
 
     def search_files(self):
         """Search through a set of files for codex strings."""
@@ -262,6 +270,7 @@ class CodexSearch:
                         local_config["working_dir"] = local_config.get("working_dir", str(Path(file).parent))
                         local_config["source_type"] = local_config.get("source_type", "search")
                         local_config["source"] = local_config.get("source", str(file))
+                        local_config["source_line"] = line_number
 
                         local_config = self._merge_local_class_attrs(local_config)
 
@@ -329,7 +338,8 @@ class CodexSearch:
             log.info(f"Found {len(configs)} config file{'s' if len(configs) > 1 else ''}")
         for config in configs:
             with config.open() as fh:
-                self.parse_config(config, yaml.safe_load(fh))
+                # An empty config file is valid, it just doesn't configure anything
+                self.parse_config(config, yaml.safe_load(fh) or {})
 
     def parse_config(self, config_fn, config):
         """Parse a single rich-codex config file."""
@@ -338,9 +348,17 @@ class CodexSearch:
         # Overwrite class-level configs
         for cls in self.class_config_attrs:
             if cls in config:
-                setattr(self, cls, config[cls])
+                # Merged options are added to anything already set, rather than replacing it
+                if cls in self.merged_config_attrs:
+                    setattr(self, cls, self._merge_config_values(getattr(self, cls), config[cls]))
+                else:
+                    setattr(self, cls, config[cls])
 
-        for output in config["outputs"]:
+        # 'outputs' is optional - a config file can just set global defaults
+        if "outputs" not in config:
+            log.debug(f"No 'outputs' found in '{config_fn}', using it for global config only")
+
+        for output in config.get("outputs") or []:
             log.debug(f"Found valid output in '{config_fn}': {output}")
             output["img_paths"] = [str(Path(img_path_str.strip()).resolve()) for img_path_str in output["img_paths"]]
             output["source_type"] = "config"
@@ -350,8 +368,15 @@ class CodexSearch:
 
     def collapse_duplicates(self):
         """Collapse duplicate commands."""
-        # Remove exact duplicates
+        # Remove exact duplicates - identical requests would only overwrite one another
         dedup_imgs = list(dict.fromkeys(self.rich_imgs))
+
+        # Commands run in series can give different output each time, so merging can be disabled
+        if self.no_dedupe:
+            log.debug(f"Running all {len(dedup_imgs)} image requests separately, as deduplication is disabled")
+            self.rich_imgs = dedup_imgs
+            return
+
         # Merge dups that are the same except for output filename
         merged_imgs = {}
         for ri in dedup_imgs:
@@ -362,6 +387,18 @@ class CodexSearch:
                 merged_imgs[ri_hash] = ri
         log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
         self.rich_imgs = merged_imgs.values()
+
+    def _relative_path(self, path):
+        """Path relative to the working directory, if it's inside it."""
+        try:
+            return str(Path(path).resolve().relative_to(self.cwd))
+        except ValueError:
+            log.debug(f"Couldn't find relative path for '{path}'")
+            return str(path)
+
+    def _path_link(self, path, label=None):
+        """Rich markup for a file path, hyperlinked to the file itself."""
+        return f"[grey42][link=file:{Path(path).resolve()}]{label or self._relative_path(path)}[/][/]"
 
     def confirm_commands(self):
         """Prompt the user to confirm running the commands."""
@@ -375,16 +412,15 @@ class CodexSearch:
             row_styles=["green on grey3", "magenta on grey15"],
         )
         table.add_column("Commands to run:")
+        table.add_column("Output")
         table.add_column("Source")
         for img_obj in self.rich_imgs:
             if img_obj.command is not None:
-                try:
-                    rel_source = Path(img_obj.source).resolve().relative_to(Path.cwd().resolve())
-                except ValueError:
-                    log.debug("Couldn't find relative path")
-                    rel_source = img_obj.source
-                source = f"[grey42][link=file:{Path(img_obj.source).resolve()}]{rel_source}[/][/]"
-                table.add_row(img_obj.command, source)
+                rel_source = self._relative_path(img_obj.source)
+                if img_obj.source_line:
+                    rel_source = f"{rel_source}:{img_obj.source_line}"
+                outputs = "\n".join(self._path_link(p) for p in img_obj.img_paths)
+                table.add_row(img_obj.command, outputs, self._path_link(img_obj.source, rel_source))
 
         if table.row_count == 0:
             return True
@@ -420,8 +456,8 @@ class CodexSearch:
                     img_paths_src[img_path] = [ri.source]
         for img_path, src in img_paths_src.items():
             if len(src) > 1:
-                img_path_rel = Path(img_path).relative_to(Path.cwd())
-                src_paths = "', '".join(set(str(s.relative_to(Path.cwd())) for s in src))
+                img_path_rel = self._relative_path(img_path)
+                src_paths = "', '".join(set(self._relative_path(s) for s in src))
                 log.warning(f"Duplicate output file path '{img_path_rel}' found in '{src_paths}'")
 
     def save_all_images(self):

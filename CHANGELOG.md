@@ -3,6 +3,17 @@
 ## Unreleased
 
 - ✨ MDX support: `.mdx` files are now searched by default and config comments can be written as JSX comments (`{/* RICH-CODEX ... */}`), as MDX doesn't allow HTML comments
+- ✨ `extra_env` can now be set once for all commands, via a config file, `--extra-env` / `$EXTRA_ENV` or the `extra_env` action input ([#57](https://github.com/ewels/rich-codex/issues/57))
+- ✨ Show the source line number and output filenames in the table of commands to confirm ([#57](https://github.com/ewels/rich-codex/issues/57))
+- ✨ Group the CLI options into panels in `--help` ([#57](https://github.com/ewels/rich-codex/issues/57))
+- ✨ New action input `skip_install`, for when you want to install rich-codex yourself (a specific version, a branch, or a local checkout)
+- ✨ New `--no-dedupe` / `$NO_DEDUPE` / `no_dedupe` option, to run duplicate commands separately instead of sharing one screenshot ([#33](https://github.com/ewels/rich-codex/issues/33))
+- 🐛 `outputs` is now optional in config files, which previously crashed with a `KeyError` ([#57](https://github.com/ewels/rich-codex/issues/57))
+- 🐛 Fix two broken links on the docs homepage, found by building the docs with `--strict`
+- 🐛 Fix the `python_verison` action input typo, now `python_version` (old name deprecated). It was also being ignored, and is now passed to the Python / uv setup ([#57](https://github.com/ewels/rich-codex/issues/57))
+- ⬆️ Require `rich-click>=1.9.0`, which drops support for Python 3.7
+- 🐛 Fix environment variables missing from the `--help` screenshots with rich-click 1.9
+- 🐛 Fix terminal theme screenshots in the docs, which pointed at `setup.cfg` (removed in v1.2.11)
 
 ## Version 1.2.11 (2025-04-22)
 

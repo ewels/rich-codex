@@ -120,6 +120,37 @@ jobs:
           clean_img_paths: docs/img/*.svg
 ```
 
+## Installing rich-codex yourself
+
+By default, the action installs the latest release of rich-codex from PyPI.
+If you'd rather choose the version yourself - a specific release, a git branch, or a local checkout - install it in an earlier step and set `skip_install`:
+
+```yaml title=".github/workflows/screenshots.yml" linenums="1" hl_lines="11 17 18"
+steps:
+  - name: Check out the repo
+    uses: actions/checkout@v4
+
+  - name: Set up Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: "3.x"
+
+  - name: Install rich-codex
+    run: pip install "rich-codex[cairo]==1.2.11"
+
+  - name: Generate terminal images with rich-codex
+    uses: ewels/rich-codex@v1
+    with:
+      commit_changes: "true"
+      skip_python_setup: "true"
+      skip_install: "true"
+```
+
+Set up Python yourself as well, as above, so that the action doesn't set up a second interpreter that your install isn't visible to.
+
+Anything pip understands works here, such as `git+https://github.com/ewels/rich-codex@main`.
+Rich-codex itself uses `pip install -e ".[cairo]"` to generate the screenshots in its own documentation, so that images of its CLI show the current code rather than the last release.
+
 ## GitHub Action Inputs
 
 Basically everything that you can configure via the command line interface / config can also be configured within GitHub actions via the `with` key.

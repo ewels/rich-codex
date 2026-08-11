@@ -8,6 +8,7 @@ properties:
   # top-level config options
 
   # Shared config options
+  extra_env: { "$ref": "#/$defs/extra_env" }
   snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
   timeout: { "$ref": "#/$defs/timeout" }
   working_dir: { "$ref": "#/$defs/working_dir" }
@@ -68,9 +69,6 @@ properties:
         fake_command:
           title: Pretend command to show in the screenshot prompt
           type: string
-        extra_env:
-          title: Additional environment variables to set for this command
-          type: object
         img_paths:
           title: Array of image filenames to generate
           type: array
@@ -79,13 +77,18 @@ properties:
             type: string
             title: An image path
             pattern: "(?i)\\.(svg|png|pdf)$"
+        # Internal fields, set by rich-codex rather than by the user
         source:
           title: Filename / meta about where the image came from
         source_type:
           title: Type of input that the image came from
           type: string
+        source_line:
+          title: Line number in the source file that the image came from
+          type: integer
 
         # Shared config options
+        extra_env: { "$ref": "#/$defs/extra_env" }
         snippet_syntax: { "$ref": "#/$defs/snippet_syntax" }
         timeout: { "$ref": "#/$defs/timeout" }
         working_dir: { "$ref": "#/$defs/working_dir" }
@@ -108,6 +111,9 @@ properties:
 
 # Single location to hold schema for config options, as used twice
 "$defs":
+  extra_env:
+    title: Additional environment variables to set when running commands
+    type: object
   snippet_syntax:
     title: Language to use for snippet sytax highlighting
     type: string

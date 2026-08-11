@@ -32,6 +32,12 @@ inputs:
   after_command:
     description: Setup commands to run after running main output command
     required: false
+  extra_env:
+    description: Additional environment variables for all commands, one 'KEY=value' pair per line
+    required: false
+  no_dedupe:
+    description: Set to 'true' to run duplicate commands separately, instead of once with a shared screenshot
+    required: false
   snippet:
     description: Literal code snippet to render
     required: false
@@ -113,40 +119,57 @@ inputs:
     description: If true, skip Python setup (or skip uv setup if `use_uv` is true). Only use this if you already set up Python in a previous step, e.g. to install additional dependencies. When combined with `use_uv`, this assumes you already ran the `astral-sh/setup-uv` action.
     default: "false"
     required: false
+  skip_install:
+    description: If true, skip installing rich-codex. Only use this if you already installed it in a previous step, e.g. from a local checkout or a specific version.
+    default: "false"
+    required: false
+  python_version:
+    description: Which version of Python to use when setting up Python or uv. Defaults to '3.x'.
+    required: false
   python_verison:
-    description: Which version of Python to use when setting up Python or uv.
-    default: "3"
+    description: "Deprecated: misspelling of 'python_version', which should be used instead."
     required: false
 
 runs:
   using: "composite"
   steps:
+    - name: Warn about deprecated inputs
+      if: inputs.python_verison != ''
+      run: echo "::warning::The 'python_verison' input is a typo and is deprecated. Please use 'python_version'."
+      shell: bash
+
     - name: Set up uv
       if: inputs.skip_python_setup != 'true' && inputs.use_uv == 'true'
       uses: astral-sh/setup-uv@v5
       with:
-        python-version: 3.x
+        python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
 
     - name: Set up Python
       if: inputs.skip_python_setup != 'true' && inputs.use_uv != 'true'
       uses: actions/setup-python@v5
       with:
-        python-version: 3.x
+        python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
+
+    # Needed for screenshots even when rich-codex itself is already installed
+    - name: Install fonts
+      run: |
+        echo "::group::Installing fonts"
+        sudo apt install fonts-firacode
+        echo "::endgroup::"
+      shell: bash
 
     - name: Install rich-codex with uv
-      if: inputs.use_uv == 'true'
+      if: inputs.use_uv == 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        sudo apt install fonts-firacode
         uv pip install "rich-codex[cairo]"
         echo "::endgroup::"
       shell: bash
 
     - name: Install rich-codex with pip
-      if: inputs.use_uv != 'true'
+      if: inputs.use_uv != 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        sudo apt install fonts-firacode
         pip install "rich-codex[cairo]"
         echo "::endgroup::"
       shell: bash
@@ -163,6 +186,8 @@ runs:
         WORKING_DIR: ${{ inputs.working_dir }}
         BEFORE_COMMAND: ${{ inputs.before_command }}
         AFTER_COMMAND: ${{ inputs.after_command }}
+        EXTRA_ENV: ${{ inputs.extra_env }}
+        NO_DEDUPE: ${{ inputs.no_dedupe }}
         SNIPPET: ${{ inputs.snippet }}
         SNIPPET_SYNTAX: ${{ inputs.snippet_syntax }}
         IMG_PATHS: ${{ inputs.img_paths }}

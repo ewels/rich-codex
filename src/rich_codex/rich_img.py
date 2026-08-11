@@ -27,6 +27,12 @@ with config_schema_fn.open() as fh:
     config_schema = yaml.safe_load(fh)
 RICH_IMG_ATTRS = config_schema["properties"]["outputs"]["items"]["properties"].keys()
 
+# Line numbers say where an image was defined, not what it renders, so are ignored when deduplicating.
+# 'source' is deliberately kept, so that identical commands in different files stay distinct
+# and can be reported by CodexSearch.check_duplicate_paths().
+HASH_ATTRS = [attr for attr in RICH_IMG_ATTRS if attr != "source_line"]
+HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr != "img_paths"]
+
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
 
@@ -70,6 +76,7 @@ class RichImg:
         console=None,
         source_type=None,
         source=None,
+        source_line=None,
     ):
         """Initialise the RichImg object with core console options."""
         self.command = command
@@ -108,22 +115,23 @@ class RichImg:
         self.aborted = False
         self.source_type = source_type
         self.source = Path(source) if source is not None else None
+        self.source_line = source_line
 
     def __eq__(self, other):
         """Compare RichImg objects for equality."""
         if not isinstance(other, RichImg):
             # don't attempt to compare against unrelated types
             return NotImplemented
-        return all(getattr(self, attr) == getattr(other, attr) for attr in RICH_IMG_ATTRS)
+        return all(getattr(self, attr) == getattr(other, attr) for attr in HASH_ATTRS)
 
     def __hash__(self):
         """Hash stable identifier of RichImg object based on important attributes."""
-        attrs = str([getattr(self, attr) for attr in RICH_IMG_ATTRS])
+        attrs = str([getattr(self, attr) for attr in HASH_ATTRS])
         return hash(attrs)
 
     def _hash_no_fn(self):
         """Hash stable identifier of RichImg object based without output filenames."""
-        attrs = str([getattr(self, attr) for attr in RICH_IMG_ATTRS if attr != "img_paths"])
+        attrs = str([getattr(self, attr) for attr in HASH_ATTRS_NO_FN])
         return hash(attrs)
 
     def confirm_command(self):

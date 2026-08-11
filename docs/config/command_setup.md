@@ -20,6 +20,35 @@ extra_env:
     It's probably easier to set these at run-level if that's an option, these are really only if you want to customise for a single output.
 <!-- prettier-ignore-end -->
 
+To set environment variables for _every_ command instead, use the top level of a config file:
+
+```yaml
+extra_env:
+  MY_TOOL_NO_COLOR: "1"
+```
+
+..or `--extra-env` / `$EXTRA_ENV` / `extra_env` (command line / environment variable / GitHub action key), with one `KEY=value` pair per line:
+
+```bash
+rich-codex --extra-env "MY_TOOL_NO_COLOR=1"
+```
+
+Both are merged with any per-image `extra_env`, which takes precedence for keys set in both places.
+
+## Repeated commands
+
+If the same command is found more than once in a file, rich-codex runs it once and saves the result to every filename that asked for it.
+This keeps runs fast and the images consistent, which is usually what you want when an example is shown in more than one place.
+Commands found in different files always run separately.
+
+Sometimes it isn't: if you're documenting a sequence of steps, the same command can legitimately give different output each time it runs.
+Use `--no-dedupe` / `$NO_DEDUPE` / `no_dedupe` (command line / environment variable / GitHub action key) to run every command where it's found, so that each screenshot captures its own run.
+
+<!-- prettier-ignore-start -->
+!!! note
+    Identical requests - same command, same config, same filenames - are still collapsed into one, as running them separately would only overwrite the same file twice.
+<!-- prettier-ignore-end -->
+
 ## Faking simple commands
 
 Sometimes you may need to have long complicated commands to get the screenshot you need, when the typical command for an end user would be much simpler.

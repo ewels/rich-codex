@@ -11,8 +11,62 @@ from rich_codex import __version__, codex_search, rich_img, utils
 
 import rich_click as click
 
-click.rich_click.OPTION_ENVVAR_FIRST = True
-click.rich_click.ENVVAR_STRING = "[env: {}]"
+click.rich_click.OPTIONS_TABLE_HELP_SECTIONS = ["envvar", "help", "deprecated", "default", "required"]
+click.rich_click.OPTION_GROUPS = {
+    "rich-codex": [
+        {
+            "name": "Inputs",
+            "options": ["--search-include", "--search-exclude", "--no-search", "--configs", "--command", "--snippet"],
+        },
+        {
+            "name": "Outputs",
+            "options": ["--img-paths", "--clean-img-paths", "--created-files", "--deleted-files"],
+        },
+        {
+            "name": "Running commands",
+            "options": [
+                "--timeout",
+                "--working-dir",
+                "--before-command",
+                "--after-command",
+                "--extra-env",
+                "--no-dedupe",
+                "--use-pty",
+            ],
+        },
+        {
+            "name": "Screenshot contents",
+            "options": [
+                "--fake-command",
+                "--hide-command",
+                "--title-command",
+                "--head",
+                "--tail",
+                "--trim-after",
+                "--truncated-text",
+            ],
+        },
+        {
+            "name": "Terminal appearance",
+            "options": [
+                "--terminal-width",
+                "--terminal-min-width",
+                "--notrim",
+                "--terminal-theme",
+                "--snippet-syntax",
+                "--snippet-theme",
+            ],
+        },
+        {
+            "name": "Updating images",
+            "options": ["--min-pct-diff", "--skip-change-regex", "--skip-git-checks", "--no-confirm"],
+        },
+        {
+            "name": "Logging",
+            "options": ["--verbose", "--save-log", "--log-file", "--help"],
+        },
+    ]
+}
 
 log = logging.getLogger()
 
@@ -69,6 +123,19 @@ log = logging.getLogger()
     envvar="AFTER_COMMAND",
     show_envvar=True,
     help="Setup commands to run after running main output command",
+)
+@click.option(
+    "--extra-env",
+    envvar="EXTRA_ENV",
+    show_envvar=True,
+    help="Additional environment variables for all commands, one 'KEY=value' pair per line",
+)
+@click.option(
+    "--no-dedupe",
+    is_flag=True,
+    envvar="NO_DEDUPE",
+    show_envvar=True,
+    help="Run duplicate commands separately, instead of once with a shared screenshot",
 )
 @click.option(
     "--snippet",
@@ -222,14 +289,14 @@ log = logging.getLogger()
     envvar="CREATED_FILES",
     show_envvar=True,
     help="Save a list of created files to this file",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 @click.option(
     "--deleted-files",
     envvar="DELETED_FILES",
     show_envvar=True,
     help="Save a list of deleted files to this file",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 @click.option(
     "-v",
@@ -245,7 +312,7 @@ log = logging.getLogger()
     envvar="LOG_SAVE",
     show_envvar=True,
     help="Save a verbose log to a file (automatic filename).",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 @click.option(
     "-l",
@@ -253,7 +320,7 @@ log = logging.getLogger()
     envvar="LOG_FILENAME",
     show_envvar=True,
     help="Save a verbose log to a file (specific filename).",
-    metavar="<filename>",
+    metavar="FILENAME",
 )
 def main(
     search_include,
@@ -264,6 +331,8 @@ def main(
     working_dir,
     before_command,
     after_command,
+    extra_env,
+    no_dedupe,
     snippet,
     snippet_syntax,
     img_paths,
@@ -370,6 +439,16 @@ def main(
         width=100 if getenv("GITHUB_ACTIONS") else None,
     )
 
+    # Parse environment variables to set for every command
+    if extra_env:
+        try:
+            extra_env = utils.parse_extra_env(extra_env)
+        except ValueError as e:
+            raise click.BadOptionUsage("--extra-env", str(e))
+        log.debug(f"Setting extra environment variables for all commands: {extra_env}")
+    else:
+        extra_env = None
+
     # Check for mutually exclusive options
     if command and snippet:
         raise click.BadOptionUsage("--command", "Please use either --command OR --snippet but not both")
@@ -383,6 +462,7 @@ def main(
             timeout=timeout,
             before_command=before_command,
             after_command=after_command,
+            extra_env=extra_env,
             working_dir=working_dir,
             fake_command=fake_command,
             hide_command=hide_command,
@@ -425,6 +505,8 @@ def main(
         search_exclude=search_exclude,
         configs=configs,
         no_confirm=no_confirm,
+        no_dedupe=no_dedupe,
+        extra_env=extra_env,
         snippet_syntax=snippet_syntax,
         timeout=timeout,
         before_command=before_command,

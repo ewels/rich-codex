@@ -32,31 +32,31 @@ The terminal theme should be set as a string to one of these values.
 
 <!-- RICH-CODEX terminal_theme: DEFAULT_TERMINAL_THEME -->
 
-![`rich ../../setup.cfg -h 5 --force-terminal`](../img/theme-default_terminal_theme.svg "DEFAULT_TERMINAL_THEME")
+![`rich ../../pyproject.toml -h 5 --force-terminal`](../img/theme-default_terminal_theme.svg "DEFAULT_TERMINAL_THEME")
 
 `MONOKAI`:
 
 <!-- RICH-CODEX terminal_theme: MONOKAI -->
 
-![`rich ../../setup.cfg -h 5 --force-terminal`](../img/theme-monokai.svg "MONOKAI")
+![`rich ../../pyproject.toml -h 5 --force-terminal`](../img/theme-monokai.svg "MONOKAI")
 
 `DIMMED_MONOKAI`:
 
 <!-- RICH-CODEX terminal_theme: DIMMED_MONOKAI -->
 
-![`rich ../../setup.cfg -h 5 --force-terminal`](../img/theme-dimmed_monokai.svg "DIMMED_MONOKAI")
+![`rich ../../pyproject.toml -h 5 --force-terminal`](../img/theme-dimmed_monokai.svg "DIMMED_MONOKAI")
 
 `NIGHT_OWLISH`:
 
 <!-- RICH-CODEX terminal_theme: NIGHT_OWLISH -->
 
-![`rich ../../setup.cfg -h 5 --force-terminal`](../img/theme-night_owlish.svg "NIGHT_OWLISH")
+![`rich ../../pyproject.toml -h 5 --force-terminal`](../img/theme-night_owlish.svg "NIGHT_OWLISH")
 
 `SVG_EXPORT_THEME`:
 
 <!-- RICH-CODEX terminal_theme: SVG_EXPORT_THEME -->
 
-![`rich ../../setup.cfg -h 5 --force-terminal`](../img/theme-svg_export_theme.svg "SVG_EXPORT_THEME")
+![`rich ../../pyproject.toml -h 5 --force-terminal`](../img/theme-svg_export_theme.svg "SVG_EXPORT_THEME")
 
 ## Snippet colours
 

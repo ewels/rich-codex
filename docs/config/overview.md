@@ -30,6 +30,8 @@ An overview of all available config options in all scopes is below:
 | `--working-dir`        | `WORKING_DIR`        | `working_dir`                     |
 | `--before-command`     | `BEFORE_COMMAND`     | `before_command`                  |
 | `--after-command`      | `AFTER_COMMAND`      | `after_command`                   |
+| `--extra-env`          | `EXTRA_ENV`          | `extra_env`                       |
+| `--no-dedupe`          | `NO_DEDUPE`          | `no_dedupe`                       |
 | `--snippet`            | `SNIPPET`            | `snippet`                         |
 | `--snippet-syntax`     | `SNIPPET_SYNTAX`     | `snippet_syntax`                  |
 | `--img-paths`          | `IMG_PATHS`          | `img_paths`                       |
@@ -59,8 +61,8 @@ An overview of all available config options in all scopes is below:
 | `--log-file`           | `LOG_FILENAME`       | -                                 |
 | -                      | -                    | `commit_changes` \*               |
 | -                      | -                    | `error_changes` \*                |
+| -                      | -                    | `skip_install` \*                 |
 | -                      | -                    | `title` †                         |
-| -                      | -                    | `extra_env` †                     |
 | -                      | -                    | `skip` †                          |
 
 - `*` - GitHub Action only
@@ -81,6 +83,7 @@ A brief description of each option follows.
 - `--no-search`: Set to disable searching for rich-codex comments
 - `--command`: Specify a command to run to capture output
 - `--timeout`: Maximum run time for command (seconds)
+- `--no-dedupe`: Run duplicate commands separately, instead of once with a shared screenshot (see [repeated commands](command_setup.md#repeated-commands))
 - `--hide-command`: Hide the terminal prompt with the command at the top of the output
 - `--title-command`: Use the command as the terminal title if not set explicitly
 - `--head`: Show only the first N lines of output
@@ -109,5 +112,6 @@ A brief description of each option follows.
 - `--log-file`: Save a verbose log to a file (specific filename).
 - `commit_changes`: Automatically commit changes to the repository
 - `error_changes`: Exit with an error if changes are found (Ignored if `commit_changes` is true)
+- `skip_install`: Don't install rich-codex, because a previous step already did (see [installing rich-codex yourself](../usage/github_action.md#installing-rich-codex-yourself))
 - `title`: Title for the terminal title bar
 - `skip`: Skip / ignore this image
