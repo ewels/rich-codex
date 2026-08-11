@@ -1,86 +1,41 @@
 # Changelog: rich-codex
 
-## Version 1.3.0 (2026-08-11)
+## Version 1.3.0 (2026-08-12)
+
+A lot of tweaks and improvements that have been building up, mostly driven with Claude.
+Hopefully the code should be quite a lot more robust now.
+
+Main new feature is the ability to run with `.mdx` files as well as `.md`, using `{/* */}` comments.
+
+### Breaking changes
+
+- 💥 Minimum supported Python is now 3.10, up from 3.7 ([#61](https://github.com/ewels/rich-codex/pull/61))
 
 ### New features
 
-- ✨ MDX support: `.mdx` files are now searched by default and config comments can be written as JSX comments (`{/* RICH-CODEX ... */}`), as MDX doesn't allow HTML comments
-- ✨ `extra_env` can now be set once for all commands, via a config file, `--extra-env` / `$EXTRA_ENV` or the `extra_env` action input ([#57](https://github.com/ewels/rich-codex/issues/57))
-- ✨ Show the source line number and output filenames in the table of commands to confirm ([#57](https://github.com/ewels/rich-codex/issues/57))
-- ✨ Group the CLI options into panels in `--help` ([#57](https://github.com/ewels/rich-codex/issues/57))
-- ✨ New action input `skip_install`, for when you want to install rich-codex yourself (a specific version, a branch, or a local checkout)
-- ✨ New `--no-dedupe` / `$NO_DEDUPE` / `no_dedupe` option, to run duplicate commands separately instead of sharing one screenshot ([#33](https://github.com/ewels/rich-codex/issues/33))
+- ✨ MDX support: `.mdx` files are searched by default, and config can be written as JSX comments (`{/* RICH-CODEX ... */}`), as MDX doesn't allow HTML comments ([#58](https://github.com/ewels/rich-codex/pull/58))
+- ✨ New `--no-dedupe` option, to run duplicate commands ([#33](https://github.com/ewels/rich-codex/issues/33))
+- ✨ `extra_env` can now be set once for all commands ([#57](https://github.com/ewels/rich-codex/issues/57))
+- ✨ Smaller SVG diffs thanks to a stable ID based on the output path ([#60](https://github.com/ewels/rich-codex/pull/60))
+- ✨ CLI table now shows source line numbers and output filenames ([#57](https://github.com/ewels/rich-codex/issues/57))
+- ✨ Tidier `--help`, with the options grouped into panels ([#57](https://github.com/ewels/rich-codex/issues/57))
+- ✨ New `skip_install` action input, mostly for self-testing rich-codex changes ([#61](https://github.com/ewels/rich-codex/pull/61))
 
-### Testing
+### Updates
 
-- ✨ New unit test suite: 254 tests covering all four modules at 100% coverage, run against every supported Python version in CI ([#60](https://github.com/ewels/rich-codex/pull/60))
-- ✨ SVGs now get a stable ID derived from the output path, instead of a checksum of their content. Regenerating an image gives a small diff rather than rewriting most of the file ([#60](https://github.com/ewels/rich-codex/pull/60))
+- ♻️ Stopped `/CreationDate` changes in PDFs as it never worked. Use `min_pct_diff` for PDF outputs instead ([#60](https://github.com/ewels/rich-codex/pull/60))
+- ♻️ New unit test suite ([#60](https://github.com/ewels/rich-codex/pull/60)), type annotations checked with mypy ([#62](https://github.com/ewels/rich-codex/pull/62)), prek and ruff in place of pre-commit, black, flake8 and isort, and CI across Python 3.10 - 3.14 ([#61](https://github.com/ewels/rich-codex/pull/61))
 
-### Bug fixes
+### Bugs fixed
 
-- 🐛 `outputs` is now optional in config files, which previously crashed with a `KeyError` ([#57](https://github.com/ewels/rich-codex/issues/57))
-- 🐛 Fix `--skip-change-regex` / `$SKIP_CHANGE_REGEX`, which could never match anything: the file diff was consumed before being searched. Diffing also used `difflib.Differ`, which is quadratic and took minutes on large files, and the config schema declared the option as a boolean so setting it in a config file failed validation ([#60](https://github.com/ewels/rich-codex/pull/60))
-- 🐛 Fix `save_images()` deleting a generated SVG when a PNG or PDF output followed it ([#60](https://github.com/ewels/rich-codex/pull/60))
-- 🐛 A config comment that isn't a dictionary is now counted as an error alongside the others, instead of aborting the whole run ([#60](https://github.com/ewels/rich-codex/pull/60))
-- 🐛 `clean_img_paths` no longer raises a `ValueError` on a blank line ([#60](https://github.com/ewels/rich-codex/pull/60))
-- 🐛 Fix the `python_verison` action input typo, now `python_version` (old name deprecated). It was also being ignored, and is now passed to the Python / uv setup ([#57](https://github.com/ewels/rich-codex/issues/57))
-- 🐛 Fix environment variables missing from the `--help` screenshots with rich-click 1.9
-- 🐛 Remove some leftover debug logging that printed the contents of file diffs at `INFO` level
-- 🐛 Fix a `ValueError` crash when an output image path is outside the working directory
-- 🐛 The hint shown when CairoSVG is missing now says `'rich-codex[cairo]'` instead of `'rich-codex'`, as the `[cairo]` part was being swallowed as rich markup
-- 🐛 The Docker image now installs the `cairo` extra, so that PNG and PDF output works
-- 🐛 Fix two broken links on the docs homepage, found by building the docs with `--strict`
-- 🐛 Fix terminal theme screenshots in the docs, which pointed at `setup.cfg` (removed in v1.2.11)
-- 🐛 Fix a typo in the `snippet_syntax` description ("sytax"), shown in `--help` and in the action inputs, plus four more in the docs
-
-### Removed
-
-- 💥 The built-in filter that ignored `/CreationDate` changes in PDFs is gone. CairoSVG writes that metadata into a compressed stream, so it never appeared as plaintext for a regex to match. Use `min_pct_diff` for PDF outputs instead ([#60](https://github.com/ewels/rich-codex/pull/60))
-
-### GitHub Action
-
-- 🐛 Fix `use_uv: true`, which could never install rich-codex: `uv pip install` had no virtual environment to install into, and the default `3.x` version is setup-python syntax that uv rejects
-- 🐛 `commit_changes: "false"` now means false. Previously any non-empty value was treated as true, so setting it to `"false"` still committed and pushed. The same applied to `error_changes`
-- 🐛 The log file artifact name now includes the job name and matrix index, so that using the action more than once in a single workflow run no longer fails with a duplicate artifact name
-- 🔒 Action inputs are passed to scripts through the environment instead of being expanded into them, so their contents can't be run as shell code
-- ⬆️ Update the actions used internally, and pin them all to commit SHAs: `checkout` v7, `setup-python` v7, `setup-uv` v9, `upload-artifact` v7
-
-### Python support
-
-- 💥 Minimum supported Python version is now 3.10, up from 3.7. Python 3.7, 3.8 and 3.9 are all end-of-life, and 3.8 / 3.9 are no longer available on GitHub's newest runner images
-- ⬆️ Require `rich-click>=1.9.0`, which also drops support for Python 3.7
-- ✨ Python 3.10 - 3.14 are all tested in CI on every push
-- ⬆️ The Docker image is now based on `python:3.14-alpine`, up from `python:3.10-alpine`
-- ♻️ Modernise the code for Python 3.10+, with ruff's `UP` rules to keep it that way
-
-### CI
-
-- ✨ As well as the unit tests, CI now checks an installed copy of rich-codex end to end on every supported Python version, so packaging mistakes get caught
-- ✨ New `Test action` workflow, covering both of the action's install paths (`pip` and `uv`), neither of which was tested before
-- ✨ The Docker image is now built (but not published) on pull requests, so that a broken `Dockerfile` is caught before it's merged
-- 🔒 Give every workflow job an explicit `permissions` block and stop persisting git credentials where they aren't needed
-
-### Developer tooling
-
-- ♻️ Git hooks now run with [prek](https://prek.j178.dev) instead of pre-commit, configured in `prek.toml`. It's a single Rust binary with no Python runtime of its own, and the TOML config is harder to get wrong than the YAML equivalent
-- ♻️ [Ruff](https://docs.astral.sh/ruff/) replaces black, flake8, isort and pyupgrade, configured in `pyproject.toml`. `.flake8` is gone, along with the `[tool.black]` and `[tool.isort]` sections
-- ✨ New hooks: `actionlint` for the workflow files, `pyproject-fmt` for `pyproject.toml`, and `codespell` for the docs
-- ✨ All hooks are pinned to a commit SHA, matching the versions used in the sister project [rich-click](https://github.com/ewels/rich-click)
-
-### Type checking
-
-- ✨ Everything in `src/` now has type annotations, checked by [mypy](https://mypy-lang.org/) with `disallow_untyped_defs`, as a prek hook and in CI. The `[tool.mypy]` config was previously unused, so nothing was actually being checked
-- 🐛 `--terminal-width` / `$TERMINAL_WIDTH` now reports a usage error for a non-numeric value, instead of exiting with an unhandled `ValueError` traceback. It was the only numeric option that wasn't parsed as an integer
-- 🐛 `clean_img_paths` no longer crashes part-way through deleting when a matched file resolves to somewhere outside the working directory (a symlink pointing out of the repo)
-- 🐛 `--img-paths` now ignores blank lines, like every other newline-separated option
-- 🐛 `save_images()` now warns and returns instead of raising `AttributeError` if it's called before any output has been rendered
-- ♻️ Each rendered image no longer leaves a `/dev/null` file handle open for the lifetime of the run, which could exhaust the open-file limit on a repo with many images
-- ♻️ `run_command()` always returns `None`; it used to return `False` when a command was refused. Check `.aborted` for that, as it always could
-- ♻️ `clean_images()` returns a sorted list of deleted paths, rather than a set on success and an empty list otherwise. Deletions and the `--deleted-files` list are now in a stable order. It also takes the generated image paths directly, instead of the two objects it used to reach into for them
-- ♻️ `confirm_commands()` returns `None`, rather than a three-way answer that nothing looked at. The prompt's effect is visible in the list of images to render, as before
-- ♻️ `run_command()` and `format_snippet()` share one method for building the recording console, instead of a copy each of the same width logic
-- ♻️ `truncated_text` is no longer blanked out while rendering to mark the truncation message as printed
-- ♻️ Pass a lexer name to rich's `Syntax` rather than `None`, and stop passing the validator object to `ValidationError`, which expects a name. Neither changes any output
+- 🐛 `skip_change_regex` never matched anything, so images updated regardless ([#60](https://github.com/ewels/rich-codex/pull/60))
+- 🐛 `outputs` is now optional in config files ([#57](https://github.com/ewels/rich-codex/issues/57))
+- 🐛 Writing an SVG alongside a PNG or PDF in one go could delete the SVG ([#60](https://github.com/ewels/rich-codex/pull/60))
+- 🐛 The Docker image can now write PNG and PDF files ([#61](https://github.com/ewels/rich-codex/pull/61))
+- 🐛 Action: `use_uv: true` could never install rich-codex ([#61](https://github.com/ewels/rich-codex/pull/61))
+- 🐛 Action: `commit_changes: "false"` committed and pushed anyway. Same for `error_changes` ([#61](https://github.com/ewels/rich-codex/pull/61))
+- 🐛 Action: using rich-codex twice in one workflow run failed, as both uploaded their log with the same artifact name ([#61](https://github.com/ewels/rich-codex/pull/61))
+- 🐛 Action: the `python_verison` input was a typo and was being ignored anyway. Use `python_version`; the old name still works but warns ([#57](https://github.com/ewels/rich-codex/issues/57))
 
 ## Version 1.2.11 (2025-04-22)
 
