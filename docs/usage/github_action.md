@@ -136,7 +136,7 @@ steps:
       python-version: "3.x"
 
   - name: Install rich-codex
-    run: pip install "rich-codex[cairo]==1.2.11"
+    run: pip install "rich-codex[cairo]==1.3.0"
 
   - name: Generate terminal images with rich-codex
     uses: ewels/rich-codex@v1
