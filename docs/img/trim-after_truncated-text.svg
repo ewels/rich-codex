@@ -1,4 +1,4 @@
-<svg class="rich-terminal" viewBox="0 0 994 782.0" xmlns="http://www.w3.org/2000/svg">
+<svg class="rich-terminal" viewBox="0 0 994 806.4" xmlns="http://www.w3.org/2000/svg">
     <!-- Generated with Rich https://www.textualize.io -->
     <style>
 
@@ -37,7 +37,7 @@
 
     <defs>
     <clipPath id="rich-codex-514789081-clip-terminal">
-      <rect x="0" y="0" width="975.0" height="731.0" />
+      <rect x="0" y="0" width="975.0" height="755.4" />
     </clipPath>
     <clipPath id="rich-codex-514789081-line-0">
     <rect x="0" y="1.5" width="976" height="24.65"/>
@@ -126,9 +126,12 @@
 <clipPath id="rich-codex-514789081-line-28">
     <rect x="0" y="684.7" width="976" height="24.65"/>
             </clipPath>
+<clipPath id="rich-codex-514789081-line-29">
+    <rect x="0" y="709.1" width="976" height="24.65"/>
+            </clipPath>
     </defs>
 
-    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="780" rx="8"/><text class="rich-codex-514789081-title" fill="#c5c8c6" text-anchor="middle" x="496" y="27">codex_search.py</text>
+    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="804.4" rx="8"/><text class="rich-codex-514789081-title" fill="#c5c8c6" text-anchor="middle" x="496" y="27">codex_search.py</text>
             <g transform="translate(26,22)">
             <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
             <circle cx="22" cy="0" r="7" fill="#febc2e"/>
@@ -142,32 +145,33 @@
 </text><text class="rich-codex-514789081-r1" x="0" y="44.4" textLength="170.8" clip-path="url(#rich-codex-514789081-line-1)">import&#160;logging</text><text class="rich-codex-514789081-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-1)">
 </text><text class="rich-codex-514789081-r1" x="0" y="68.8" textLength="109.8" clip-path="url(#rich-codex-514789081-line-2)">import&#160;re</text><text class="rich-codex-514789081-r1" x="976" y="68.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-2)">
 </text><text class="rich-codex-514789081-r1" x="0" y="93.2" textLength="292.8" clip-path="url(#rich-codex-514789081-line-3)">from&#160;pathlib&#160;import&#160;Path</text><text class="rich-codex-514789081-r1" x="976" y="93.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-3)">
-</text><text class="rich-codex-514789081-r1" x="976" y="117.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-4)">
-</text><text class="rich-codex-514789081-r1" x="0" y="142" textLength="134.2" clip-path="url(#rich-codex-514789081-line-5)">import&#160;yaml</text><text class="rich-codex-514789081-r1" x="976" y="142" textLength="12.2" clip-path="url(#rich-codex-514789081-line-5)">
-</text><text class="rich-codex-514789081-r1" x="0" y="166.4" textLength="597.8" clip-path="url(#rich-codex-514789081-line-6)">from&#160;jsonschema.exceptions&#160;import&#160;ValidationError</text><text class="rich-codex-514789081-r1" x="976" y="166.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-6)">
-</text><text class="rich-codex-514789081-r1" x="0" y="190.8" textLength="244" clip-path="url(#rich-codex-514789081-line-7)">from&#160;rich&#160;import&#160;box</text><text class="rich-codex-514789081-r1" x="976" y="190.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-7)">
-</text><text class="rich-codex-514789081-r1" x="0" y="215.2" textLength="390.4" clip-path="url(#rich-codex-514789081-line-8)">from&#160;rich.console&#160;import&#160;Console</text><text class="rich-codex-514789081-r1" x="976" y="215.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-8)">
-</text><text class="rich-codex-514789081-r1" x="0" y="239.6" textLength="366" clip-path="url(#rich-codex-514789081-line-9)">from&#160;rich.prompt&#160;import&#160;Prompt</text><text class="rich-codex-514789081-r1" x="976" y="239.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-9)">
-</text><text class="rich-codex-514789081-r1" x="0" y="264" textLength="341.6" clip-path="url(#rich-codex-514789081-line-10)">from&#160;rich.table&#160;import&#160;Table</text><text class="rich-codex-514789081-r1" x="976" y="264" textLength="12.2" clip-path="url(#rich-codex-514789081-line-10)">
-</text><text class="rich-codex-514789081-r1" x="976" y="288.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-11)">
-</text><text class="rich-codex-514789081-r1" x="0" y="312.8" textLength="378.2" clip-path="url(#rich-codex-514789081-line-12)">from&#160;rich_codex&#160;import&#160;rich_img</text><text class="rich-codex-514789081-r1" x="976" y="312.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-12)">
-</text><text class="rich-codex-514789081-r1" x="0" y="337.2" textLength="683.2" clip-path="url(#rich-codex-514789081-line-13)">from&#160;rich_codex.utils&#160;import&#160;clean_list,&#160;validate_config</text><text class="rich-codex-514789081-r1" x="976" y="337.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-13)">
-</text><text class="rich-codex-514789081-r1" x="976" y="361.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-14)">
-</text><text class="rich-codex-514789081-r1" x="0" y="386" textLength="451.4" clip-path="url(#rich-codex-514789081-line-15)">log&#160;=&#160;logging.getLogger(&quot;rich-codex&quot;)</text><text class="rich-codex-514789081-r1" x="976" y="386" textLength="12.2" clip-path="url(#rich-codex-514789081-line-15)">
-</text><text class="rich-codex-514789081-r1" x="976" y="410.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-16)">
-</text><text class="rich-codex-514789081-r1" x="0" y="434.8" textLength="890.6" clip-path="url(#rich-codex-514789081-line-17)">#&#160;Config&#160;comment&#160;styles:&#160;HTML&#160;comments&#160;for&#160;markdown,&#160;JSX&#160;comments&#160;for&#160;MDX</text><text class="rich-codex-514789081-r1" x="976" y="434.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-17)">
-</text><text class="rich-codex-514789081-r1" x="0" y="459.2" textLength="488" clip-path="url(#rich-codex-514789081-line-18)">#&#160;(MDX&#160;v2+&#160;does&#160;not&#160;allow&#160;HTML&#160;comments)</text><text class="rich-codex-514789081-r1" x="976" y="459.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-18)">
-</text><text class="rich-codex-514789081-r1" x="0" y="483.6" textLength="536.8" clip-path="url(#rich-codex-514789081-line-19)">#&#160;eg.&#160;&lt;!--&#160;RICH-CODEX&#160;terminal_width:&#160;60&#160;--&gt;</text><text class="rich-codex-514789081-r1" x="976" y="483.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-19)">
-</text><text class="rich-codex-514789081-r1" x="0" y="508" textLength="524.6" clip-path="url(#rich-codex-514789081-line-20)">#&#160;eg.&#160;{/*&#160;RICH-CODEX&#160;terminal_width:&#160;60&#160;*/}</text><text class="rich-codex-514789081-r1" x="976" y="508" textLength="12.2" clip-path="url(#rich-codex-514789081-line-20)">
-</text><text class="rich-codex-514789081-r1" x="0" y="532.4" textLength="646.6" clip-path="url(#rich-codex-514789081-line-21)">CONFIG_COMMENT_STYLES&#160;=&#160;{&quot;&lt;!--&quot;:&#160;&quot;--&gt;&quot;,&#160;&quot;{/*&quot;:&#160;&quot;*/}&quot;}</text><text class="rich-codex-514789081-r1" x="976" y="532.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-21)">
-</text><text class="rich-codex-514789081-r1" x="976" y="556.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-22)">
-</text><text class="rich-codex-514789081-r1" x="0" y="581.2" textLength="817.4" clip-path="url(#rich-codex-514789081-line-23)">#&#160;Parse&#160;the&#160;config&#160;schema&#160;file&#160;once,&#160;it&#x27;s&#160;the&#160;same&#160;for&#160;every&#160;search</text><text class="rich-codex-514789081-r1" x="976" y="581.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-23)">
-</text><text class="rich-codex-514789081-r1" x="0" y="605.6" textLength="756.4" clip-path="url(#rich-codex-514789081-line-24)">config_schema_fn&#160;=&#160;Path(__file__).parent&#160;/&#160;&quot;config-schema.yml&quot;</text><text class="rich-codex-514789081-r1" x="976" y="605.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-24)">
-</text><text class="rich-codex-514789081-r1" x="0" y="630" textLength="427" clip-path="url(#rich-codex-514789081-line-25)">with&#160;config_schema_fn.open()&#160;as&#160;fh:</text><text class="rich-codex-514789081-r1" x="976" y="630" textLength="12.2" clip-path="url(#rich-codex-514789081-line-25)">
-</text><text class="rich-codex-514789081-r1" x="0" y="654.4" textLength="463.6" clip-path="url(#rich-codex-514789081-line-26)">&#160;&#160;&#160;&#160;CONFIG_SCHEMA&#160;=&#160;yaml.safe_load(fh)</text><text class="rich-codex-514789081-r1" x="976" y="654.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-26)">
-</text><text class="rich-codex-514789081-r1" x="976" y="678.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-27)">
+</text><text class="rich-codex-514789081-r1" x="0" y="117.6" textLength="268.4" clip-path="url(#rich-codex-514789081-line-4)">from&#160;typing&#160;import&#160;Any</text><text class="rich-codex-514789081-r1" x="976" y="117.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-4)">
+</text><text class="rich-codex-514789081-r1" x="976" y="142" textLength="12.2" clip-path="url(#rich-codex-514789081-line-5)">
+</text><text class="rich-codex-514789081-r1" x="0" y="166.4" textLength="134.2" clip-path="url(#rich-codex-514789081-line-6)">import&#160;yaml</text><text class="rich-codex-514789081-r1" x="976" y="166.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-6)">
+</text><text class="rich-codex-514789081-r1" x="0" y="190.8" textLength="597.8" clip-path="url(#rich-codex-514789081-line-7)">from&#160;jsonschema.exceptions&#160;import&#160;ValidationError</text><text class="rich-codex-514789081-r1" x="976" y="190.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-7)">
+</text><text class="rich-codex-514789081-r1" x="0" y="215.2" textLength="244" clip-path="url(#rich-codex-514789081-line-8)">from&#160;rich&#160;import&#160;box</text><text class="rich-codex-514789081-r1" x="976" y="215.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-8)">
+</text><text class="rich-codex-514789081-r1" x="0" y="239.6" textLength="390.4" clip-path="url(#rich-codex-514789081-line-9)">from&#160;rich.console&#160;import&#160;Console</text><text class="rich-codex-514789081-r1" x="976" y="239.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-9)">
+</text><text class="rich-codex-514789081-r1" x="0" y="264" textLength="366" clip-path="url(#rich-codex-514789081-line-10)">from&#160;rich.prompt&#160;import&#160;Prompt</text><text class="rich-codex-514789081-r1" x="976" y="264" textLength="12.2" clip-path="url(#rich-codex-514789081-line-10)">
+</text><text class="rich-codex-514789081-r1" x="0" y="288.4" textLength="341.6" clip-path="url(#rich-codex-514789081-line-11)">from&#160;rich.table&#160;import&#160;Table</text><text class="rich-codex-514789081-r1" x="976" y="288.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-11)">
+</text><text class="rich-codex-514789081-r1" x="976" y="312.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-12)">
+</text><text class="rich-codex-514789081-r1" x="0" y="337.2" textLength="378.2" clip-path="url(#rich-codex-514789081-line-13)">from&#160;rich_codex&#160;import&#160;rich_img</text><text class="rich-codex-514789081-r1" x="976" y="337.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-13)">
+</text><text class="rich-codex-514789081-r1" x="0" y="361.6" textLength="866.2" clip-path="url(#rich-codex-514789081-line-14)">from&#160;rich_codex.utils&#160;import&#160;clean_list,&#160;relative_path,&#160;validate_config</text><text class="rich-codex-514789081-r1" x="976" y="361.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-14)">
+</text><text class="rich-codex-514789081-r1" x="976" y="386" textLength="12.2" clip-path="url(#rich-codex-514789081-line-15)">
+</text><text class="rich-codex-514789081-r1" x="0" y="410.4" textLength="451.4" clip-path="url(#rich-codex-514789081-line-16)">log&#160;=&#160;logging.getLogger(&quot;rich-codex&quot;)</text><text class="rich-codex-514789081-r1" x="976" y="410.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-16)">
+</text><text class="rich-codex-514789081-r1" x="976" y="434.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-17)">
+</text><text class="rich-codex-514789081-r1" x="0" y="459.2" textLength="890.6" clip-path="url(#rich-codex-514789081-line-18)">#&#160;Config&#160;comment&#160;styles:&#160;HTML&#160;comments&#160;for&#160;markdown,&#160;JSX&#160;comments&#160;for&#160;MDX</text><text class="rich-codex-514789081-r1" x="976" y="459.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-18)">
+</text><text class="rich-codex-514789081-r1" x="0" y="483.6" textLength="488" clip-path="url(#rich-codex-514789081-line-19)">#&#160;(MDX&#160;v2+&#160;does&#160;not&#160;allow&#160;HTML&#160;comments)</text><text class="rich-codex-514789081-r1" x="976" y="483.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-19)">
+</text><text class="rich-codex-514789081-r1" x="0" y="508" textLength="536.8" clip-path="url(#rich-codex-514789081-line-20)">#&#160;eg.&#160;&lt;!--&#160;RICH-CODEX&#160;terminal_width:&#160;60&#160;--&gt;</text><text class="rich-codex-514789081-r1" x="976" y="508" textLength="12.2" clip-path="url(#rich-codex-514789081-line-20)">
+</text><text class="rich-codex-514789081-r1" x="0" y="532.4" textLength="524.6" clip-path="url(#rich-codex-514789081-line-21)">#&#160;eg.&#160;{/*&#160;RICH-CODEX&#160;terminal_width:&#160;60&#160;*/}</text><text class="rich-codex-514789081-r1" x="976" y="532.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-21)">
+</text><text class="rich-codex-514789081-r1" x="0" y="556.8" textLength="646.6" clip-path="url(#rich-codex-514789081-line-22)">CONFIG_COMMENT_STYLES&#160;=&#160;{&quot;&lt;!--&quot;:&#160;&quot;--&gt;&quot;,&#160;&quot;{/*&quot;:&#160;&quot;*/}&quot;}</text><text class="rich-codex-514789081-r1" x="976" y="556.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-22)">
+</text><text class="rich-codex-514789081-r1" x="976" y="581.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-23)">
+</text><text class="rich-codex-514789081-r1" x="0" y="605.6" textLength="817.4" clip-path="url(#rich-codex-514789081-line-24)">#&#160;Parse&#160;the&#160;config&#160;schema&#160;file&#160;once,&#160;it&#x27;s&#160;the&#160;same&#160;for&#160;every&#160;search</text><text class="rich-codex-514789081-r1" x="976" y="605.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-24)">
+</text><text class="rich-codex-514789081-r1" x="0" y="630" textLength="756.4" clip-path="url(#rich-codex-514789081-line-25)">config_schema_fn&#160;=&#160;Path(__file__).parent&#160;/&#160;&quot;config-schema.yml&quot;</text><text class="rich-codex-514789081-r1" x="976" y="630" textLength="12.2" clip-path="url(#rich-codex-514789081-line-25)">
+</text><text class="rich-codex-514789081-r1" x="0" y="654.4" textLength="427" clip-path="url(#rich-codex-514789081-line-26)">with&#160;config_schema_fn.open()&#160;as&#160;fh:</text><text class="rich-codex-514789081-r1" x="976" y="654.4" textLength="12.2" clip-path="url(#rich-codex-514789081-line-26)">
+</text><text class="rich-codex-514789081-r1" x="0" y="678.8" textLength="463.6" clip-path="url(#rich-codex-514789081-line-27)">&#160;&#160;&#160;&#160;CONFIG_SCHEMA&#160;=&#160;yaml.safe_load(fh)</text><text class="rich-codex-514789081-r1" x="976" y="678.8" textLength="12.2" clip-path="url(#rich-codex-514789081-line-27)">
 </text><text class="rich-codex-514789081-r1" x="976" y="703.2" textLength="12.2" clip-path="url(#rich-codex-514789081-line-28)">
-</text><text class="rich-codex-514789081-r1" x="0" y="727.6" textLength="219.6" clip-path="url(#rich-codex-514789081-line-29)">class&#160;CodexSearch:</text><text class="rich-codex-514789081-r1" x="976" y="727.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-29)">
+</text><text class="rich-codex-514789081-r1" x="976" y="727.6" textLength="12.2" clip-path="url(#rich-codex-514789081-line-29)">
+</text><text class="rich-codex-514789081-r1" x="0" y="752" textLength="219.6" clip-path="url(#rich-codex-514789081-line-30)">class&#160;CodexSearch:</text><text class="rich-codex-514789081-r1" x="976" y="752" textLength="12.2" clip-path="url(#rich-codex-514789081-line-30)">
 </text>
     </g>
     </g>
