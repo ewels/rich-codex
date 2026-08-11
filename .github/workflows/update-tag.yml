@@ -9,5 +9,8 @@ jobs:
   update-major-ver:
     name: Update major version tag
     runs-on: ubuntu-latest
+    # Needs write access to move the major version tag
+    permissions:
+      contents: write
     steps:
-      - uses: nowactions/update-majorver@v1
+      - uses: nowactions/update-majorver@f2014bbbba95b635e990ce512c5653bd0f4753fb # v1.1.2

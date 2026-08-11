@@ -1,0 +1,51 @@
+name: Test action
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# Cancel if a newer run is started
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Neither of the action's install paths is covered elsewhere: the docs build skips both
+  # the Python setup and the install, and the test suite runs the module directly.
+  # Running this as a matrix also checks that two uses of the action in one workflow run
+  # don't collide when uploading their log artifacts.
+  # Note that the action installs rich-codex from PyPI, so this tests the action itself
+  # rather than the code in this checkout.
+  action:
+    name: ${{ matrix.install }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - install: pip
+            use_uv: "false"
+          - install: uv
+            use_uv: "true"
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run the action
+        uses: ./
+        with:
+          use_uv: ${{ matrix.use_uv }}
+          command: echo hello from the rich-codex action
+          img_paths: action-test.svg
+          # Only interested in the command above, not in this repo's own docs
+          no_search: "true"
+          error_changes: "false"
+
+      - name: Check that the image was created
+        run: test -s action-test.svg

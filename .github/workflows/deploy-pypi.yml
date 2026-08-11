@@ -10,16 +10,19 @@ jobs:
       name: pypi
       url: https://pypi.org/p/rich-codex
     permissions:
+      contents: read
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         name: Check out source-code repository
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.x"
 
       - name: Install python dependencies
         run: python -m pip install --upgrade pip setuptools wheel build
@@ -29,4 +32,5 @@ jobs:
 
       - name: Publish to PyPI
         if: github.repository == 'ewels/rich-codex'
-        uses: pypa/gh-action-pypi-publish@release/v1
+        # Pinned to the branch that PyPA maintains for this purpose, as they recommend
+        uses: pypa/gh-action-pypi-publish@release/v1 # zizmor: ignore[unpinned-uses]

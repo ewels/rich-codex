@@ -115,7 +115,7 @@ properties:
     title: Additional environment variables to set when running commands
     type: object
   snippet_syntax:
-    title: Language to use for snippet sytax highlighting
+    title: Language to use for snippet syntax highlighting
     type: string
   timeout:
     title: Maximum run time for command (seconds)

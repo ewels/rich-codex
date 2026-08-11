@@ -107,7 +107,9 @@ class TestConfirmCommand:
 
     def test_no_confirm_skips_the_prompt(self, rich_img, monkeypatch):
         monkeypatch.setattr(
-            rich_img_module.Confirm, "ask", lambda *a, **kw: pytest.fail("should not have prompted")  # noqa: ARG005
+            rich_img_module.Confirm,
+            "ask",
+            lambda *a, **kw: pytest.fail("should not have prompted"),  # noqa: ARG005
         )
         img = rich_img(command="echo hi")
         img.no_confirm = True

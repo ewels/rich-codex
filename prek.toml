@@ -1,0 +1,44 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+minimum_prek_version = "0.4.12"
+
+# The upstream mirrors-prettier repo was archived in 2024; this is the maintained fork
+[[repos]]
+repo = "https://github.com/rbubley/mirrors-prettier"
+rev = "0ee178619d696787ca73d210cc191d720868c631" # frozen: v3.9.6
+hooks = [
+  { id = "prettier" }
+]
+
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "914e7df21a07ef503a81201c76d2b11c789d3fca" # frozen: v1.7.12
+hooks = [
+  { id = "actionlint" }
+]
+
+[[repos]]
+repo = "https://github.com/tox-dev/pyproject-fmt"
+rev = "b82a24a520c5d496cb7b23b4e9b63537c280f51b" # frozen: v2.27.0
+hooks = [
+  { id = "pyproject-fmt" }
+]
+
+# Ruff replaces black (formatting), flake8 (linting), isort (import order)
+# and pyupgrade (the 'UP' rules). Configured in pyproject.toml.
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "7c55798a78262d14b2074abf623d8a992ebb70d4" # frozen: v0.16.2
+hooks = [
+  { id = "ruff-check", name = "Ruff", args = ["--fix"] },
+  { id = "ruff-format", name = "Ruff format" }
+]
+
+[[repos]]
+repo = "https://github.com/codespell-project/codespell"
+rev = "57b21406f092110c18776e39b0bda50d37c945c8" # frozen: v2.4.3
+hooks = [
+  { id = "codespell", files = '^docs/.*\.md$', additional_dependencies = ["tomli"] }
+]

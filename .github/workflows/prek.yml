@@ -1,0 +1,34 @@
+name: Lint code
+on:
+  push:
+  pull_request:
+
+permissions: {}
+
+# Cancel if a newer run is started
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prek:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: 3
+          activate-environment: true
+
+      # prek and ruff are pinned by uv.lock, so CI and local runs agree
+      - name: Install dependencies
+        run: uv sync --active --extra dev
+
+      - name: Run prek
+        run: prek run --all-files --show-diff-on-failure

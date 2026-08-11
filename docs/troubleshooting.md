@@ -1,6 +1,6 @@
 ## No image generated
 
-First up: did you remember the `!`? It's `` ![`command`](path) `` - I've spent longer than I'd care to admit debugging only to realise I missed the leading `!` 🙈
+First up: did you remember the `!`? It's ``![`command`](path)`` - I've spent longer than I'd care to admit debugging only to realise I missed the leading `!` 🙈
 
 Next, check the verbose log - it's saved as an artefact with GitHub Actions or locally you can use the `-v`/`--verbose` flag. The verbose log tells you which files are being searched and gives you more insight into what rich-codex is doing.
 

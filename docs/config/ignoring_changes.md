@@ -1,4 +1,4 @@
-You may find that your screenshots are changing every time you run rich-codex, even though no relevant changes have occured within your code. This could be because the screenshots include timestamps or some other live data.
+You may find that your screenshots are changing every time you run rich-codex, even though no relevant changes have occurred within your code. This could be because the screenshots include timestamps or some other live data.
 
 To avoid doubling your commit count with changes that you don't care about, rich-codex has two mechanisms which you can use to ignore changes:
 
