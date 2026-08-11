@@ -1,7 +1,6 @@
 """Tests for rich_codex.cli, driven through Click's CliRunner."""
 
 import logging
-import re
 
 import pytest
 from click.testing import CliRunner
@@ -26,8 +25,16 @@ def reset_root_logger():
 
 
 @pytest.fixture(autouse=True)
-def no_github_actions_env(monkeypatch):
-    """Don't let the ambient CI environment change the defaults under test."""
+def deterministic_cli_environment(monkeypatch):
+    """Render the CLI the same way everywhere, so output can be asserted on directly.
+
+    Rich styles parts of its messages and wraps them to the terminal width, so
+    'either --command OR --snippet' arrives with colour codes in the middle of it on a
+    machine with colour, and split across lines on a narrow one. A dumb terminal turns
+    all styling off, and a wide one stops Rich wrapping or truncating anything.
+    """
+    monkeypatch.setenv("TERM", "dumb")
+    monkeypatch.setenv("COLUMNS", "200")
     for var in ("GITHUB_ACTIONS", "FORCE_COLOR", "PY_COLORS"):
         monkeypatch.delenv(var, raising=False)
     # Every option is settable by envvar, so make sure none leak in from the outside
@@ -49,20 +56,6 @@ def invoke(runner, args, **kwargs):
     return runner.invoke(main, args, catch_exceptions=False, **kwargs)
 
 
-def plain(result):
-    """CLI output as flat text.
-
-    Rich styles parts of a message and wraps it inside a panel, so a phrase like
-    'either --command OR --snippet' can arrive with colour codes in the middle of it
-    and a box border partway through. Whether that happens depends on whether the
-    terminal supports colour and how wide it is, which differs between a developer's
-    machine and CI, so assertions are made against the text alone.
-    """
-    text = re.sub(r"\x1b\[[0-9;]*m", "", result.output)
-    text = re.sub(r"[│╭╮╰╯─]", " ", text)
-    return re.sub(r"\s+", " ", text)
-
-
 class TestHelp:
     """Tests for the --help output."""
 
@@ -73,7 +66,7 @@ class TestHelp:
     def test_help_lists_key_options(self, runner):
         result = runner.invoke(main, ["--help"])
         for option in ("--command", "--snippet", "--img-paths", "--search-include", "--no-confirm"):
-            assert option in plain(result)
+            assert option in result.output
 
 
 class TestOptionValidation:
@@ -82,22 +75,22 @@ class TestOptionValidation:
     def test_command_and_snippet_are_exclusive(self, runner, tmp_cwd):
         result = invoke(runner, ["--command", "echo hi", "--snippet", "hi", "--img-paths", "a.svg"])
         assert result.exit_code != 0
-        assert "either --command OR --snippet" in plain(result)
+        assert "either --command OR --snippet" in result.output
 
     def test_command_requires_img_paths(self, runner, tmp_cwd):
         result = invoke(runner, ["--command", "echo hi"])
         assert result.exit_code != 0
-        assert "--img-paths is required" in plain(result)
+        assert "--img-paths is required" in result.output
 
     def test_snippet_requires_img_paths(self, runner, tmp_cwd):
         result = invoke(runner, ["--snippet", "hello"])
         assert result.exit_code != 0
-        assert "--img-paths is required" in plain(result)
+        assert "--img-paths is required" in result.output
 
     def test_bad_extra_env(self, runner, tmp_cwd):
         result = invoke(runner, ["--extra-env", "NOT_A_PAIR", "--no-search"])
         assert result.exit_code != 0
-        assert "Could not parse as 'KEY=value'" in plain(result)
+        assert "Could not parse as 'KEY=value'" in result.output
 
 
 class TestGitChecks:
@@ -158,7 +151,7 @@ class TestSnippetAndCommand:
         assert result.exit_code == 0
         assert (tmp_cwd / "out.svg").exists()
 
-    def test_min_width_larger_than_width_is_disabled(self, runner, tmp_cwd, caplog):
+    def test_min_width_larger_than_width_is_disabled(self, runner, tmp_cwd):
         result = invoke(
             runner,
             [
@@ -175,8 +168,7 @@ class TestSnippetAndCommand:
             ],
         )
         assert result.exit_code == 0
-        # Asserted on the log records rather than the output: Rich truncates long console lines
-        assert "Disabling terminal_min_width" in caplog.text
+        assert "Disabling terminal_min_width" in result.output
 
     def test_extra_env_reaches_the_command(self, runner, tmp_cwd):
         result = invoke(
@@ -209,13 +201,13 @@ class TestSearch:
         result = invoke(runner, ["--no-search", "--no-confirm"])
         assert result.exit_code == 0
         assert not (tmp_cwd / "out.svg").exists()
-        assert "Skipping file search" in plain(result)
+        assert "Skipping file search" in result.output
 
     def test_search_errors_exit_nonzero(self, runner, tmp_cwd):
         (tmp_cwd / "README.md").write_text("<!-- RICH-CODEX terminal_width: wide -->\n![`echo hi`](out.svg)\n")
         result = invoke(runner, ["--no-confirm"])
         assert result.exit_code == 1
-        assert "Found errors whilst running" in plain(result)
+        assert "Found errors whilst running" in result.output
 
     def test_invalid_config_file_exits_nonzero(self, runner, tmp_cwd):
         (tmp_cwd / ".rich-codex.yml").write_text("not_a_real_option: true\n")
@@ -249,12 +241,12 @@ class TestSearch:
         assert invoke(runner, args).exit_code == 0
         result = invoke(runner, args)
         assert result.exit_code == 0
-        assert "Skipped 1 images" in plain(result)
+        assert "Skipped 1 images" in result.output
 
     def test_nothing_to_do_warns(self, runner, tmp_cwd):
         result = invoke(runner, ["--no-search"])
         assert result.exit_code == 0
-        assert "Couldn't find anything to do" in plain(result)
+        assert "Couldn't find anything to do" in result.output
 
 
 class TestFileLists:
@@ -292,7 +284,7 @@ class TestFileLists:
         assert result.exit_code == 0
         assert not stale.exists()
         assert (tmp_cwd / "out.svg").exists()
-        assert "Deleted 1 images" in plain(result)
+        assert "Deleted 1 images" in result.output
 
     def test_deleted_files_list(self, runner, tmp_cwd):
         (tmp_cwd / "stale.svg").write_text("<svg />")
@@ -320,16 +312,16 @@ class TestLogging:
 
     def test_version_is_logged(self, runner, tmp_cwd):
         result = invoke(runner, ["--no-search"])
-        assert f"version {__version__}" in plain(result)
+        assert f"version {__version__}" in result.output
 
     def test_verbose_shows_debug_messages(self, runner, tmp_cwd):
         result = invoke(runner, ["--no-search", "--verbose"])
-        assert "Skipping file search" in plain(result)
-        assert "Git status check" in plain(result)
+        assert "Skipping file search" in result.output
+        assert "Git status check" in result.output
 
     def test_quiet_hides_debug_messages(self, runner, tmp_cwd):
         result = invoke(runner, ["--no-search"])
-        assert "Git status check" not in plain(result)
+        assert "Git status check" not in result.output
 
     def test_log_file(self, runner, tmp_cwd):
         result = invoke(runner, ["--no-search", "--log-file", "rc.log"])
