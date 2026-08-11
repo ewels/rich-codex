@@ -5,6 +5,7 @@ import os
 import re
 import signal
 import subprocess
+import zlib
 from pathlib import Path
 from shutil import copyfile
 from tempfile import TemporaryDirectory
@@ -462,7 +463,11 @@ class RichImg:
                     else:
                         log_msg += ", no text to diff"
 
-        old_fn_relative = old_file.resolve().relative_to(Path.cwd())
+        try:
+            old_fn_relative = old_file.resolve().relative_to(Path.cwd())
+        except ValueError:
+            # Output isn't inside the working directory, so log the path as it was given
+            old_fn_relative = old_file
         if create_file:
             self.num_img_saved += 1
             if old_fn in self.saved_img_paths:
@@ -475,6 +480,24 @@ class RichImg:
             log.debug(f"[dim]Skipped: '{old_fn_relative}' ({log_msg})")
 
         return create_file
+
+    def _svg_unique_id(self):
+        """Build a stable ID to prefix the SVG's CSS classes and node IDs with.
+
+        Rich defaults to a checksum of the rendered content, which changes whenever the
+        output changes and appears on a dozen lines throughout the file, so a one-word
+        change to a command's output rewrites most of the SVG. Deriving the ID from the
+        output path instead keeps the diff down to the lines that really changed.
+
+        The path is relative to the working directory, so the ID doesn't depend on where
+        the repository happens to be checked out.
+        """
+        path = Path(self.img_paths[0])
+        try:
+            path = path.resolve().relative_to(Path.cwd())
+        except ValueError:
+            path = Path(path.name)
+        return "rich-codex-" + str(zlib.adler32(str(path).encode("utf-8")))
 
     def save_images(self):
         """Save the images to the specified filenames."""
@@ -537,6 +560,7 @@ class RichImg:
                         svg_tmp_filename,
                         title=self.title,
                         theme=terminal_theme,
+                        unique_id=self._svg_unique_id(),
                     )
                     rendered_svg = True
                 svg_source = svg_img or svg_tmp_filename

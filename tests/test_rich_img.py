@@ -1,5 +1,7 @@
 """Tests for rich_codex.rich_img."""
 
+import difflib
+import re
 import tempfile
 from pathlib import Path
 
@@ -466,24 +468,23 @@ class TestEnoughImageDifference:
         img = rich_img(skip_change_regex="generated:")
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
-    def test_multiple_regexes_over_a_rendered_svg(self, rich_img, tmp_cwd):
-        """The documented recipe: a timestamp plus Rich's content-derived SVG id."""
-        img = rich_img(
-            command="printf 'stable output\\nGenerated at 111\\n'",
-            skip_change_regex="Generated at\nterminal-\\d+",
-            img_paths=[str(tmp_cwd / "out.svg")],
-        )
-        img.run_command()
-        img.save_images()
-        assert img.num_img_saved == 1
+    def test_the_documented_skip_change_regex_recipe(self, rich_img, tmp_cwd):
+        """Ignoring a timestamp in a real rendered SVG, end to end."""
 
-        changed = rich_img(
-            command="printf 'stable output\\nGenerated at 999\\n'",
-            skip_change_regex="Generated at\nterminal-\\d+",
-            img_paths=[str(tmp_cwd / "out.svg")],
-        )
-        changed.run_command()
-        changed.save_images()
+        def render(timestamp):
+            img = rich_img(
+                command=f"printf 'stable output\\nGenerated at {timestamp}\\n'",
+                # SVG writes spaces as &#160;, which is why the pattern isn't 'Generated at'
+                skip_change_regex="Generated&#160;at",
+                img_paths=[str(tmp_cwd / "out.svg")],
+                hide_command=True,
+            )
+            img.run_command()
+            img.save_images()
+            return img
+
+        assert render("111").num_img_saved == 1
+        changed = render("999")
         assert changed.num_img_skipped == 1
         assert changed.num_img_saved == 0
 
@@ -598,6 +599,61 @@ class TestSaveImages:
         img.save_images()
         assert "not found" in caplog.text
         assert out.exists()
+
+    def test_svg_id_survives_a_content_change(self, rich_img, tmp_cwd):
+        """The whole point: editing the output rewrites the changed lines, not the whole file.
+
+        Rich's own ID is a checksum of the content, so it changes with any edit and takes
+        a dozen CSS rules and clipPaths with it.
+        """
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        before = out.read_text().splitlines()
+
+        second = rich_img(snippet="hello worlds", snippet_syntax="text", img_paths=[str(out)])
+        second.format_snippet()
+        second.save_images()
+        after = out.read_text().splitlines()
+
+        assert re.search(r"rich-codex-\d+", "\n".join(before)).group() == (
+            re.search(r"rich-codex-\d+", "\n".join(after)).group()
+        )
+        changed = list(difflib.unified_diff(before, after, n=0, lineterm=""))[2:]
+        assert len([line for line in changed if line.startswith(("-", "+"))]) <= 6
+
+    def test_svg_id_is_unique_per_output_path(self, rich_img, tmp_cwd):
+        """Several rich-codex SVGs can share an HTML page, so their IDs must not collide."""
+        ids = []
+        for name in ("one.svg", "two.svg"):
+            out = tmp_cwd / name
+            img = self.rendered(rich_img, img_paths=[str(out)])
+            img.save_images()
+            ids.append(re.search(r"rich-codex-\d+", out.read_text()).group())
+        assert ids[0] != ids[1]
+
+    def test_output_outside_the_working_directory(self, rich_img, tmp_cwd, tmp_path_factory, caplog):
+        """'--img-paths ../images/out.svg' is legitimate, and used to raise ValueError."""
+        outside = tmp_path_factory.mktemp("elsewhere") / "out.svg"
+        img = self.rendered(rich_img, img_paths=[str(outside)])
+        img.save_images()
+        assert outside.exists()
+        assert img.num_img_saved == 1
+        assert str(outside) in caplog.text
+        # No relative path to build an ID from, so it falls back to the filename alone
+        assert re.search(r"rich-codex-\d+", outside.read_text())
+
+    def test_svg_id_does_not_depend_on_the_checkout_directory(self, rich_img, tmp_cwd, monkeypatch):
+        """Contributors check the repo out in different places, but should generate the same file."""
+        ids = []
+        for checkout in ("checkout-a", "checkout-b"):
+            root = tmp_cwd / checkout
+            (root / "img").mkdir(parents=True)
+            monkeypatch.chdir(root)
+            out = root / "img" / "same.svg"
+            img = self.rendered(rich_img, img_paths=[str(out)])
+            img.save_images()
+            ids.append(re.search(r"rich-codex-\d+", out.read_text()).group())
+        assert ids[0] == ids[1]
 
     def test_title_is_used(self, rich_img, tmp_cwd):
         out = tmp_cwd / "out.svg"

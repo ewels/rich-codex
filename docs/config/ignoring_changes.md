@@ -30,17 +30,11 @@ If there is a > 0% change in files, a diff will be generated. Any diff lines mat
 
 One regex per line, and blank lines are ignored. An empty pattern would match every line, which would freeze the image forever.
 
-Rich gives each SVG a unique ID based on its contents, which appears on a dozen or so lines
-(`.terminal-4179050507-r1`, `<clipPath id="terminal-4179050507-line-0">` and so on). Any change
-to your output changes that ID too, so a regex for it needs to be part of the set:
+The regexes are matched against the lines of the image file, not against your terminal output, so remember that SVG writes spaces as `&#160;`. Matching a single word avoids the problem:
 
 <!-- prettier-ignore-start -->
 ```markdown
-<!-- RICH-CODEX
-skip_change_regex: |
-  Generated at
-  terminal-\d+
--->
+<!-- RICH-CODEX skip_change_regex: 'Generated&#160;at' -->
 ![`my-tool --version`](../img/my-tool-version.svg)
 ```
 <!-- prettier-ignore-end -->
