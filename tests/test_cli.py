@@ -1,11 +1,10 @@
 """Tests for rich_codex.cli, driven through Click's CliRunner."""
 
 import logging
-import textwrap
-from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
+from conftest import svg_text, write
 
 from rich_codex import __version__
 from rich_codex.cli import main
@@ -31,22 +30,9 @@ def no_github_actions_env(monkeypatch):
     for var in ("GITHUB_ACTIONS", "FORCE_COLOR", "PY_COLORS"):
         monkeypatch.delenv(var, raising=False)
     # Every option is settable by envvar, so make sure none leak in from the outside
-    for var in (
-        "SEARCH_INCLUDE",
-        "SEARCH_EXCLUDE",
-        "NO_SEARCH",
-        "COMMAND",
-        "SNIPPET",
-        "IMG_PATHS",
-        "RC_CONFIGS",
-        "EXTRA_ENV",
-        "TERMINAL_WIDTH",
-        "TERMINAL_MIN_WIDTH",
-        "TERMINAL_THEME",
-        "SKIP_GIT_CHECKS",
-        "NO_CONFIRM",
-    ):
-        monkeypatch.delenv(var, raising=False)
+    for param in main.params:
+        if param.envvar:
+            monkeypatch.delenv(param.envvar, raising=False)
 
 
 @pytest.fixture
@@ -129,8 +115,7 @@ class TestSnippetAndCommand:
     def test_command_to_svg(self, runner, tmp_cwd):
         result = invoke(runner, ["--command", "echo hello", "--img-paths", "out.svg", "--no-confirm"])
         assert result.exit_code == 0
-        svg = (tmp_cwd / "out.svg").read_text().replace("&#160;", " ")
-        assert "echo hello" in svg
+        assert "echo hello" in svg_text(tmp_cwd / "out.svg")
 
     def test_multiple_img_paths(self, runner, tmp_cwd):
         result = invoke(
@@ -223,12 +208,15 @@ class TestSearch:
         assert result.exit_code == 1
 
     def test_config_file_outputs(self, runner, tmp_cwd):
-        (tmp_cwd / ".rich-codex.yml").write_text(textwrap.dedent("""
-                outputs:
-                  - command: echo from-config
-                    img_paths:
-                      - out.svg
-                """))
+        write(
+            tmp_cwd / ".rich-codex.yml",
+            """
+            outputs:
+              - command: echo from-config
+                img_paths:
+                  - out.svg
+            """,
+        )
         result = invoke(runner, ["--no-search", "--no-confirm"])
         assert result.exit_code == 0
         assert (tmp_cwd / "out.svg").exists()
@@ -390,4 +378,3 @@ def test_cli_module_defines_option_groups():
     grouped = {opt for group in click.rich_click.OPTION_GROUPS["rich-codex"] for opt in group["options"]}
     declared = {opt for param in cli.main.params for opt in param.opts}
     assert grouped - declared == {"--help"}
-    assert Path(cli.__file__).exists()

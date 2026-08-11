@@ -20,6 +20,11 @@ log = logging.getLogger("rich-codex")
 # eg. {/* RICH-CODEX terminal_width: 60 */}
 CONFIG_COMMENT_STYLES = {"<!--": "-->", "{/*": "*/}"}
 
+# Parse the config schema file once, it's the same for every search
+config_schema_fn = Path(__file__).parent / "config-schema.yml"
+with config_schema_fn.open() as fh:
+    CONFIG_SCHEMA = yaml.safe_load(fh)
+
 
 class CodexSearch:
     """File search class for rich-codex.
@@ -136,10 +141,7 @@ class CodexSearch:
         except IOError:
             pass
 
-        # Parse the config schema file
-        config_schema_fn = Path(__file__).parent / "config-schema.yml"
-        with config_schema_fn.open() as fh:
-            self.config_schema = yaml.safe_load(fh)
+        self.config_schema = CONFIG_SCHEMA
 
     def _merge_local_class_attrs(self, local_config):
         """Update local config with class params.

@@ -1,9 +1,9 @@
 """Tests for rich_codex.rich_img."""
 
-import builtins
 from pathlib import Path
 
 import pytest
+from conftest import svg_text
 
 from rich_codex import rich_img as rich_img_module
 from rich_codex.rich_img import RichImg
@@ -12,11 +12,6 @@ from rich_codex.rich_img import RichImg
 def rendered_text(img_obj):
     """Plain text of whatever was printed to the capture console."""
     return img_obj.capture_console.export_text()
-
-
-def svg_text(path):
-    """Readable text content of a Rich-generated SVG (spaces are &#160; entities)."""
-    return Path(path).read_text().replace("&#160;", " ")
 
 
 class TestInit:
@@ -284,7 +279,7 @@ class TestRunCommand:
         assert img.capture_console.width == 80
 
     def test_timeout_kills_the_command(self, rich_img, tmp_cwd, caplog):
-        img = rich_img(command="sleep 30", timeout=1)
+        img = rich_img(command="sleep 30", timeout=0.2)
         img.run_command()
         assert "timed out" in caplog.text
 
@@ -293,23 +288,16 @@ class TestRunCommand:
         img.run_command()
         assert "hello-from-pty" in rendered_text(img)
 
-    def test_use_pty_falls_back_when_import_fails(self, rich_img, tmp_cwd, monkeypatch, caplog):
+    def test_use_pty_falls_back_when_import_fails(self, rich_img, tmp_cwd, block_import, caplog):
         """On Windows the pty import fails, and we fall back to plain subprocess."""
-        real_import = builtins.__import__
-
-        def fake_import(name, *args, **kwargs):
-            if name in ("pty", "fcntl", "termios"):
-                raise ImportError(f"No module named '{name}'")
-            return real_import(name, *args, **kwargs)
-
-        monkeypatch.setattr(builtins, "__import__", fake_import)
+        block_import("pty", "fcntl", "termios")
         img = rich_img(command="echo fallback-output", use_pty=True)
         img.run_command()
         assert "Could not use pty" in caplog.text
         assert "fallback-output" in rendered_text(img)
 
     def test_pty_timeout_is_handled(self, rich_img, tmp_cwd, caplog, tty_stdin):
-        img = rich_img(command="sleep 30", use_pty=True, timeout=1)
+        img = rich_img(command="sleep 30", use_pty=True, timeout=0.2)
         img.run_command()
         assert "timed out" in caplog.text
 
@@ -432,22 +420,23 @@ class TestEnoughImageDifference:
         img = rich_img(min_pct_diff=10)
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
-    def test_skip_change_regex_matching_all_diffs(self, rich_img, tmp_cwd):
+    def test_skip_change_regex_matching_all_diffs(self, rich_img, tmp_cwd, caplog):
         new_file = tmp_cwd / "new.svg"
         old_file = tmp_cwd / "old.svg"
         new_file.write_text("stable line\ngenerated: 2022-01-01\n")
         old_file.write_text("stable line\ngenerated: 1999-12-31\n")
         img = rich_img(skip_change_regex="generated:")
         assert img._enough_image_difference(str(new_file), str(old_file)) is False
+        assert "Checking diff" in caplog.text
 
-    def test_skip_change_regex_is_reported_in_the_log(self, rich_img, tmp_cwd, caplog):
-        """Whatever the outcome, asking for a regex check logs that a diff was attempted."""
+    def test_blank_skip_change_regex_lines_are_ignored(self, rich_img, tmp_cwd):
+        """An empty pattern would match every line and silently freeze every image."""
         new_file = tmp_cwd / "new.svg"
         old_file = tmp_cwd / "old.svg"
-        new_file.write_text("stable line\ngenerated: 2022-01-01\n")
-        old_file.write_text("stable line\ngenerated: 1999-12-31\n")
-        rich_img(skip_change_regex="generated:")._enough_image_difference(str(new_file), str(old_file))
-        assert "Checking diff" in caplog.text
+        new_file.write_text("changed line\ngenerated: 2022-01-01\n")
+        old_file.write_text("original line\ngenerated: 1999-12-31\n")
+        img = rich_img(skip_change_regex="generated:\n\n")
+        assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
     def test_skip_change_regex_not_matching_all_diffs(self, rich_img, tmp_cwd):
         new_file = tmp_cwd / "new.svg"
@@ -457,27 +446,19 @@ class TestEnoughImageDifference:
         img = rich_img(skip_change_regex="generated:")
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
-    def test_builtin_pdf_regex_is_used(self, rich_img, tmp_cwd):
+    @pytest.mark.parametrize(
+        ("new_name", "old_name"),
+        [
+            ("new.pdf", "old.pdf"),
+            # The new file is normally a suffix-less temp file, so the target picks the regexes
+            ("tmp1234", "old.pdf"),
+            ("tmp1234", "old.PDF"),
+        ],
+    )
+    def test_builtin_pdf_regex_is_used(self, rich_img, tmp_cwd, new_name, old_name):
         """Ignore the /CreationDate line, which always differs between two PDFs."""
-        new_file = tmp_cwd / "new.pdf"
-        old_file = tmp_cwd / "old.pdf"
-        new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
-        old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
-        img = rich_img()
-        assert img._enough_image_difference(str(new_file), str(old_file)) is False
-
-    def test_builtin_regexes_key_off_the_target_filename(self, rich_img, tmp_cwd):
-        """The new file is usually a suffix-less temporary file, so the target picks the regexes."""
-        new_file = tmp_cwd / "tmp1234"
-        old_file = tmp_cwd / "old.pdf"
-        new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
-        old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
-        img = rich_img()
-        assert img._enough_image_difference(str(new_file), str(old_file)) is False
-
-    def test_builtin_regexes_ignore_suffix_case(self, rich_img, tmp_cwd):
-        new_file = tmp_cwd / "tmp1234"
-        old_file = tmp_cwd / "old.PDF"
+        new_file = tmp_cwd / new_name
+        old_file = tmp_cwd / old_name
         new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
         old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
         img = rich_img()
@@ -661,30 +642,16 @@ class TestSaveImages:
         assert all(p.exists() for p in paths)
         assert img.num_img_saved == 3
 
-    def test_missing_cairosvg_is_reported(self, rich_img, tmp_cwd, caplog, monkeypatch):
-        real_import = builtins.__import__
-
-        def fake_import(name, *args, **kwargs):
-            if name == "cairosvg":
-                raise ImportError("No module named 'cairosvg'")
-            return real_import(name, *args, **kwargs)
-
-        monkeypatch.setattr(builtins, "__import__", fake_import)
+    def test_missing_cairosvg_is_reported(self, rich_img, tmp_cwd, caplog, block_import):
+        block_import("cairosvg")
         out = tmp_cwd / "out.png"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
         assert "CairoSVG not installed" in caplog.text
         assert not out.exists()
 
-    def test_missing_cairo_system_libs_are_reported(self, rich_img, tmp_cwd, caplog, monkeypatch):
-        real_import = builtins.__import__
-
-        def fake_import(name, *args, **kwargs):
-            if name == "cairosvg":
-                raise OSError("no library called 'cairo-2' was found")
-            return real_import(name, *args, **kwargs)
-
-        monkeypatch.setattr(builtins, "__import__", fake_import)
+    def test_missing_cairo_system_libs_are_reported(self, rich_img, tmp_cwd, caplog, block_import):
+        block_import("cairosvg", exc=OSError)
         out = tmp_cwd / "out.png"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()

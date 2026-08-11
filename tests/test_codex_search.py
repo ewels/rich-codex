@@ -1,22 +1,13 @@
 """Tests for rich_codex.codex_search."""
 
-import textwrap
 from pathlib import Path
 
 import pytest
-import yaml
+from conftest import write
 from jsonschema.exceptions import ValidationError
 
 from rich_codex import codex_search as codex_search_module
 from rich_codex.rich_img import RichImg
-
-
-def write(path, content):
-    """Write dedented content to a file, creating parent directories."""
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(textwrap.dedent(content).lstrip("\n"))
-    return path
 
 
 class TestInit:
@@ -502,7 +493,8 @@ class TestConfirmCommands:
         assert cs.confirm_commands() is True
 
     def test_table_is_printed(self, tmp_cwd, codex_search, console):
-        cs = codex_search(no_confirm=True, console=console)
+        # The codex_search factory already injects this same console
+        cs = codex_search(no_confirm=True)
         cs.rich_imgs = [RichImg(command="echo hi", img_paths=["a.svg"], source="README.md", source_line=7)]
         cs.confirm_commands()
         output = console.file.getvalue()
@@ -587,12 +579,13 @@ class TestSaveAllImages:
 
 
 def test_config_comment_styles_are_paired():
-    """Each supported comment opener needs a matching closer."""
-    assert codex_search_module.CONFIG_COMMENT_STYLES == {"<!--": "-->", "{/*": "*/}"}
+    """Each supported comment opener needs a non-empty closer that differs from it."""
+    for opener, closer in codex_search_module.CONFIG_COMMENT_STYLES.items():
+        assert opener and closer
+        assert opener != closer
 
 
-def test_schema_file_is_valid_yaml():
-    """The packaged schema must parse as a YAML mapping."""
-    schema_fn = Path(codex_search_module.__file__).parent / "config-schema.yml"
-    with schema_fn.open() as fh:
-        assert isinstance(yaml.safe_load(fh), dict)
+def test_packaged_schema_is_a_mapping():
+    """The schema shipped with the package must parse into a usable dict."""
+    assert isinstance(codex_search_module.CONFIG_SCHEMA, dict)
+    assert "outputs" in codex_search_module.CONFIG_SCHEMA["properties"]

@@ -1,14 +1,31 @@
 """Shared fixtures for the rich-codex test suite."""
 
+import builtins
 import logging
 import os
+import textwrap
 from io import StringIO
+from pathlib import Path
 
 import pytest
 from rich.console import Console
 
 from rich_codex.codex_search import CodexSearch
 from rich_codex.rich_img import RichImg
+
+
+def write(path, content):
+    """Write dedented content to a file, creating parent directories."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(textwrap.dedent(content).lstrip("\n"))
+    return path
+
+
+def svg_text(path):
+    """Read a Rich-generated SVG as readable text (it writes spaces as &#160; entities)."""
+    return Path(path).read_text().replace("&#160;", " ")
+
 
 # Every argument of CodexSearch.__init__ is positional-or-keyword with no default,
 # so tests build one through the `codex_search` factory instead of listing them all.
@@ -38,7 +55,6 @@ CODEX_SEARCH_DEFAULTS = {
     "terminal_theme": None,
     "snippet_theme": None,
     "use_pty": None,
-    "console": None,
 }
 
 
@@ -54,6 +70,23 @@ def tmp_cwd(tmp_path, monkeypatch):
     tmp_path = tmp_path.resolve()
     monkeypatch.chdir(tmp_path)
     return tmp_path
+
+
+@pytest.fixture
+def block_import(monkeypatch):
+    """Make importing the named modules fail, to test the fallback paths."""
+
+    def _block_import(*names, exc=ImportError):
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name in names:
+                raise exc(f"No module named '{name}'")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    return _block_import
 
 
 @pytest.fixture

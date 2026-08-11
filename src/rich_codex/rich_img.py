@@ -7,7 +7,7 @@ import signal
 import subprocess
 from pathlib import Path
 from shutil import copyfile
-from tempfile import gettempdir, mkstemp
+from tempfile import TemporaryDirectory
 
 import rich.terminal_theme
 import yaml
@@ -18,6 +18,8 @@ from rich.console import Console
 from rich.prompt import Confirm
 from rich.syntax import Syntax
 from rich.text import Text
+
+from rich_codex.utils import clean_list
 
 log = logging.getLogger("rich-codex")
 
@@ -38,14 +40,6 @@ IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
 
 # Base list of diff regexes to ignore, split up by filetype suffix
 IGNORE_REGEXES = {".pdf": [r"/CreationDate"]}
-
-
-def _delete_tmp_file(file_handle, filename):
-    """Close and delete a file made by mkstemp(), if it really is in the temp directory."""
-    os.close(file_handle)
-    tmp_path = Path(filename)
-    if Path(gettempdir()).resolve() in tmp_path.resolve().parents:
-        tmp_path.unlink()
 
 
 class RichImg:
@@ -429,7 +423,9 @@ class RichImg:
         else:
             # Percentage change in file
             # This method works even with entirely binary files, no decoding required
-            pct_change = (1 - ratio(new_file.read_bytes(), old_file.read_bytes())) * 100.0
+            new_file_bytes = new_file.read_bytes()
+            old_file_bytes = old_file.read_bytes()
+            pct_change = (1 - ratio(new_file_bytes, old_file_bytes)) * 100.0
             if pct_change <= float(self.min_pct_diff):
                 create_file = False
             log_msg = f"{pct_change:.2f}% change"
@@ -440,16 +436,18 @@ class RichImg:
                 # Keyed on the target filename: new_file is often a suffix-less temporary file.
                 skip_regexes = list(IGNORE_REGEXES.get(old_file.suffix.lower(), []))  # deep copy
                 if self.skip_change_regex:
-                    skip_regexes.extend(self.skip_change_regex.splitlines())
+                    # An empty pattern would match every line, so drop blanks and comments
+                    skip_regexes.extend(clean_list(self.skip_change_regex.splitlines()))
                 if len(skip_regexes) > 0:
-                    new_file_lines = new_file.read_text(errors="ignore").splitlines()
-                    old_file_lines = old_file.read_text(errors="ignore").splitlines()
+                    new_file_lines = new_file_bytes.decode(errors="ignore").splitlines()
+                    old_file_lines = old_file_bytes.decode(errors="ignore").splitlines()
                     log.info("Checking diff")
 
                     # Only continue if we found something to diff with
                     if len(new_file_lines) > 0 or len(old_file_lines) > 0:
-                        diffs = difflib.Differ().compare(new_file_lines, old_file_lines)
-                        lost_lines = [d for d in diffs if d.startswith("-")]
+                        # unified_diff, not Differ: Differ is quadratic and these files can be big
+                        diffs = difflib.unified_diff(new_file_lines, old_file_lines, n=0, lineterm="")
+                        lost_lines = [d for d in diffs if d.startswith("-") and not d.startswith("---")]
 
                         # Only continue if there was some diff
                         if len(lost_lines) > 0:
@@ -505,85 +503,83 @@ class RichImg:
         svg_img = None
         png_img = None
         pdf_img = None
-        svg_tmp_file_handle = None
-        svg_tmp_filename = None
-        for filename in self.img_paths:
-            # Make directories if necessary
-            try:
-                Path(filename).parent.mkdir(parents=True, exist_ok=True)
-            except (OSError, PermissionError):
-                log.error(f"Invalid path: {filename}")
-                continue
+        with TemporaryDirectory() as tmp_dir:
+            # Scratch files for the renders, all removed when the loop is done
+            svg_tmp_filename = str(Path(tmp_dir) / "render.svg")
+            converted_filename = str(Path(tmp_dir) / "converted")
+            rendered_svg = False
 
-            # If already made this image, copy it from the last destination
-            if filename.lower().endswith(".png") and png_img is not None:
-                log.debug(f"Using '{png_img}' for '{filename}'")
-                if self._enough_image_difference(png_img, filename):
-                    copyfile(png_img, filename)
-                continue
-            if filename.lower().endswith(".pdf") and pdf_img is not None:
-                log.debug(f"Using '{pdf_img}' for '{filename}'")
-                if self._enough_image_difference(pdf_img, filename):
-                    copyfile(pdf_img, filename)
-                continue
-            if filename.lower().endswith(".svg") and svg_img is not None:
-                log.debug(f"Using '{svg_img}' for '{filename}'")
-                if self._enough_image_difference(svg_img, filename):
-                    copyfile(svg_img, filename)
-                continue
+            for filename in self.img_paths:
+                # Make directories if necessary
+                try:
+                    Path(filename).parent.mkdir(parents=True, exist_ok=True)
+                except (OSError, PermissionError):
+                    log.error(f"Invalid path: {filename}")
+                    continue
 
-            # We always generate an SVG first, then reuse it for every other output
-            if svg_img is not None:
-                # Use the SVG that we already saved to its final destination
-                svg_source = svg_img
-            else:
-                if svg_tmp_filename is None:
-                    svg_tmp_file_handle, svg_tmp_filename = mkstemp()
+                # If already made this image, copy it from the last destination
+                if filename.lower().endswith(".png") and png_img is not None:
+                    log.debug(f"Using '{png_img}' for '{filename}'")
+                    if self._enough_image_difference(png_img, filename):
+                        copyfile(png_img, filename)
+                    continue
+                if filename.lower().endswith(".pdf") and pdf_img is not None:
+                    log.debug(f"Using '{pdf_img}' for '{filename}'")
+                    if self._enough_image_difference(pdf_img, filename):
+                        copyfile(pdf_img, filename)
+                    continue
+                if filename.lower().endswith(".svg") and svg_img is not None:
+                    log.debug(f"Using '{svg_img}' for '{filename}'")
+                    if self._enough_image_difference(svg_img, filename):
+                        copyfile(svg_img, filename)
+                    continue
+
+                # We always render an SVG first, then reuse it for every other output
+                if svg_img is None and not rendered_svg:
                     self.capture_console.save_svg(
                         svg_tmp_filename,
                         title=self.title,
                         theme=terminal_theme,
                     )
-                svg_source = svg_tmp_filename
+                    rendered_svg = True
+                svg_source = svg_img or svg_tmp_filename
 
-            # Save the SVG image if requested
-            if filename.lower().endswith(".svg"):
-                if self._enough_image_difference(svg_source, filename):
-                    copyfile(svg_source, filename)
-                svg_img = filename
+                # Save the SVG image if requested
+                if filename.lower().endswith(".svg"):
+                    if self._enough_image_difference(svg_source, filename):
+                        copyfile(svg_source, filename)
+                    svg_img = filename
 
-            # Lazy-load PNG / PDF libraries if needed
-            if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
-                try:
-                    from cairosvg import svg2pdf, svg2png
-                except ImportError as e:
-                    log.debug(e)
-                    log.error("CairoSVG not installed, cannot convert SVG to PNG or PDF.")
-                    log.info("Please install with cairo extra: 'rich-codex[cairo]'")
-                    continue
-                except OSError as e:
-                    log.debug(e)
-                    log.error(
-                        "⚠️  Missing [link=https://cairosvg.org/documentation/]CairoSVG dependencies[/], "
-                        "cannot convert SVG to PNG or PDF. ⚠️\n"
-                        f"[red]Skipping image '{filename}'[/]"
-                    )
-                    continue
+                # Lazy-load PNG / PDF libraries if needed
+                if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
+                    try:
+                        from cairosvg import svg2pdf, svg2png
+                    except ImportError as e:
+                        log.debug(e)
+                        log.error("CairoSVG not installed, cannot convert SVG to PNG or PDF.")
+                        log.info("Please install with cairo extra: 'rich-codex[cairo]'")
+                        continue
+                    except OSError as e:
+                        log.debug(e)
+                        log.error(
+                            "⚠️  Missing [link=https://cairosvg.org/documentation/]CairoSVG dependencies[/], "
+                            "cannot convert SVG to PNG or PDF. ⚠️\n"
+                            f"[red]Skipping image '{filename}'[/]"
+                        )
+                        continue
 
-                tmp_file_handle, tmp_filename = mkstemp()
-                try:
                     # Convert to PNG if requested
                     if filename.lower().endswith(".png"):
                         log.debug(f"Converting SVG '{svg_source}' to PNG '{filename}'")
                         with open(svg_source, "rb") as svg_fh:
                             svg2png(
                                 file_obj=svg_fh,
-                                write_to=tmp_filename,
+                                write_to=converted_filename,
                                 dpi=300,
                                 output_width=4000,
                             )
-                        if self._enough_image_difference(tmp_filename, filename):
-                            copyfile(tmp_filename, filename)
+                        if self._enough_image_difference(converted_filename, filename):
+                            copyfile(converted_filename, filename)
                             png_img = filename
 
                     # Convert to PDF if requested
@@ -592,14 +588,8 @@ class RichImg:
                         with open(svg_source, "rb") as svg_fh:
                             svg2pdf(
                                 file_obj=svg_fh,
-                                write_to=tmp_filename,
+                                write_to=converted_filename,
                             )
-                        if self._enough_image_difference(tmp_filename, filename):
-                            copyfile(tmp_filename, filename)
+                        if self._enough_image_difference(converted_filename, filename):
+                            copyfile(converted_filename, filename)
                             pdf_img = filename
-                finally:
-                    _delete_tmp_file(tmp_file_handle, tmp_filename)
-
-        # Delete the temporary SVG file - after the loop, as it is reused
-        if svg_tmp_filename is not None:
-            _delete_tmp_file(svg_tmp_file_handle, svg_tmp_filename)

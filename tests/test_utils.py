@@ -1,22 +1,18 @@
 """Tests for rich_codex.utils."""
 
-from pathlib import Path
-
 import pytest
-import yaml
 from git import Repo
 from jsonschema.exceptions import ValidationError
 
 from rich_codex import utils
+from rich_codex.codex_search import CONFIG_SCHEMA
 from rich_codex.rich_img import RichImg
 
 
 @pytest.fixture
 def schema():
-    """Load the packaged rich-codex JSON schema."""
-    schema_fn = Path(utils.__file__).parent / "config-schema.yml"
-    with schema_fn.open() as fh:
-        return yaml.safe_load(fh)
+    """Return the rich-codex JSON schema, as parsed once by the package itself."""
+    return CONFIG_SCHEMA
 
 
 class TestCleanList:
