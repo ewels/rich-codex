@@ -19,8 +19,6 @@ from rich.prompt import Confirm
 from rich.syntax import Syntax
 from rich.text import Text
 
-from rich_codex.utils import clean_list
-
 log = logging.getLogger("rich-codex")
 
 # Parse the config schema file to get config attributes
@@ -436,8 +434,9 @@ class RichImg:
                 # Keyed on the target filename: new_file is often a suffix-less temporary file.
                 skip_regexes = list(IGNORE_REGEXES.get(old_file.suffix.lower(), []))  # deep copy
                 if self.skip_change_regex:
-                    # An empty pattern would match every line, so drop blanks and comments
-                    skip_regexes.extend(clean_list(self.skip_change_regex.splitlines()))
+                    # Drop blank lines only: an empty pattern would match every line.
+                    # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
+                    skip_regexes.extend(ln for ln in self.skip_change_regex.splitlines() if ln.strip())
                 if len(skip_regexes) > 0:
                     new_file_lines = new_file_bytes.decode(errors="ignore").splitlines()
                     old_file_lines = old_file_bytes.decode(errors="ignore").splitlines()
@@ -445,9 +444,11 @@ class RichImg:
 
                     # Only continue if we found something to diff with
                     if len(new_file_lines) > 0 or len(old_file_lines) > 0:
-                        # unified_diff, not Differ: Differ is quadratic and these files can be big
-                        diffs = difflib.unified_diff(new_file_lines, old_file_lines, n=0, lineterm="")
-                        lost_lines = [d for d in diffs if d.startswith("-") and not d.startswith("---")]
+                        # unified_diff, not Differ: Differ is quadratic and these files can be big.
+                        # Skip the two '---' / '+++' header lines by position, as a removed
+                        # line starting with '--' is indistinguishable from the header.
+                        diffs = list(difflib.unified_diff(new_file_lines, old_file_lines, n=0, lineterm=""))[2:]
+                        lost_lines = [d for d in diffs if d.startswith("-")]
 
                         # Only continue if there was some diff
                         if len(lost_lines) > 0:

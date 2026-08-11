@@ -1,5 +1,6 @@
 """Tests for rich_codex.rich_img."""
 
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -438,6 +439,25 @@ class TestEnoughImageDifference:
         img = rich_img(skip_change_regex="generated:\n\n")
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
 
+    def test_skip_change_regex_may_start_with_a_hash(self, rich_img, tmp_cwd):
+        """'#' starts a colour literal, not a comment - patterns are not config lines."""
+        new_file = tmp_cwd / "new.svg"
+        old_file = tmp_cwd / "old.svg"
+        new_file.write_text('stable line\nfill="#aabbcc"\n')
+        old_file.write_text('stable line\nfill="#001122"\n')
+        img = rich_img(skip_change_regex="#[0-9a-f]{6}")
+        assert img._enough_image_difference(str(new_file), str(old_file)) is False
+
+    def test_removed_lines_starting_with_dashes(self, rich_img, tmp_cwd):
+        """A removed '-- x' line looks just like the unified diff header, but must still count."""
+        new_file = tmp_cwd / "new.svg"
+        old_file = tmp_cwd / "old.svg"
+        new_file.write_text("-- a dashed line\nstable\n")
+        old_file.write_text("stable\n")
+        img = rich_img(skip_change_regex="never-matches-anything")
+        assert img._enough_image_difference(str(new_file), str(old_file)) is True
+        assert img.num_img_saved == 1
+
     def test_skip_change_regex_not_matching_all_diffs(self, rich_img, tmp_cwd):
         new_file = tmp_cwd / "new.svg"
         old_file = tmp_cwd / "old.svg"
@@ -572,13 +592,14 @@ class TestSaveImages:
         img.save_images()
         assert "My Terminal" in svg_text(out)
 
-    def test_temporary_files_are_cleaned_up(self, rich_img, tmp_cwd):
-        import tempfile
-
-        before = set(Path(tempfile.gettempdir()).iterdir())
+    def test_temporary_files_are_cleaned_up(self, rich_img, tmp_cwd, monkeypatch):
+        # Point tempfile at a directory of our own, so unrelated /tmp activity can't affect this
+        scratch = tmp_cwd / "scratch"
+        scratch.mkdir()
+        monkeypatch.setattr(tempfile, "tempdir", str(scratch))
         img = self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.svg")])
         img.save_images()
-        assert set(Path(tempfile.gettempdir()).iterdir()) == before
+        assert list(scratch.iterdir()) == []
 
     def test_invalid_path_is_skipped(self, rich_img, tmp_cwd, caplog, monkeypatch):
         valid = tmp_cwd / "valid.svg"

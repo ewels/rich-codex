@@ -151,7 +151,7 @@ properties:
     type: number
   skip_change_regex:
     title: Skip image update if file changes match regex
-    type: boolean
+    type: string
   terminal_width:
     title: Width of the terminal
     type: integer

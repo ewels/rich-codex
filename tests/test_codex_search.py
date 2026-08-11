@@ -360,6 +360,23 @@ class TestParseConfigs:
         cs.parse_configs()
         assert cs.extra_env == {"FROM_CLI": "1", "FROM_CONFIG": True}
 
+    def test_skip_change_regex_is_a_string(self, tmp_cwd, codex_search):
+        """The schema used to declare this as a boolean, which rejected every real pattern."""
+        write(
+            tmp_cwd / ".rich-codex.yml",
+            """
+            skip_change_regex: '#[0-9a-f]{6}'
+            outputs:
+              - command: echo hello
+                img_paths: [img/hello.svg]
+                skip_change_regex: 'generated:'
+            """,
+        )
+        cs = codex_search()
+        cs.parse_configs()
+        assert cs.skip_change_regex == "#[0-9a-f]{6}"
+        assert cs.rich_imgs[0].skip_change_regex == "generated:"
+
     def test_global_config_applies_to_outputs(self, tmp_cwd, codex_search):
         write(
             tmp_cwd / ".rich-codex.yml",
