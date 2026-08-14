@@ -4,6 +4,6 @@ It should work as a standalone command-line tool, however it is primarily intend
 for use with the rich-codex GitHub Action.
 """
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 
 from rich_codex import rich_img  # noqa: F401
