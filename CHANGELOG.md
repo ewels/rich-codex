@@ -1,5 +1,11 @@
 # Changelog: rich-codex
 
+## Version 1.3.1 (2026-08-14)
+
+### New features
+
+- ✨ Set `RICH_CODEX=1` automatically for all executed commands (`command`, `before_command`, and `after_command`), so command scripts can reliably detect when they are running under rich-codex.
+
 ## Version 1.3.0 (2026-08-12)
 
 A lot of tweaks and improvements that have been building up, mostly driven with Claude.
