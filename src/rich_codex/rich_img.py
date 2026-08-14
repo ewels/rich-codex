@@ -200,6 +200,7 @@ class RichImg:
 
         # Set up the command environment vars, with extra_env if set
         command_env = os.environ.copy()
+        command_env["RICH_CODEX"] = "1"
         if len(self.extra_env):
             log.debug(f"Adding extra env variables: {self.extra_env}")
             command_env.update({str(k): str(v) for k, v in self.extra_env.items()})
