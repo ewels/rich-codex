@@ -1,5 +1,11 @@
 # Changelog: rich-codex
 
+## Unreleased
+
+### New features
+
+- ✨ New `--embed-font` option, which embeds a subset of Fira Code in generated SVGs so that they render correctly without the font installed ([#65](https://github.com/ewels/rich-codex/issues/65))
+
 ## Version 1.3.1 (2026-08-14)
 
 ### New features

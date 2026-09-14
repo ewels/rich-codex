@@ -21,6 +21,7 @@ from rich.prompt import Confirm
 from rich.syntax import Syntax
 from rich.text import Text
 
+from rich_codex import svg_fonts
 from rich_codex.utils import relative_path
 
 log = logging.getLogger("rich-codex")
@@ -73,6 +74,7 @@ class RichImg:
         notrim: bool = False,
         terminal_theme: str | None = None,
         snippet_theme: str | None = None,
+        embed_font: bool = False,
         use_pty: bool = False,
         console: Console | None = None,
         source_type: str | None = None,
@@ -106,6 +108,7 @@ class RichImg:
         self.notrim = notrim
         self.terminal_theme = terminal_theme
         self.snippet_theme = snippet_theme
+        self.embed_font = embed_font
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         # Only set once the output has been rendered, by run_command() or format_snippet()
@@ -489,6 +492,19 @@ class RichImg:
             path = Path(path.name)
         return "rich-codex-" + str(zlib.adler32(str(path).encode("utf-8")))
 
+    def _embed_svg_font(self, svg_content: str) -> str:
+        """Inline the terminal font in the SVG, so it renders the same without Fira Code installed.
+
+        Returns the SVG unchanged if the font can't be embedded: a screenshot that falls back
+        to the reader's monospace font is still better than no screenshot at all.
+        """
+        try:
+            return svg_fonts.embed_fonts(svg_content)
+        except svg_fonts.FontEmbedError as e:
+            log.error(f"[red]Could not embed the font in the SVG:[/] {e}")
+            log.info(f"[dim]Falling back to Rich's linked font for '{self.img_paths[0]}'")
+            return svg_content
+
     def save_images(self) -> None:
         """Save the images to the specified filenames."""
         if self.aborted:
@@ -548,12 +564,14 @@ class RichImg:
 
                 # We always render an SVG first, then reuse it for every other output
                 if svg_img is None and not rendered_svg:
-                    self.capture_console.save_svg(
-                        svg_tmp_filename,
+                    svg_content = self.capture_console.export_svg(
                         title=self.title,
                         theme=terminal_theme,
                         unique_id=self._svg_unique_id(),
                     )
+                    if self.embed_font:
+                        svg_content = self._embed_svg_font(svg_content)
+                    Path(svg_tmp_filename).write_text(svg_content, encoding="utf-8")
                     rendered_svg = True
                 svg_source = svg_img or svg_tmp_filename
 

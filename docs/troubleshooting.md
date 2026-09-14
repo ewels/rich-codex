@@ -4,6 +4,12 @@ First up: did you remember the `!`? It's ``![`command`](path)`` - I've spent lon
 
 Next, check the verbose log - it's saved as an artefact with GitHub Actions or locally you can use the `-v`/`--verbose` flag. The verbose log tells you which files are being searched and gives you more insight into what rich-codex is doing.
 
+## My images look wrong on GitHub
+
+If the box-drawing characters in your images look like they've come apart, or the text
+doesn't line up in columns, the reader's browser is substituting a different font for
+Fira Code. Use [`embed_font`](config/fonts.md) to put the font inside the image.
+
 ## Can't push new commits
 
 If you're fairly new to using git, you might find this error message a bit intimidating when you first see it:

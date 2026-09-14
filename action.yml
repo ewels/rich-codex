@@ -98,6 +98,9 @@ inputs:
   snippet_theme:
     description: Snippet Pygments theme
     required: false
+  embed_font:
+    description: Embed the terminal font in SVG images, so that they render the same everywhere. Makes the files bigger.
+    required: false
   use_pty:
     description: Use a pseudo-terminal for commands (may capture coloured output)
     required: false
@@ -165,19 +168,34 @@ runs:
         echo "::endgroup::"
       shell: bash
 
+    # The 'fonts' extra pulls in fontTools, which is only used by 'embed_font',
+    # so it's left out unless that input asks for it. Any value other than empty
+    # or 'false' counts as true, as everywhere else in this action.
     - name: Install rich-codex with uv
       if: inputs.use_uv == 'true' && inputs.skip_install != 'true'
+      env:
+        EMBED_FONT: ${{ inputs.embed_font }}
       run: |
         echo "::group::Installing rich-codex"
-        uv pip install "rich-codex[cairo]"
+        EXTRAS="cairo"
+        if [[ -n "$EMBED_FONT" && "$EMBED_FONT" != "false" ]]; then
+          EXTRAS="$EXTRAS,fonts"
+        fi
+        uv pip install "rich-codex[$EXTRAS]"
         echo "::endgroup::"
       shell: bash
 
     - name: Install rich-codex with pip
       if: inputs.use_uv != 'true' && inputs.skip_install != 'true'
+      env:
+        EMBED_FONT: ${{ inputs.embed_font }}
       run: |
         echo "::group::Installing rich-codex"
-        pip install "rich-codex[cairo]"
+        EXTRAS="cairo"
+        if [[ -n "$EMBED_FONT" && "$EMBED_FONT" != "false" ]]; then
+          EXTRAS="$EXTRAS,fonts"
+        fi
+        pip install "rich-codex[$EXTRAS]"
         echo "::endgroup::"
       shell: bash
 
@@ -215,6 +233,7 @@ runs:
         NOTRIM: ${{ inputs.notrim }}
         TERMINAL_THEME: ${{ inputs.terminal_theme }}
         SNIPPET_THEME: ${{ inputs.snippet_theme }}
+        EMBED_FONT: ${{ inputs.embed_font }}
         USE_PTY: ${{ inputs.use_pty }}
         CREATED_FILES: "created.txt"
         DELETED_FILES: "deleted.txt"

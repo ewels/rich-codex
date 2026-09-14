@@ -37,7 +37,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends libcairo2
 
       - name: Install rich-codex and test dependencies
-        run: pip install '.[dev,cairo]'
+        run: pip install '.[dev,cairo,fonts]'
 
       # Coverage roughly doubles the runtime, so only measure it once
       - name: Run pytest
@@ -66,6 +66,16 @@ jobs:
             --img-paths "$(printf 'out.svg\nout.png\nout.pdf')"
           test -s snippet.svg
           test -s out.svg && test -s out.png && test -s out.pdf
+
+      # '--embed-font' reads the vendored WOFF2 files, so it only works if they were
+      # packaged. Checking the installed CLI is the only place that catches that.
+      - name: Generate an image with an embedded font
+        working-directory: ${{ runner.temp }}
+        run: |
+          rich-codex --no-confirm --skip-git-checks --no-search --embed-font \
+            --command "echo hello from rich-codex" --img-paths embedded.svg
+          grep -q 'data:font/woff2;base64' embedded.svg
+          ! grep -q 'cdnjs.cloudflare.com' embedded.svg
 
       # Covers both comment styles: HTML comments in markdown, JSX comments in MDX
       - name: Generate images by searching markdown and MDX

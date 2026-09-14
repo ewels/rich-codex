@@ -27,6 +27,7 @@ properties:
   notrim: { "$ref": "#/$defs/notrim" }
   terminal_theme: { "$ref": "#/$defs/terminal_theme" }
   snippet_theme: { "$ref": "#/$defs/snippet_theme" }
+  embed_font: { "$ref": "#/$defs/embed_font" }
   use_pty: { "$ref": "#/$defs/use_pty" }
 
   # Top-level only config options
@@ -107,6 +108,7 @@ properties:
         notrim: { "$ref": "#/$defs/notrim" }
         terminal_theme: { "$ref": "#/$defs/terminal_theme" }
         snippet_theme: { "$ref": "#/$defs/snippet_theme" }
+        embed_font: { "$ref": "#/$defs/embed_font" }
         use_pty: { "$ref": "#/$defs/use_pty" }
 
 # Single location to hold schema for config options, as used twice
@@ -167,6 +169,9 @@ properties:
   snippet_theme:
     title: Snippet Pygments theme
     type: string
+  embed_font:
+    title: Embed the terminal font in SVG images, so they render the same everywhere
+    type: boolean
   use_pty:
     title: Use a pseudo-terminal for commands (may capture coloured output)
     type: boolean

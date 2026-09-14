@@ -54,6 +54,7 @@ CODEX_SEARCH_DEFAULTS = {
     "notrim": None,
     "terminal_theme": None,
     "snippet_theme": None,
+    "embed_font": False,
     "use_pty": None,
 }
 

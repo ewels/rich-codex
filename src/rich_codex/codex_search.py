@@ -60,6 +60,7 @@ class CodexSearch:
         notrim: bool,
         terminal_theme: str | None,
         snippet_theme: str | None,
+        embed_font: bool,
         use_pty: bool,
         console: Console | None,
     ) -> None:
@@ -102,6 +103,7 @@ class CodexSearch:
         self.notrim = notrim
         self.terminal_theme = terminal_theme
         self.snippet_theme = snippet_theme
+        self.embed_font = embed_font
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.cwd = Path.cwd().resolve()
@@ -129,6 +131,7 @@ class CodexSearch:
             "notrim",
             "terminal_theme",
             "snippet_theme",
+            "embed_font",
             "use_pty",
         ]
         # Config options that combine with more specific config, instead of being replaced by it

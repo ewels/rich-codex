@@ -279,6 +279,13 @@ log = logging.getLogger()
     help="Snippet Pygments theme",
 )
 @click.option(
+    "--embed-font",
+    is_flag=True,
+    envvar="EMBED_FONT",
+    show_envvar=True,
+    help="Embed the terminal font in SVG images, so they render the same everywhere",
+)
+@click.option(
     "--use-pty",
     is_flag=True,
     envvar="USE_PTY",
@@ -355,6 +362,7 @@ def main(
     notrim: bool,
     terminal_theme: str | None,
     snippet_theme: str | None,
+    embed_font: bool,
     use_pty: bool,
     created_files: str | None,
     deleted_files: str | None,
@@ -474,6 +482,7 @@ def main(
             notrim=notrim,
             terminal_theme=terminal_theme,
             snippet_theme=snippet_theme,
+            embed_font=embed_font,
             use_pty=use_pty,
             console=console,
         )
@@ -520,6 +529,7 @@ def main(
         notrim=notrim,
         terminal_theme=terminal_theme,
         snippet_theme=snippet_theme,
+        embed_font=embed_font,
         use_pty=use_pty,
         console=console,
         working_dir=working_dir,

@@ -589,6 +589,37 @@ class TestSaveImages:
         assert img.num_img_saved == 0
         assert out.stat().st_mtime_ns == first_mtime
 
+    def test_embed_font(self, rich_img, tmp_cwd):
+        pytest.importorskip("fontTools", reason="the 'fonts' extra is not installed")
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)], embed_font=True).save_images()
+        assert "data:font/woff2;base64," in out.read_text()
+        assert "cdnjs.cloudflare.com" not in out.read_text()
+
+    def test_no_embed_font_by_default(self, rich_img, tmp_cwd):
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        assert "data:font/woff2;base64," not in out.read_text()
+        assert "cdnjs.cloudflare.com" in out.read_text()
+
+    def test_embed_font_is_stable_across_runs(self, rich_img, tmp_cwd):
+        """Images get committed, so a second run of the same command must not rewrite them."""
+        pytest.importorskip("fontTools", reason="the 'fonts' extra is not installed")
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)], embed_font=True).save_images()
+        first = out.read_text()
+        img = self.rendered(rich_img, img_paths=[str(out)], embed_font=True)
+        img.save_images()
+        assert out.read_text() == first
+        assert img.num_img_skipped == 1
+
+    def test_embed_font_failure_still_saves_the_image(self, rich_img, tmp_cwd, caplog, block_import):
+        block_import("fontTools.subset", "fontTools.ttLib")
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)], embed_font=True).save_images()
+        assert "Could not embed the font" in caplog.text
+        assert "cdnjs.cloudflare.com" in out.read_text()
+
     def test_terminal_theme(self, rich_img, tmp_cwd):
         out = tmp_cwd / "out.svg"
         img = self.rendered(rich_img, img_paths=[str(out)], terminal_theme="MONOKAI")

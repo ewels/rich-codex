@@ -35,6 +35,8 @@ optional-dependencies.dev = [
     "ruff",
     "types-pyyaml",
 ]
+# Font subsetting for '--embed-font'. Brotli is what fontTools compresses WOFF2 with.
+optional-dependencies.fonts = [ "brotli>=1.0.9", "fonttools>=4.38" ]
 urls."Issue Tracker" = "https://github.com/ewels/rich-codex/issues"
 urls."Source Code" = "https://github.com/ewels/rich-codex"
 urls.Documentation = "https://github.com/ewels/rich-codex"
@@ -42,7 +44,7 @@ scripts.rich-codex = "rich_codex.cli:main"
 
 [tool.setuptools]
 packages.find.where = [ "src" ]
-package-data.rich_codex = [ "config-schema.yml" ]
+package-data.rich_codex = [ "config-schema.yml", "fonts/*" ]
 dynamic.version = { attr = "rich_codex.__version__" }
 
 # Ruff covers formatting, linting, import order and syntax modernisation.
