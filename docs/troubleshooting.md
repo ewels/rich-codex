@@ -8,7 +8,9 @@ Next, check the verbose log - it's saved as an artefact with GitHub Actions or l
 
 If the box-drawing characters in your images look like they've come apart, or the text
 doesn't line up in columns, the reader's browser is substituting a different font for
-Fira Code. Use [`embed_font`](config/fonts.md) to put the font inside the image.
+Fira Code. rich-codex [embeds the font](config/fonts.md) by default to prevent exactly
+this, so either the images predate that, or `embed_font` has been turned off. Regenerate
+them with it on.
 
 ## Can't push new commits
 

@@ -1196,6 +1196,8 @@ wheels = [
 name = "rich-codex"
 source = { editable = "." }
 dependencies = [
+    { name = "brotli" },
+    { name = "fonttools" },
     { name = "gitpython" },
     { name = "jsonschema" },
     { name = "levenshtein" },
@@ -1216,16 +1218,12 @@ dev = [
     { name = "ruff" },
     { name = "types-pyyaml" },
 ]
-fonts = [
-    { name = "brotli" },
-    { name = "fonttools" },
-]
 
 [package.metadata]
 requires-dist = [
-    { name = "brotli", marker = "extra == 'fonts'", specifier = ">=1.0.9" },
+    { name = "brotli", specifier = ">=1.0.9" },
     { name = "cairosvg", marker = "extra == 'cairo'", specifier = ">=2.5.2" },
-    { name = "fonttools", marker = "extra == 'fonts'", specifier = ">=4.38" },
+    { name = "fonttools", specifier = ">=4.38" },
     { name = "gitpython" },
     { name = "jsonschema" },
     { name = "levenshtein", specifier = ">=0.18.1" },
@@ -1239,7 +1237,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "types-pyyaml", marker = "extra == 'dev'" },
 ]
-provides-extras = ["cairo", "fonts", "dev"]
+provides-extras = ["cairo", "dev"]
 
 [[package]]
 name = "rpds-py"

@@ -55,6 +55,7 @@ click.rich_click.OPTION_GROUPS = {
                 "--terminal-theme",
                 "--snippet-syntax",
                 "--snippet-theme",
+                "--embed-font",
             ],
         },
         {
@@ -279,8 +280,9 @@ log = logging.getLogger()
     help="Snippet Pygments theme",
 )
 @click.option(
-    "--embed-font",
-    is_flag=True,
+    "--embed-font/--no-embed-font",
+    default=True,
+    show_default=True,
     envvar="EMBED_FONT",
     show_envvar=True,
     help="Embed the terminal font in SVG images, so they render the same everywhere",

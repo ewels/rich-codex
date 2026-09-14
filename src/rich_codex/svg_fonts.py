@@ -49,6 +49,8 @@ NAME_IDS = [0, 1, 2, 3, 4, 5, 6, 7, 13, 14]
 
 # Rich writes one '@font-face' block per weight, with no nested braces
 FONT_FACE_RE = re.compile(r"@font-face\s*\{[^{}]*\}")
+# The same thing as raw bytes, for comparing images without decoding them
+EMBEDDED_FONT_BYTES_RE = re.compile(rb"(data:font/woff2;base64,)[A-Za-z0-9+/=]+")
 TEXT_RE = re.compile(r"<text\b([^>]*)>(.*?)</text>", re.DOTALL)
 # Rich's own style rules are '.<unique_id>-r<n> { ... }'; the '-title' rule is Arial, and
 # so isn't rendered in the embedded font
@@ -85,6 +87,20 @@ def embed_fonts(svg: str) -> str:
     return svg.replace("<style>", LICENCE_COMMENT + "<style>", 1)
 
 
+def without_embedded_fonts(image: bytes) -> bytes:
+    """Strip embedded font data out of an image, for comparing one render against another.
+
+    The subset is derived from the text, so it carries nothing the text doesn't already
+    say: a font that changed means characters that changed. Leaving it in would drown out
+    'min_pct_diff' and hand 'skip_change_regex' a changed line it can never match, so an
+    ignored timestamp would still rewrite the image whenever its digits changed.
+
+    Takes bytes rather than str because it also gets handed PNGs and PDFs, which it leaves
+    alone.
+    """
+    return EMBEDDED_FONT_BYTES_RE.sub(rb"\1", image)
+
+
 def used_characters(svg: str) -> str:
     """Collect the characters rendered in the terminal font, as a sorted string.
 
@@ -110,7 +126,12 @@ def uses_bold(svg: str) -> bool:
 
 
 def _font_face(weight: int, characters: str) -> str:
-    """Build a single '@font-face' rule with the subset font inlined as a data URI."""
+    """Build a single '@font-face' rule with the subset font inlined as a data URI.
+
+    Indented like Rich's own rules, and with no trailing newline, so that what replaces
+    them lines up byte for byte with what it replaced. An extra blank line here would
+    show up as a diff in every image rich-codex has ever generated.
+    """
     subset = subset_font(FONT_FILES[weight], characters)
     encoded = base64.b64encode(subset).decode("ascii")
     return (
@@ -119,7 +140,7 @@ def _font_face(weight: int, characters: str) -> str:
         f'        src: url("data:font/woff2;base64,{encoded}") format("woff2");\n'
         "        font-style: normal;\n"
         f"        font-weight: {weight};\n"
-        "    }\n"
+        "    }"
     )
 
 

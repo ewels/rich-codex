@@ -9,9 +9,6 @@ from rich.console import Console
 
 from rich_codex import svg_fonts
 
-pytest.importorskip("fontTools", reason="the 'fonts' extra is not installed")
-pytest.importorskip("brotli", reason="the 'fonts' extra is not installed")
-
 DATA_URI_RE = re.compile(r'src: url\("data:font/woff2;base64,([A-Za-z0-9+/=]+)"\)')
 
 
@@ -84,10 +81,19 @@ class TestEmbedFonts:
         assert len(embedded_fonts(svg_fonts.embed_fonts(render("hello")))) == 1
 
     def test_the_rest_of_the_svg_is_untouched(self):
+        """Only the font rules change, down to the whitespace.
+
+        A stray newline here would land as a diff line in every image a user regenerates,
+        on top of the font itself.
+        """
         svg = render()
         embedded = svg_fonts.embed_fonts(svg)
-        # Everything from the end of the style block on is Rich's, byte for byte
-        assert svg.split("</style>")[1] == embedded.split("</style>")[1]
+
+        def after_the_font_rules(text):
+            return text[list(svg_fonts.FONT_FACE_RE.finditer(text))[-1].end() :]
+
+        assert after_the_font_rules(embedded) == after_the_font_rules(svg)
+        assert embedded.split("<style>")[0].replace(svg_fonts.LICENCE_COMMENT, "") == svg.split("<style>")[0]
 
     def test_no_font_face_rules_is_an_error(self):
         with pytest.raises(svg_fonts.FontEmbedError, match="found 0"):
@@ -137,6 +143,34 @@ class TestDeterminism:
     def test_character_order_does_not_matter(self):
         font_file = svg_fonts.FONT_FILES[400]
         assert svg_fonts.subset_font(font_file, "abc") == svg_fonts.subset_font(font_file, "cba")
+
+
+class TestWithoutEmbeddedFonts:
+    """Tests for svg_fonts.without_embedded_fonts()."""
+
+    def test_the_payload_goes(self):
+        svg = svg_fonts.embed_fonts(render()).encode()
+        stripped = svg_fonts.without_embedded_fonts(svg)
+        assert b"data:font/woff2;base64," in stripped
+        assert not DATA_URI_RE.findall(stripped.decode())
+
+    def test_two_renders_differing_only_in_font_compare_equal(self):
+        """'a' and 'b' need different subsets, so only stripping makes the rest comparable."""
+        one = svg_fonts.embed_fonts(render("a")).encode()
+        other = svg_fonts.embed_fonts(render("b")).encode()
+        assert one != other
+        stripped_one = svg_fonts.without_embedded_fonts(one)
+        stripped_other = svg_fonts.without_embedded_fonts(other)
+        assert len(stripped_one) == len(stripped_other)
+        assert stripped_one.count(b"base64,") == 1
+
+    def test_an_svg_with_no_embedded_font_is_untouched(self):
+        svg = render().encode()
+        assert svg_fonts.without_embedded_fonts(svg) == svg
+
+    def test_binary_files_are_untouched(self):
+        png = b"\x89PNG\r\n\x1a\n" + bytes(range(256))
+        assert svg_fonts.without_embedded_fonts(png) == png
 
 
 class TestUsedCharacters:

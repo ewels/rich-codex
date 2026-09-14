@@ -44,7 +44,7 @@ jobs:
       # CLI show the code in this branch and not the last release on PyPI.
       # The action is told to skip Python and the install, as we do both here.
       - name: Install rich-codex and requirements for docs
-        run: pip install -e ".[cairo,fonts]" cowsay lolcat rich-cli mkdocs-material pillow
+        run: pip install -e ".[cairo]" cowsay lolcat rich-cli mkdocs-material pillow
 
       - name: Generate terminal images with rich-codex
         uses: ./ # Would normally be ewels/rich-codex@v1

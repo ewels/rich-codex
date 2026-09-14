@@ -2,9 +2,16 @@
 
 ## Unreleased
 
-### New features
+### Breaking changes
 
-- ✨ New `--embed-font` option, which embeds a subset of Fira Code in generated SVGs so that they render correctly without the font installed ([#65](https://github.com/ewels/rich-codex/issues/65))
+- 💥 SVGs now embed a subset of Fira Code, so that they render correctly for readers who don't have the font installed ([#65](https://github.com/ewels/rich-codex/issues/65))
+  - Every SVG is regenerated on the next run, and grows by roughly 10-30 KB
+  - Turn it off with `--no-embed-font` / `EMBED_FONT=false` / `embed_font: false` to get the old output back
+  - `fonttools` is a new required dependency
+
+### Updates
+
+- 🐛 `min_pct_diff` and `skip_change_regex` now ignore the embedded font when comparing images, so they still measure the command's output
 
 ## Version 1.3.1 (2026-08-14)
 

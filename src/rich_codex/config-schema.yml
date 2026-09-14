@@ -170,7 +170,7 @@ properties:
     title: Snippet Pygments theme
     type: string
   embed_font:
-    title: Embed the terminal font in SVG images, so they render the same everywhere
+    title: Embed the terminal font in SVG images, so they render the same everywhere (default true)
     type: boolean
   use_pty:
     title: Use a pseudo-terminal for commands (may capture coloured output)

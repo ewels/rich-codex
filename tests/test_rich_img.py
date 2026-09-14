@@ -9,6 +9,7 @@ import pytest
 from conftest import svg_text
 
 from rich_codex import rich_img as rich_img_module
+from rich_codex import svg_fonts
 from rich_codex.rich_img import RichImg
 
 
@@ -490,6 +491,72 @@ class TestEnoughImageDifference:
         assert changed.num_img_skipped == 1
         assert changed.num_img_saved == 0
 
+    def test_skip_change_regex_survives_the_embedded_font(self, rich_img, tmp_cwd):
+        """The ignored text changes which characters the font subset needs.
+
+        Without stripping the font before diffing, the '@font-face' line changes too, and
+        nothing the user can write in 'skip_change_regex' would ever match it.
+        """
+        out = tmp_cwd / "out.svg"
+
+        def render(timestamp):
+            img = rich_img(
+                command=f"printf 'stable output\\nGenerated at {timestamp}\\n'",
+                skip_change_regex="Generated&#160;at",
+                img_paths=[str(out)],
+                hide_command=True,
+            )
+            img.run_command()
+            img.save_images()
+            return out.read_text()
+
+        first = render("111")
+        assert render("999") == first, "the ignored timestamp rewrote the image"
+        # The second render really would have needed a different subset: '9' isn't in the
+        # first one's characters, so its embedded font could not have been the same
+        characters = svg_fonts.used_characters(first)
+        assert "1" in characters
+        assert "9" not in characters
+
+    def test_a_different_font_alone_does_not_rewrite_the_image(self, rich_img, tmp_cwd):
+        """What a fontTools upgrade looks like: same output, different font bytes.
+
+        The saved image is left alone until its content actually changes. It still renders
+        correctly with the subset it already has, and every image in the repository staying
+        put beats rewriting all of them for bytes nobody can see.
+        """
+        out = tmp_cwd / "out.svg"
+        img = rich_img(snippet="hello world", snippet_syntax="text", img_paths=[str(out)])
+        img.format_snippet()
+        img.save_images()
+        out.write_text(re.sub(r"(base64,)[A-Za-z0-9+/=]+", r"\1d09GMgABAAAA", out.read_text()))
+        stale = out.read_text()
+
+        second = rich_img(snippet="hello world", snippet_syntax="text", img_paths=[str(out)])
+        second.format_snippet()
+        second.save_images()
+        assert second.num_img_skipped == 1
+        assert out.read_text() == stale
+
+    def test_min_pct_diff_is_not_swamped_by_the_font(self, rich_img, tmp_cwd):
+        """A one-character change should read as a small percentage, not a large one."""
+        out = tmp_cwd / "out.svg"
+
+        def render(word, min_pct_diff=0):
+            img = rich_img(
+                snippet=f"the quick brown fox {word}",
+                snippet_syntax="text",
+                img_paths=[str(out)],
+                min_pct_diff=min_pct_diff,
+            )
+            img.format_snippet()
+            img.save_images()
+            return img
+
+        render("jumps")
+        changed = render("jumped", min_pct_diff=25)
+        assert changed.num_img_skipped == 1
+
     def test_no_regexes_means_no_diffing(self, rich_img, tmp_cwd, caplog):
         """Without skip_change_regex there is nothing to match, so we don't diff at all."""
         new_file = tmp_cwd / "new.pdf"
@@ -589,26 +656,24 @@ class TestSaveImages:
         assert img.num_img_saved == 0
         assert out.stat().st_mtime_ns == first_mtime
 
-    def test_embed_font(self, rich_img, tmp_cwd):
-        pytest.importorskip("fontTools", reason="the 'fonts' extra is not installed")
+    def test_font_is_embedded_by_default(self, rich_img, tmp_cwd):
         out = tmp_cwd / "out.svg"
-        self.rendered(rich_img, img_paths=[str(out)], embed_font=True).save_images()
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
         assert "data:font/woff2;base64," in out.read_text()
         assert "cdnjs.cloudflare.com" not in out.read_text()
 
-    def test_no_embed_font_by_default(self, rich_img, tmp_cwd):
+    def test_embed_font_can_be_turned_off(self, rich_img, tmp_cwd):
         out = tmp_cwd / "out.svg"
-        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        self.rendered(rich_img, img_paths=[str(out)], embed_font=False).save_images()
         assert "data:font/woff2;base64," not in out.read_text()
         assert "cdnjs.cloudflare.com" in out.read_text()
 
     def test_embed_font_is_stable_across_runs(self, rich_img, tmp_cwd):
         """Images get committed, so a second run of the same command must not rewrite them."""
-        pytest.importorskip("fontTools", reason="the 'fonts' extra is not installed")
         out = tmp_cwd / "out.svg"
-        self.rendered(rich_img, img_paths=[str(out)], embed_font=True).save_images()
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
         first = out.read_text()
-        img = self.rendered(rich_img, img_paths=[str(out)], embed_font=True)
+        img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
         assert out.read_text() == first
         assert img.num_img_skipped == 1
@@ -616,7 +681,7 @@ class TestSaveImages:
     def test_embed_font_failure_still_saves_the_image(self, rich_img, tmp_cwd, caplog, block_import):
         block_import("fontTools.subset", "fontTools.ttLib")
         out = tmp_cwd / "out.svg"
-        self.rendered(rich_img, img_paths=[str(out)], embed_font=True).save_images()
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
         assert "Could not embed the font" in caplog.text
         assert "cdnjs.cloudflare.com" in out.read_text()
 

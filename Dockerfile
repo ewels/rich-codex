@@ -18,10 +18,9 @@ RUN apk add --no-cache \
     jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev
 
 # Install requirements
-# The 'cairo' extra is what actually uses the Cairo libraries installed above,
-# and 'fonts' brings in fontTools for '--embed-font'
+# The 'cairo' extra is what actually uses the Cairo libraries installed above
 COPY . .
-RUN pip install ".[cairo,fonts]"
+RUN pip install ".[cairo]"
 
 # Prepare GitHub Action
 ENTRYPOINT ["rich-codex"]

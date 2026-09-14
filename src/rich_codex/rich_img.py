@@ -74,7 +74,7 @@ class RichImg:
         notrim: bool = False,
         terminal_theme: str | None = None,
         snippet_theme: str | None = None,
-        embed_font: bool = False,
+        embed_font: bool = True,
         use_pty: bool = False,
         console: Console | None = None,
         source_type: str | None = None,
@@ -414,10 +414,11 @@ class RichImg:
             log_msg = "new image"
 
         else:
-            # Percentage change in file
+            # Percentage change in file, ignoring any embedded font: it's derived from the
+            # text, so counting it would swamp a small change to the output itself.
             # This method works even with entirely binary files, no decoding required
-            new_file_bytes = new_file.read_bytes()
-            old_file_bytes = old_file.read_bytes()
+            new_file_bytes = svg_fonts.without_embedded_fonts(new_file.read_bytes())
+            old_file_bytes = svg_fonts.without_embedded_fonts(old_file.read_bytes())
             pct_change = (1 - ratio(new_file_bytes, old_file_bytes)) * 100.0
             if pct_change <= self.min_pct_diff:
                 create_file = False

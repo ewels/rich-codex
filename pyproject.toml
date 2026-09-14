@@ -25,7 +25,16 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dynamic = [ "version" ]
-dependencies = [ "gitpython", "jsonschema", "levenshtein>=0.18.1", "pyyaml", "rich>=12.4.3", "rich-click>=1.9" ]
+dependencies = [
+    "brotli>=1.0.9",
+    "fonttools>=4.38",
+    "gitpython",
+    "jsonschema",
+    "levenshtein>=0.18.1",
+    "pyyaml",
+    "rich>=12.4.3",
+    "rich-click>=1.9",
+]
 optional-dependencies.cairo = [ "cairosvg>=2.5.2" ]
 optional-dependencies.dev = [
     "mypy",
@@ -35,8 +44,6 @@ optional-dependencies.dev = [
     "ruff",
     "types-pyyaml",
 ]
-# Font subsetting for '--embed-font'. Brotli is what fontTools compresses WOFF2 with.
-optional-dependencies.fonts = [ "brotli>=1.0.9", "fonttools>=4.38" ]
 urls."Issue Tracker" = "https://github.com/ewels/rich-codex/issues"
 urls."Source Code" = "https://github.com/ewels/rich-codex"
 urls.Documentation = "https://github.com/ewels/rich-codex"
