@@ -106,8 +106,8 @@ A brief description of each option follows.
 - `--notrim`: Disable automatic trimming of terminal width
 - `--terminal-theme`: Colour theme
 - `--snippet-theme`: Snippet Pygments theme
-- `--embed-font` / `--no-embed-font`: Embed the terminal font in SVG images, so they render the same everywhere. On by default (see [embedding the terminal font](fonts.md))
-- `--png-fallback-font`: Font family for characters the bundled fonts don't have, such as emoji, in PNG output (see [embedding the terminal font](fonts.md))
+- `--embed-font` / `--no-embed-font`: Embed the terminal font in SVG images, so that they render the same everywhere. On by default (see [embedding the terminal font](fonts.md))
+- `--png-fallback-font`: Font family for characters the bundled fonts don't have, such as CJK, in PNG output (see [embedding the terminal font](fonts.md))
 - `--use-pty`: Use a pseudo-terminal for commands (may capture coloured output)
 - `--created-files`: Save a list of created files to this file
 - `--deleted-files`: Save a list of deleted files to this file

@@ -6,11 +6,11 @@ Next, check the verbose log - it's saved as an artefact with GitHub Actions or l
 
 ## My images look wrong on GitHub
 
-If the box-drawing characters in your images look like they've come apart, or the text
-doesn't line up in columns, the reader's browser is substituting a different font for
-Fira Code. rich-codex [embeds the font](config/fonts.md) by default to prevent exactly
-this, so either the images predate that, or `embed_font` has been turned off. Regenerate
-them with it on.
+If the box-drawing characters in your images do not join up, or the text does not line up
+in columns, the reader's browser has substituted a different font for Fira Code. rich-codex
+[embeds the font](config/fonts.md) by default to prevent this. Either the images were
+generated before that was added, or `embed_font` has been turned off. Generate them again
+with it on.
 
 ## Can't push new commits
 

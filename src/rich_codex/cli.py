@@ -292,7 +292,7 @@ log = logging.getLogger()
     "--png-fallback-font",
     envvar="PNG_FALLBACK_FONT",
     show_envvar=True,
-    help="Font family for characters the bundled fonts don't have, such as emoji, in PNG output",
+    help="Font family for characters the bundled fonts don't have, such as CJK, in PNG output",
     metavar="FAMILY",
 )
 @click.option(

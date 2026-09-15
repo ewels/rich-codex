@@ -5,25 +5,25 @@
 ### Breaking changes
 
 - 💥 SVGs now embed a subset of Fira Code, so that they render correctly for readers who don't have the font installed ([#65](https://github.com/ewels/rich-codex/issues/65))
-  - Every SVG is regenerated on the next run, and grows by roughly 10-30 KB
+  - Every SVG is regenerated on the next run, and grows by 10-30 KB
   - Turn it off with `--no-embed-font` / `EMBED_FONT=false` / `embed_font: false` to get the old output back
-- 💥 PDF output has been dropped. SVG covers the same ground, and a path ending in `.pdf` is now an error
-- 💥 PNG is rasterised by [resvg](https://github.com/linebender/resvg) instead of CairoSVG, so existing PNGs will be rewritten once
+- 💥 PDF output has been removed. A path ending in `.pdf` is now an error
+- 💥 PNG files are rasterised by [resvg](https://github.com/linebender/resvg) instead of CairoSVG, so existing PNG files are rewritten once
 
 ### New features
 
-- ✨ `pip install rich-codex` is now all you need for PNG output: no Cairo, no system libraries, no `cairo` extra, and no fonts installed on the machine
-- ✨ PNGs are rendered from rich-codex's own bundled fonts and nothing else, so the same output rasterises the same way on any machine
-  - Fira Code, Inter and Noto Color Emoji are bundled, which covers everything a terminal usually produces, emoji in colour included
-  - New `--png-fallback-font` option, naming a font from the machine to draw anything the three don't have, such as CJK
-- ✨ Window titles are set in [Inter](https://rsms.me/inter/), bundled and embedded like Fira Code, instead of Arial — which is proprietary, so it can't be bundled, and isn't on most Linux machines
+- ✨ `pip install rich-codex` is now enough for PNG output. Cairo, its system libraries and the `cairo` extra are all gone, and no font has to be installed on the machine
+- ✨ PNG files are rendered from rich-codex's own bundled fonts, so the same output rasterises the same way on any machine
+  - Fira Code, Inter and Noto Color Emoji are bundled, which covers Latin, Greek, Cyrillic, box drawing and emoji. Emoji are drawn in colour
+  - New `--png-fallback-font` option, which names a font on the machine to draw characters the bundled fonts don't have, such as CJK
+- ✨ Window titles use [Inter](https://rsms.me/inter/), embedded like Fira Code, in place of Arial. Arial is proprietary, so it can't be bundled, and most Linux machines don't have it
 
 ### Updates
 
-- 🐛 Double-width characters no longer break the layout. Rich advances `x` by terminal cells, so an emoji or a CJK character takes two, but sizes `textLength` by counting characters — so the glyph spilled over whatever followed it and the box drawing stopped lining up. rich-codex now corrects it
+- 🐛 Double-width characters no longer break the layout. Rich moves along each line in terminal cells, and an emoji or a CJK character fills two of them, but it sizes `textLength` by counting characters. The glyph then overlapped the text after it and the box drawing stopped lining up. rich-codex now corrects the value
 - 🐛 `min_pct_diff` and `skip_change_regex` now ignore the embedded font when comparing images, so they still measure the command's output
-- ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`, all of which ship as wheels
-- ⬆️ The package now bundles Fira Code, Inter and Noto Color Emoji, taking it from about 0.5 MB to 3 MB
+- ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`. All three ship as wheels
+- ⬆️ The package now bundles Fira Code, Inter and Noto Color Emoji, which takes it from about 0.5 MB to 3 MB
 
 ## Version 1.3.1 (2026-08-14)
 

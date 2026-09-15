@@ -38,7 +38,7 @@ extra_env:
 ## Requirements for PNG outputs
 
 Nothing extra. `PNG` output is rasterised by [resvg](https://github.com/linebender/resvg),
-which ships as a self-contained wheel, so `pip install rich-codex` is the whole story on
-every platform. The fonts are bundled with rich-codex too, so the images don't depend on
-what's installed on the machine at all — see
-[embedding the terminal font](../config/fonts.md).
+which ships as a self-contained wheel, so `pip install rich-codex` is all you need on every
+platform. The fonts are bundled with rich-codex as well, so the images do not depend on
+what is installed on the machine. See
+[embedding the terminal font](../config/fonts.md) for more about that.

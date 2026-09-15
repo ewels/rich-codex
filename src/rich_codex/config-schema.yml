@@ -175,7 +175,7 @@ properties:
     title: Embed the terminal font in SVG images, so they render the same everywhere (default true)
     type: boolean
   png_fallback_font:
-    title: Font family to draw characters the bundled fonts don't have, such as emoji, in PNG output
+    title: Font family to draw characters the bundled fonts don't have, such as CJK, in PNG output
     type: string
   use_pty:
     title: Use a pseudo-terminal for commands (may capture coloured output)

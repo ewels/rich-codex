@@ -103,7 +103,7 @@ inputs:
     default: "true"
     required: false
   png_fallback_font:
-    description: Font family to draw characters the bundled fonts don't have, such as emoji, in PNG output
+    description: Font family to draw characters the bundled fonts don't have, such as CJK, in PNG output
     required: false
   use_pty:
     description: Use a pseudo-terminal for commands (may capture coloured output)

@@ -41,7 +41,7 @@ The regexes are matched against the lines of the image file, not against your te
 
 <!-- prettier-ignore-start -->
 !!! note
-    This only works for SVG output. PNGs are compressed, so a one-character change to a
-    timestamp scrambles the whole file and there are no readable lines for a regex to
-    match. Use `min_pct_diff` for those instead.
+    This only works for SVG output. PNG files are compressed, so a one-character change
+    to a timestamp rewrites the whole file, and there are no readable lines left for a
+    regex to match. Use `min_pct_diff` for those instead.
 <!-- prettier-ignore-end -->
