@@ -206,22 +206,25 @@ class TestUnrenderableCharacters:
     def test_ordinary_text_is_all_covered(self):
         assert svg_fonts.unrenderable_characters(render("hello world 123")) == ""
 
-    def test_emoji_are_not(self):
-        assert svg_fonts.unrenderable_characters(render("done \u2728\U0001f92b")) == "\u2728\U0001f92b"
+    def test_emoji_are_covered_by_the_bundled_emoji_font(self):
+        assert svg_fonts.unrenderable_characters(render("done \u2728\U0001f92b")) == ""
+
+    def test_a_script_none_of_the_fonts_have_is_reported(self):
+        assert svg_fonts.unrenderable_characters(render("done \u6f22\u5b57")) == "\u5b57\u6f22"
 
     def test_a_title_counts_too(self):
-        assert svg_fonts.unrenderable_characters(render("plain", title="done \u2728")) == "\u2728"
+        assert svg_fonts.unrenderable_characters(render("plain", title="done \u6f22")) == "\u6f22"
 
     def test_whitespace_is_not_reported(self):
         """Rich's text elements carry newlines, which have no glyph to miss."""
         assert "\n" not in svg_fonts.unrenderable_characters(render("two\nlines"))
 
 
-class TestSplitUnrenderableText:
-    """Tests for svg_fonts.split_unrenderable_text().
+class TestIsolateFallbackText:
+    """Tests for svg_fonts.isolate_fallback_text().
 
-    resvg chooses a fallback font per '<text>' element and draws the whole element in it,
-    so a character it has to fall back for needs an element of its own.
+    resvg keeps the font it fell back to for as long as that font can draw what follows, so
+    a character Fira Code lacks needs an element of its own to stop the fallback spreading.
     """
 
     def element(self, content, x=0.0, text_length=None):
@@ -235,57 +238,57 @@ class TestSplitUnrenderableText:
 
     def test_text_the_fonts_cover_is_untouched(self):
         svg = self.element("hello")
-        assert svg_fonts.split_unrenderable_text(svg) == svg
+        assert svg_fonts.isolate_fallback_text(svg) == svg
 
     def test_a_whole_rendered_svg_is_untouched(self):
         svg = render("hello world")
-        assert svg_fonts.split_unrenderable_text(svg) == svg
+        assert svg_fonts.isolate_fallback_text(svg) == svg
 
     def test_an_emoji_gets_an_element_of_its_own(self):
-        split = svg_fonts.split_unrenderable_text(self.element("ab\u2728cd"))
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd"))
         assert [re.search(r">(.*)</text>", e).group(1) for e in self.elements(split)] == ["ab", "\u2728", "cd"]
 
     def test_the_pieces_land_where_the_characters_were(self):
-        split = svg_fonts.split_unrenderable_text(self.element("ab\u2728cd", x=10))
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd", x=10))
         positions = [float(re.search(r'x="([\d.]+)"', e).group(1)) for e in self.elements(split)]
         lengths = [float(re.search(r'textLength="([\d.]+)"', e).group(1)) for e in self.elements(split)]
         assert positions == pytest.approx([10, 10 + 2 * 12.2, 10 + 3 * 12.2], abs=0.01)
         assert lengths == pytest.approx([2 * 12.2, 12.2, 2 * 12.2], abs=0.01)
 
     def test_consecutive_unrenderable_characters_share_an_element(self):
-        split = svg_fonts.split_unrenderable_text(self.element("a\u2728\U0001f92bb"))
+        split = svg_fonts.isolate_fallback_text(self.element("a\u2728\U0001f92bb"))
         assert len(self.elements(split)) == 3
 
     def test_spaces_do_not_split_anything(self):
         """Whitespace has no glyph to miss, so it stays with the text around it."""
-        split = svg_fonts.split_unrenderable_text(self.element("a&#160;b"))
+        split = svg_fonts.isolate_fallback_text(self.element("a&#160;b"))
         assert split == self.element("a&#160;b")
 
     def test_the_fallback_family_goes_only_on_what_needs_it(self):
-        split = svg_fonts.split_unrenderable_text(self.element("ab\u2728cd"), "Noto Color Emoji")
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd"), "Noto Color Emoji")
         styled = [e for e in self.elements(split) if "font-family" in e]
         assert len(styled) == 1
         assert "Noto Color Emoji" in styled[0]
         assert "\u2728" in styled[0]
 
     def test_no_fallback_family_means_no_style_attribute(self):
-        split = svg_fonts.split_unrenderable_text(self.element("ab\u2728cd"))
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd"))
         assert "font-family" not in split
 
     def test_the_text_survives_the_round_trip(self):
         original = "a&lt;b&#160;\u2728&amp;c"
-        split = svg_fonts.split_unrenderable_text(self.element(original))
+        split = svg_fonts.isolate_fallback_text(self.element(original))
         rejoined = "".join(re.search(r">(.*)</text>", e).group(1) for e in self.elements(split))
         assert html.unescape(rejoined) == html.unescape(original)
 
     def test_an_element_without_a_position_is_left_alone(self):
         """The window title is centred rather than placed, so its pieces can't be put back."""
         svg = '<text class="t-title" text-anchor="middle" x="50" y="27">done \u2728</text>'
-        assert svg_fonts.split_unrenderable_text(svg) == svg
+        assert svg_fonts.isolate_fallback_text(svg) == svg
 
     def test_an_empty_element_is_left_alone(self):
         svg = self.element("", text_length=0)
-        assert svg_fonts.split_unrenderable_text(svg) == svg
+        assert svg_fonts.isolate_fallback_text(svg) == svg
 
 
 class TestHasEmbeddedFonts:

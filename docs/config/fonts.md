@@ -62,41 +62,44 @@ width pulls the columns out of line and leaves gaps between box-drawing characte
 !!! note
     PNGs are rasterised by [resvg](https://github.com/linebender/resvg), and no rasteriser
     implements `@font-face` — they all read fonts from the machine doing the rendering. So
-    rich-codex hands resvg its own bundled copies of Fira Code and Inter. An image whose
-    characters those two cover is rendered from them alone, and comes out the same on any
-    machine, whatever it has installed.
+    rich-codex hands resvg its own bundled copies of Fira Code, Inter and Noto Color Emoji,
+    and tells it to ignore the machine's fonts entirely. The same output rasterises the same
+    way anywhere, which matters in CI where a byte of difference is another commit.
 <!-- prettier-ignore-end -->
 
-### Emoji in PNGs
+### Emoji, and anything else the fonts don't have
 
-No monospace font carries emoji, and Rich output is full of them. For those, and anything
-else the bundled fonts don't have, rich-codex falls back to the fonts installed on the
-machine generating the image. It says so when it does:
+No monospace font carries emoji and Rich output is full of them, so
+[Noto Color Emoji](https://github.com/googlefonts/noto-emoji) is bundled as well and draws
+them in colour. That's most of what a terminal can produce covered: Latin, Greek, Cyrillic,
+box drawing, and emoji.
+
+What's left is scripts none of the three fonts have — CJK above all. Those come out blank,
+and rich-codex says so:
 
 ```
-No bundled font can draw ✨, using this machine's fonts for those characters
+No bundled font can draw 漢 字, so they will be blank in PNG output.
+Set '--png-fallback-font' to draw them with a font from this machine.
 ```
 
-Choose which font that is with `--png-fallback-font` / `$PNG_FALLBACK_FONT` /
-`png_fallback_font` (CLI, env var, action/config). Left unset, resvg picks for itself,
-which is usually fine but not always the best available:
+Do that with `--png-fallback-font` / `$PNG_FALLBACK_FONT` / `png_fallback_font` (CLI, env
+var, action/config), naming a font family installed on the machine generating the images:
 
 ```yaml
-png_fallback_font: Noto Color Emoji
+png_fallback_font: Noto Sans CJK JP
 ```
 
-An image that needs a fallback is no longer rendered from the bundled fonts alone, so it can
-come out slightly differently on a machine with different fonts installed. Images that don't
-need one — most of them — aren't affected.
+That's the one thing that makes a PNG depend on the machine again, which is why it's off
+unless you ask for it.
 
 <!-- prettier-ignore-start -->
 !!! note
-    resvg chooses a fallback font per `<text>` element and then draws the whole element in
-    it, so one emoji would otherwise redraw everything around it in some proportional font —
-    exactly the breakage this page is about. rich-codex splits those characters into elements
-    of their own before rasterising, which keeps the fallback to the characters that need it.
-    This only touches the copy handed to the rasteriser; the SVG that gets written is
-    unaffected, and browsers do this properly by themselves.
+    resvg falls back per character, but keeps the font it fell back to for as long as that
+    font can draw what follows. A font with letters of its own would therefore redraw the
+    rest of the line in itself — exactly the breakage this page is about. rich-codex gives
+    those characters a `<text>` element of their own before rasterising, so a fallback can
+    never reach past them. This only touches the copy handed to the rasteriser; the SVG that
+    gets written is unaffected, and browsers do this properly by themselves.
 <!-- prettier-ignore-end -->
 
 ## File size
@@ -135,9 +138,13 @@ still measure the output rather than the font.
 
 ## Licence
 
-Both bundled fonts — [Fira Code](https://github.com/tonsky/FiraCode) and
-[Inter](https://github.com/rsms/inter) — are licensed under the
+All three bundled fonts — [Fira Code](https://github.com/tonsky/FiraCode),
+[Inter](https://github.com/rsms/inter) and
+[Noto Color Emoji](https://github.com/googlefonts/noto-emoji) — are licensed under the
 [SIL Open Font License, Version 1.1](https://scripts.sil.org/OFL), which permits embedding.
 Each copyright and licence notice travels with its font: it's kept in the subset's own
 `name` table, and repeated as a comment near the top of every SVG that carries one. The
 full licence texts are in the `fonts` directory of the rich-codex package.
+
+The fonts are most of rich-codex's install footprint, Noto Color Emoji especially: the
+package is about 3 MB, where it would be 0.5 MB without them.

@@ -25,7 +25,7 @@ import html
 import io
 import logging
 import re
-from functools import lru_cache
+from functools import cache
 from itertools import groupby
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -53,8 +53,15 @@ TITLE_FONT_WEIGHT = 700
 TITLE_FAMILY_RULE = "font-family: arial;"
 EMBEDDED_TITLE_FAMILY_RULE = f'font-family: "{TITLE_FONT_FAMILY}", arial, sans-serif;'
 
+# No monospace font carries emoji, and Rich output is full of them, so one comes along for
+# the ride. The COLRv1 build draws them in colour, and having it bundled is what keeps PNG
+# rendering independent of the machine. It has no letters of its own, so it can only ever
+# be reached for the characters it is here to draw.
+EMOJI_FONT_FAMILY = "Noto Color Emoji"
+EMOJI_FONT_FILE = FONTS_DIR / "NotoColorEmoji.ttf"
+
 # Everything the PNG rasteriser needs to be handed, since it can't read embedded fonts
-RASTER_FONT_FILES = [*FONT_FILES.values(), TITLE_FONT_FILE]
+RASTER_FONT_FILES = [*FONT_FILES.values(), TITLE_FONT_FILE, EMOJI_FONT_FILE]
 
 # OFL 1.1 requires the copyright and licence notice to travel with the font. They are also
 # kept in each subset's own name table (see NAME_IDS), but a reader of the SVG shouldn't
@@ -121,13 +128,13 @@ def embed_fonts(svg: str) -> str:
     return svg.replace("<style>", _licence_comment(families) + "<style>", 1)
 
 
-@lru_cache(maxsize=1)
-def bundled_codepoints() -> frozenset[int]:
-    """Every character the bundled fonts can draw, as a set of code points."""
+@cache
+def font_codepoints(*font_files: Path) -> frozenset[int]:
+    """Every character the given fonts can draw, as a set of code points."""
     from fontTools.ttLib import TTFont
 
     codepoints: set[int] = set()
-    for font_file in RASTER_FONT_FILES:
+    for font_file in font_files:
         codepoints.update(TTFont(font_file).getBestCmap())
     return frozenset(codepoints)
 
@@ -135,33 +142,35 @@ def bundled_codepoints() -> frozenset[int]:
 def unrenderable_characters(svg: str) -> str:
     """Visible characters in the image that none of the bundled fonts can draw.
 
-    Whitespace is left out: it has no glyph to miss. Typically this is emoji, which Rich
-    output is full of and which no monospace font carries.
+    Whitespace is left out: it has no glyph to miss. What's left is scripts none of the
+    three bundled fonts cover, CJK above all.
     """
     characters = used_characters(svg) + title_characters(svg)
     try:
-        drawable = bundled_codepoints()
+        drawable = font_codepoints(*RASTER_FONT_FILES)
     except ImportError:  # fontTools missing; the caller has bigger problems than a warning
         return ""
     return "".join(sorted({c for c in characters if not c.isspace() and ord(c) not in drawable}))
 
 
-def split_unrenderable_text(svg: str, fallback_family: str | None = None) -> str:
-    """Move characters the bundled fonts can't draw into '<text>' elements of their own.
+def isolate_fallback_text(svg: str, fallback_family: str | None = None) -> str:
+    """Move characters the terminal font can't draw into '<text>' elements of their own.
 
     Only for the copy handed to the PNG rasteriser; browsers need none of this.
 
-    resvg picks a fallback font per '<text>' element rather than per character, and then
-    draws the whole element in it. One emoji is therefore enough to redraw a whole line of
-    output in some proportional serif, which is the exact breakage rich-codex exists to
-    avoid. Giving those characters an element to themselves confines the fallback to them.
+    resvg falls back per character, but then keeps the font it fell back to for as long as
+    that font can draw what follows. The emoji font has no letters, so it hands the line
+    straight back. Inter has plenty, so a single character Fira Code happens to lack would
+    otherwise redraw the rest of the line in a proportional font - the exact breakage
+    rich-codex exists to avoid. Giving those characters an element to themselves means a
+    fallback can never reach past them, whichever font it lands on.
 
     Rich lays the terminal out one character to a cell, and writes 'x' and 'textLength' on
     every element, so each piece can be put back exactly where it was. An element without
     them - the window title, which is centred rather than placed - is left alone.
     """
     try:
-        drawable = bundled_codepoints()
+        drawable = font_codepoints(*FONT_FILES.values())
     except ImportError:  # fontTools missing; embedding will have complained already
         return svg
 

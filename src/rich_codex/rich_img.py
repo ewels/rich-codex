@@ -520,10 +520,11 @@ class RichImg:
         handed rich-codex's own copies of Fira Code and Inter instead, which is what makes
         the PNG come out right on a machine that has neither.
 
-        Rich output also contains characters no monospace font carries, emoji above all, and
-        those do need the machine's fonts. They are only reached for when an image actually
-        has one: an image the bundled fonts cover completely is rendered from those alone,
-        and comes out the same on any machine.
+        Emoji come along in the bundle too, so even those need nothing from the machine. The
+        one thing that does is a script none of the three fonts cover, CJK above all, and
+        rich-codex only looks outside the bundle when 'png_fallback_font' names something to
+        look for. Left unset, a PNG is rendered from the bundled fonts alone and comes out
+        the same on any machine.
         """
         try:
             import resvg_py
@@ -534,20 +535,20 @@ class RichImg:
 
         svg_content = Path(svg_filename).read_text(encoding="utf-8")
         unrenderable = svg_fonts.unrenderable_characters(svg_content)
-        if unrenderable:
-            log.info(
-                f"[dim]No bundled font can draw {' '.join(unrenderable)}, "
-                f"using this machine's fonts for those characters in '{svg_filename}'"
+        if unrenderable and not self.png_fallback_font:
+            log.warning(
+                f"No bundled font can draw {' '.join(unrenderable)}, so they will be blank in "
+                "PNG output. Set '--png-fallback-font' to draw them with a font from this machine."
             )
-            svg_content = svg_fonts.split_unrenderable_text(svg_content, self.png_fallback_font)
 
+        svg_content = svg_fonts.isolate_fallback_text(svg_content, self.png_fallback_font)
         log.debug(f"Converting SVG '{svg_filename}' to PNG")
         try:
             return bytes(
                 resvg_py.svg_to_bytes(
                     svg_string=svg_content,
                     font_files=[str(font_file) for font_file in svg_fonts.RASTER_FONT_FILES],
-                    skip_system_fonts=not unrenderable,
+                    skip_system_fonts=self.png_fallback_font is None,
                     width=PNG_WIDTH,
                 )
             )
