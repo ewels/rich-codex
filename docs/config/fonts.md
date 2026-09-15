@@ -1,30 +1,26 @@
 ## Embedding the terminal font
 
-rich-codex renders terminal text in [Fira Code](https://github.com/tonsky/FiraCode). Rich
-does not put the font in the SVG. It writes a `@font-face` rule that points at a local copy
-of the font, with a CDN URL as a backup.
+Rich, and so rich-codex, render terminal text using [Fira Code](https://github.com/tonsky/FiraCode)
+and window titles using Arial.
+Rich writes a `@font-face` rule into the SVG that points at a local copy of the font, with a CDN URL as a backup.
+This is fine if the SVG is embedded in a page, but generally not ok if the svg is rendered
+with an `<img>` tag: these run in "secure static mode", blocking external requests.
+GitHub also serves images through its camo proxy, so the CDN URL never loads.
 
-That works when you open the file in a browser tab, but not where most people see these
-images. Markdown renderers put images in an `<img>` tag, and an SVG inside an `<img>` tag
-runs in secure static mode. Secure static mode blocks every external request, whatever the
-CSS asks for. GitHub also serves images through its camo proxy, so the CDN URL never loads.
+This is problematic because Rich positions each chunk of text using an absolute
+`x` coordinate, calculated from the character width it expects.
+Browser fallback fonts have different widths, so the glyphs drift inside each chunk and
+the box-drawing characters no longer join up.
 
-Only the local copy can resolve. The image is therefore correct on a machine that has Fira
-Code installed, and wrong everywhere else, because the browser picks a different monospace
-font. Rich positions each chunk of text at an absolute `x` coordinate, calculated from the
-character width it expects. Another font has different widths, so the glyphs drift inside
-each chunk and the box-drawing characters no longer join up.
+To solve this, rich-codex embeds the font into within the SVG instead, as a base64 data URI.
+SVGs rendered in `<img>` mode can use this, so the image renders the same way for every
+reader.
 
-rich-codex writes the font into the SVG instead, as a base64 data URI. A data URI is not an
-external request, so `<img>` mode can use it, and the image renders the same way for every
-reader. Only the characters that the image uses are embedded. The bold weight is left out
+Arial cannot be bundled because it is proprietary, so rich-codex embeds
+[Inter](https://rsms.me/inter/) instead and rewrites the title rule to use it.
+
+Only the characters that the image uses are embedded. The bold weight is left out
 if the image contains no bold text.
-
-Rich sets the window title in Arial. Arial has the same problem, and it cannot be bundled
-because it is proprietary. rich-codex embeds [Inter](https://rsms.me/inter/) for the title
-instead and rewrites the title rule to ask for it. The rule keeps `arial, sans-serif` after
-it, for anything that cannot use the embedded font.
-
 Embedding is on by default. To turn it off and go back to Rich's linked font, use
 `--no-embed-font` / `$EMBED_FONT` / `embed_font` (CLI, env var, action/config):
 
@@ -32,12 +28,13 @@ Embedding is on by default. To turn it off and go back to Rich's linked font, us
 embed_font: false
 ```
 
-The two images below are the same command, rendered both ways. They look identical if you
-have Fira Code installed. If you do not, only the first one still uses it. The ligatures
+The two images below are the same command, rendered both ways. The ligatures
 are the clearest sign, with `->` and `!=` drawn as `→` and `≠`.
 
+Note that these images will look identical if you have Fira Code installed.
+
 <!-- prettier-ignore-start -->
-Default:
+Default, embedding Fira Code:
 
 ```markdown
 <!-- RICH-CODEX { terminal_width: 70, hide_command: true } -->
@@ -54,26 +51,20 @@ With `embed_font` set to `false`:
 ![rich --print](../img/embed-font-off.svg)
 <!-- prettier-ignore-end -->
 
-How much the second image degrades depends on the font that the browser substitutes. A
-substitute with the same character width looks wrong but stays aligned. A substitute with a
-different width pulls the columns out of line and opens gaps between the box-drawing
-characters.
+### PNG Raster images
 
-<!-- prettier-ignore-start -->
-!!! note
-    PNG files are rasterised by [resvg](https://github.com/linebender/resvg). No rasteriser
-    supports `@font-face`, so none of them can use an embedded font. They all read fonts
-    from the machine that renders the image. rich-codex therefore passes resvg its own
-    copies of Fira Code, Inter and Noto Color Emoji, and tells resvg to ignore the fonts on
-    the machine. The same output then rasterises the same way anywhere. This matters in CI,
-    where any change to a file is another commit.
-<!-- prettier-ignore-end -->
+PNG files are rasterised using [resvg](https://github.com/linebender/resvg). This doesn't
+support `@font-face`, so can't use the embedded font - it has to read fonts
+from the machine that renders the image. rich-codex therefore passes resvg its own
+copies of Fira Code, Inter and Noto Color Emoji, and tells resvg to ignore the fonts on
+the machine. The same output then rasterises the same way anywhere. This matters in CI,
+where any change to a file is another commit.
 
 ### Emoji, and anything else the fonts do not have
 
-No monospace font includes emoji, and Rich output often contains them, so rich-codex
-bundles [Noto Color Emoji](https://github.com/googlefonts/noto-emoji) as well and draws
-them in colour. The three fonts together cover Latin, Greek, Cyrillic, box drawing and
+No monospace font includes emoji, so rich-codex
+bundles [Noto Color Emoji](https://github.com/googlefonts/noto-emoji).
+The three fonts together cover Latin, Greek, Cyrillic, box drawing and
 emoji.
 
 Characters outside that set, such as CJK, are blank in PNG output. rich-codex prints a
@@ -117,34 +108,14 @@ value, in SVG and PNG output alike.
 
 Embedding adds 10 KB to 30 KB per image. The exact figure depends on how many different
 characters the image uses, and on whether any of them are bold. A window title adds about
-6 KB more. An image without a title does not include Inter at all.
+6 KB more, for Inter.
 
 | Image                                     | `embed_font: false` |  Default |
 | ----------------------------------------- | ------------------: | -------: |
 | The panel above (31 characters, bold)     |              3.7 KB |  30.1 KB |
 | `rich-codex --help` (70 characters, bold) |             73.0 KB | 101.3 KB |
 
-Turn embedding off if you want smaller files and know that your readers have Fira Code, or
-if you only use the PNG output.
-
-<!-- prettier-ignore-start -->
-!!! tip
-    Ligatures are kept, so `!=` and `->` render as `≠` and `→`, the same as in a terminal
-    that uses Fira Code. They account for most of the size. Fira Code has several hundred
-    of them, and keeping them roughly doubles the embedded subset.
-<!-- prettier-ignore-end -->
-
-## Reproducibility
-
-The same command with the same output always produces the same file, so running rich-codex
-again in CI does not change images whose content has not changed.
-
-Different `fonttools` releases subset a font differently, so an upgrade changes what
-rich-codex would generate. It does not rewrite the saved images. rich-codex ignores the
-embedded font when it compares a new image against the saved one, and replaces the file
-only when the content has changed. Until then the image keeps the subset that it was built
-with. That comparison is also why [`min_pct_diff` and
-`skip_change_regex`](ignoring_changes.md) measure the command output rather than the font.
+Turn embedding off if you want smaller files and know that your readers have Fira Code.
 
 ## Licence
 
