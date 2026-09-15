@@ -102,6 +102,14 @@ unless you ask for it.
     gets written is unaffected, and browsers do this properly by themselves.
 <!-- prettier-ignore-end -->
 
+### Double-width characters
+
+Rich advances each chunk of text by terminal _cells_ — an emoji or a CJK character takes
+two of them — but it sizes the SVG's `textLength` by counting characters, so an element
+holding one is declared a cell too narrow. Browsers honour `textLength`, so the glyph
+spilled over whatever followed it and the box drawing around it stopped lining up.
+rich-codex corrects that on the way out, in SVG and PNG alike.
+
 ## File size
 
 Embedding is not free. Expect somewhere between 10 KB and 30 KB per image, depending on

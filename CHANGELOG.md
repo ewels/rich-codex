@@ -20,6 +20,7 @@
 
 ### Updates
 
+- 🐛 Double-width characters no longer break the layout. Rich advances `x` by terminal cells, so an emoji or a CJK character takes two, but sizes `textLength` by counting characters — so the glyph spilled over whatever followed it and the box drawing stopped lining up. rich-codex now corrects it
 - 🐛 `min_pct_diff` and `skip_change_regex` now ignore the embedded font when comparing images, so they still measure the command's output
 - ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`, all of which ship as wheels
 - ⬆️ The package now bundles Fira Code, Inter and Noto Color Emoji, taking it from about 0.5 MB to 3 MB

@@ -29,6 +29,8 @@ from functools import cache
 from itertools import groupby
 from pathlib import Path
 
+from rich.cells import cell_len
+
 log = logging.getLogger("rich-codex")
 
 # Fira Code 6.2, the same release that Rich's SVG template links to on cdnjs. Bundled as
@@ -152,6 +154,36 @@ def unrenderable_characters(svg: str) -> str:
     return "".join(sorted({c for c in characters if not c.isspace() and ord(c) not in drawable}))
 
 
+def fix_wide_character_widths(svg: str) -> str:
+    """Widen 'textLength' on elements holding double-width characters.
+
+    Rich advances 'x' by terminal cells, so an emoji or a CJK character takes two of them,
+    but it sizes 'textLength' by counting characters. Any element holding one is declared a
+    cell too narrow, and browsers honour 'textLength', so the glyph spills over whatever
+    follows it and the box drawing around it stops lining up. Zero-width characters, such
+    as the variation selector in an emoji presentation sequence, are declared too wide the
+    same way.
+
+    Needs no font metrics: the element itself says how wide one cell is.
+    """
+
+    def fix_element(match: re.Match[str]) -> str:
+        attributes, content = match.group(1), match.group(2)
+        text = html.unescape(content)
+        text_length = TEXT_LENGTH_RE.search(attributes)
+        if not text or not text_length:
+            return match.group(0)
+        cells = cell_len(text)
+        # A trailing newline measures zero cells, and Rich gives it a cell of its own
+        if not cells or cells == len(text):
+            return match.group(0)
+        character_width = float(text_length.group(1)) / len(text)
+        fixed = TEXT_LENGTH_RE.sub(f'textLength="{_number(cells * character_width)}"', attributes, count=1)
+        return f"<text{fixed}>{content}</text>"
+
+    return TEXT_RE.sub(fix_element, svg)
+
+
 def isolate_fallback_text(svg: str, fallback_family: str | None = None) -> str:
     """Move characters the terminal font can't draw into '<text>' elements of their own.
 
@@ -165,9 +197,10 @@ def isolate_fallback_text(svg: str, fallback_family: str | None = None) -> str:
     reach past them, and naming the font that draws them means the result doesn't depend on
     which font resvg would have reached for.
 
-    Rich lays the terminal out one character to a cell, and writes 'x' and 'textLength' on
-    every element, so each piece can be put back exactly where it was. An element without
-    them - the window title, which is centred rather than placed - is left alone.
+    Rich writes 'x' and 'textLength' on every terminal element, so each piece can be put
+    back exactly where it was, measuring in cells rather than characters because a wide
+    character takes two of them. An element without those attributes - the window title,
+    which is centred rather than placed - is left alone.
     """
     try:
         terminal = font_codepoints(*FONT_FILES.values())
@@ -196,20 +229,24 @@ def isolate_fallback_text(svg: str, fallback_family: str | None = None) -> str:
         if not (x and text_length):
             return match.group(0)
         start = float(x.group(1))
-        character_width = float(text_length.group(1)) / len(text)
+        cells = cell_len(text)
+        if not cells:
+            return match.group(0)
+        cell_width = float(text_length.group(1)) / cells
 
         pieces = []
         offset = 0
         for (drawn, family), characters in groupby(text, key=font_for):
             run = "".join(characters)
-            run_attributes = X_RE.sub(f'x="{_number(start + offset * character_width)}"', attributes, count=1)
+            run_cells = cell_len(run)
+            run_attributes = X_RE.sub(f'x="{_number(start + offset * cell_width)}"', attributes, count=1)
             run_attributes = TEXT_LENGTH_RE.sub(
-                f'textLength="{_number(len(run) * character_width)}"', run_attributes, count=1
+                f'textLength="{_number(run_cells * cell_width)}"', run_attributes, count=1
             )
             if not drawn and family:
                 run_attributes += f' style="font-family: {family}"'
             pieces.append(f"<text{run_attributes}>{_escape(run)}</text>")
-            offset += len(run)
+            offset += run_cells
         return "".join(pieces)
 
     return TEXT_RE.sub(split_element, svg)

@@ -619,6 +619,7 @@ class RichImg:
                         theme=terminal_theme,
                         unique_id=self._svg_unique_id(),
                     )
+                    svg_content = svg_fonts.fix_wide_character_widths(svg_content)
                     if self.embed_font:
                         svg_content = self._embed_svg_font(svg_content)
                     Path(svg_tmp_filename).write_text(svg_content, encoding="utf-8")

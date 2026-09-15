@@ -6,6 +6,7 @@ import re
 
 import pytest
 from rich._export_format import CONSOLE_SVG_FORMAT
+from rich.cells import cell_len
 from rich.console import Console
 
 from rich_codex import svg_fonts
@@ -220,6 +221,63 @@ class TestUnrenderableCharacters:
         assert "\n" not in svg_fonts.unrenderable_characters(render("two\nlines"))
 
 
+class TestFixWideCharacterWidths:
+    """Tests for svg_fonts.fix_wide_character_widths().
+
+    Rich advances 'x' by terminal cells but sizes 'textLength' by counting characters, so
+    an element holding a wide character is declared a cell too narrow.
+    """
+
+    def element(self, content, text_length):
+        return f'<text class="t-r1" x="0" y="20" textLength="{text_length:g}">{content}</text>'
+
+    def text_length(self, svg):
+        return float(re.search(r'textLength="([\d.]+)"', svg).group(1))
+
+    def test_ordinary_text_is_untouched(self):
+        svg = self.element("abcd", 4 * 12.2)
+        assert svg_fonts.fix_wide_character_widths(svg) == svg
+
+    def test_a_whole_rendered_svg_of_narrow_text_is_untouched(self):
+        svg = render("hello world")
+        assert svg_fonts.fix_wide_character_widths(svg) == svg
+
+    def test_an_emoji_is_widened_to_the_two_cells_rich_left_for_it(self):
+        fixed = svg_fonts.fix_wide_character_widths(self.element("ab\u2728cd", 5 * 12.2))
+        assert self.text_length(fixed) == pytest.approx(6 * 12.2, abs=0.01)
+
+    def test_cjk_is_widened_too(self):
+        fixed = svg_fonts.fix_wide_character_widths(self.element("\u6f22\u5b57", 2 * 12.2))
+        assert self.text_length(fixed) == pytest.approx(4 * 12.2, abs=0.01)
+
+    def test_a_zero_width_character_is_narrowed(self):
+        """The variation selector in an emoji presentation sequence takes no cell."""
+        fixed = svg_fonts.fix_wide_character_widths(self.element("\u26a0\ufe0f", 2 * 12.2))
+        assert self.text_length(fixed) == pytest.approx(12.2, abs=0.01)
+
+    def test_a_trailing_newline_is_left_alone(self):
+        """It measures zero cells, but Rich still gives it a cell of its own."""
+        svg = self.element("\n", 12.2)
+        assert svg_fonts.fix_wide_character_widths(svg) == svg
+
+    def test_the_text_itself_is_not_rewritten(self):
+        """Only the attribute changes, so the bytes Rich wrote for the content survive."""
+        fixed = svg_fonts.fix_wide_character_widths(self.element("a&#160;\u2728", 3 * 12.2))
+        assert "a&#160;\u2728" in fixed
+
+    def test_an_element_with_no_length_is_left_alone(self):
+        svg = '<text class="t-title" text-anchor="middle" x="50" y="27">done \u2728</text>'
+        assert svg_fonts.fix_wide_character_widths(svg) == svg
+
+    def test_a_rendered_emoji_line_ends_up_the_width_of_its_cells(self):
+        svg = svg_fonts.fix_wide_character_widths(render("ab\u2728cd"))
+        for attributes, content in svg_fonts.TEXT_RE.findall(svg):
+            length = re.search(r'textLength="([\d.]+)"', attributes)
+            text = html.unescape(content)
+            if length and cell_len(text):
+                assert float(length.group(1)) == pytest.approx(cell_len(text) * 12.2, abs=0.01)
+
+
 class TestIsolateFallbackText:
     """Tests for svg_fonts.isolate_fallback_text().
 
@@ -228,7 +286,7 @@ class TestIsolateFallbackText:
     """
 
     def element(self, content, x=0.0, text_length=None):
-        length = len(html.unescape(content)) * 12.2 if text_length is None else text_length
+        length = cell_len(html.unescape(content)) * 12.2 if text_length is None else text_length
         return (
             f'<text class="t-r1" x="{x:g}" y="20" textLength="{length:g}" clip-path="url(#t-line-0)">{content}</text>'
         )
@@ -249,11 +307,12 @@ class TestIsolateFallbackText:
         assert [re.search(r">(.*)</text>", e).group(1) for e in self.elements(split)] == ["ab", "\u2728", "cd"]
 
     def test_the_pieces_land_where_the_characters_were(self):
+        """The emoji is two cells wide, so what follows it starts two cells along."""
         split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd", x=10))
         positions = [float(re.search(r'x="([\d.]+)"', e).group(1)) for e in self.elements(split)]
         lengths = [float(re.search(r'textLength="([\d.]+)"', e).group(1)) for e in self.elements(split)]
-        assert positions == pytest.approx([10, 10 + 2 * 12.2, 10 + 3 * 12.2], abs=0.01)
-        assert lengths == pytest.approx([2 * 12.2, 12.2, 2 * 12.2], abs=0.01)
+        assert positions == pytest.approx([10, 10 + 2 * 12.2, 10 + 4 * 12.2], abs=0.01)
+        assert lengths == pytest.approx([2 * 12.2, 2 * 12.2, 2 * 12.2], abs=0.01)
 
     def test_consecutive_characters_needing_the_same_font_share_an_element(self):
         split = svg_fonts.isolate_fallback_text(self.element("a\u2728\U0001f92bb"))
