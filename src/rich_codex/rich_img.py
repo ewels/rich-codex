@@ -79,6 +79,7 @@ class RichImg:
         terminal_theme: str | None = None,
         snippet_theme: str | None = None,
         embed_font: bool = True,
+        png_fallback_font: str | None = None,
         use_pty: bool = False,
         console: Console | None = None,
         source_type: str | None = None,
@@ -113,6 +114,7 @@ class RichImg:
         self.terminal_theme = terminal_theme
         self.snippet_theme = snippet_theme
         self.embed_font = embed_font
+        self.png_fallback_font = png_fallback_font
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         # Only set once the output has been rendered, by run_command() or format_snippet()
@@ -515,16 +517,13 @@ class RichImg:
 
         No rasteriser implements '@font-face', so the font embedded in the SVG is of no use
         here: they all read fonts from the machine doing the rendering. The renderer is
-        handed rich-codex's own copies of Fira Code and Inter instead, and told to use only
-        those, so the same output rasterises the same way on any machine.
+        handed rich-codex's own copies of Fira Code and Inter instead, which is what makes
+        the PNG come out right on a machine that has neither.
 
-        The machine's own fonts are switched off rather than left underneath as a fallback,
-        which costs something worth knowing about. resvg falls back per glyph, and having
-        done so it keeps the fallback font for the rest of the line, so one emoji in a line
-        of output redraws everything after it in whatever proportional font it landed on -
-        the very problem this is all here to fix. With nothing to fall back to, the emoji is
-        a blank box and the line around it stays in Fira Code. Anything the bundled fonts
-        can't draw is warned about below; the SVG renders it properly either way.
+        Rich output also contains characters no monospace font carries, emoji above all, and
+        those do need the machine's fonts. They are only reached for when an image actually
+        has one: an image the bundled fonts cover completely is rendered from those alone,
+        and comes out the same on any machine.
         """
         try:
             import resvg_py
@@ -536,10 +535,11 @@ class RichImg:
         svg_content = Path(svg_filename).read_text(encoding="utf-8")
         unrenderable = svg_fonts.unrenderable_characters(svg_content)
         if unrenderable:
-            log.warning(
-                f"No bundled font can draw {' '.join(unrenderable)} - "
-                "these will be blank in PNG output, but are fine in SVG"
+            log.info(
+                f"[dim]No bundled font can draw {' '.join(unrenderable)}, "
+                f"using this machine's fonts for those characters in '{svg_filename}'"
             )
+            svg_content = svg_fonts.split_unrenderable_text(svg_content, self.png_fallback_font)
 
         log.debug(f"Converting SVG '{svg_filename}' to PNG")
         try:
@@ -547,7 +547,7 @@ class RichImg:
                 resvg_py.svg_to_bytes(
                     svg_string=svg_content,
                     font_files=[str(font_file) for font_file in svg_fonts.RASTER_FONT_FILES],
-                    skip_system_fonts=True,
+                    skip_system_fonts=not unrenderable,
                     width=PNG_WIDTH,
                 )
             )

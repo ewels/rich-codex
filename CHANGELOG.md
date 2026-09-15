@@ -13,8 +13,8 @@
 ### New features
 
 - ✨ `pip install rich-codex` is now all you need for PNG output: no Cairo, no system libraries, no `cairo` extra, and no fonts installed on the machine
-- ✨ PNGs are rendered from rich-codex's own bundled fonts alone, so the same output rasterises the same way on any machine
-  - The cost is that emoji, which no bundled font carries, come out as blank boxes in PNG output. rich-codex warns when it hits one, and SVGs are unaffected
+- ✨ PNGs are rendered from rich-codex's own bundled fonts, falling back to the machine's own only for characters those don't have, such as emoji
+- ✨ New `--png-fallback-font` option, to choose the font that draws those characters
 - ✨ Window titles are set in [Inter](https://rsms.me/inter/), bundled and embedded like Fira Code, instead of Arial — which is proprietary, so it can't be bundled, and isn't on most Linux machines
 
 ### Updates

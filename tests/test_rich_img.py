@@ -817,16 +817,50 @@ class TestSaveImages:
         assert all(Path(f).is_file() for f in calls["font_files"])
         assert calls["skip_system_fonts"] is True
 
-    def test_png_warns_about_characters_no_bundled_font_has(self, rich_img, tmp_cwd, caplog):
-        """Emoji end up blank in a PNG, which is worth saying out loud."""
-        img = rich_img(snippet="all done \u2728", snippet_syntax="text", img_paths=[str(tmp_cwd / "out.png")])
+    def emoji(self, rich_img, tmp_cwd, **kwargs):
+        """Build a RichImg whose output has a character no bundled font can draw."""
+        img = rich_img(
+            snippet="all done \u2728",
+            snippet_syntax="text",
+            img_paths=[str(tmp_cwd / "out.png")],
+            **kwargs,
+        )
         img.format_snippet()
-        img.save_images()
+        return img
+
+    def test_png_says_when_it_needs_the_machines_fonts(self, rich_img, tmp_cwd, caplog):
+        self.emoji(rich_img, tmp_cwd).save_images()
         assert "No bundled font can draw \u2728" in caplog.text
 
     def test_png_says_nothing_when_every_character_is_covered(self, rich_img, tmp_cwd, caplog):
         self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.png")]).save_images()
         assert "No bundled font can draw" not in caplog.text
+
+    def test_png_reaches_for_system_fonts_only_when_it_has_to(self, rich_img, tmp_cwd, monkeypatch):
+        """An image the bundled fonts cover renders from those alone, so it can't drift."""
+        import resvg_py
+
+        calls = []
+        real_svg_to_bytes = resvg_py.svg_to_bytes
+        monkeypatch.setattr(resvg_py, "svg_to_bytes", lambda **kw: (calls.append(kw), real_svg_to_bytes(**kw))[1])
+
+        self.rendered(rich_img, img_paths=[str(tmp_cwd / "covered.png")]).save_images()
+        self.emoji(rich_img, tmp_cwd).save_images()
+        assert [call["skip_system_fonts"] for call in calls] == [True, False]
+
+    def test_png_splits_out_what_it_cannot_draw(self, rich_img, tmp_cwd, monkeypatch):
+        """Otherwise resvg redraws the whole line in whatever it fell back to."""
+        import resvg_py
+
+        calls = []
+        real_svg_to_bytes = resvg_py.svg_to_bytes
+        monkeypatch.setattr(resvg_py, "svg_to_bytes", lambda **kw: (calls.append(kw), real_svg_to_bytes(**kw))[1])
+
+        self.emoji(rich_img, tmp_cwd, png_fallback_font="Noto Color Emoji").save_images()
+        rasterised = calls[0]["svg_string"]
+        emoji_element = re.search(r"<text[^>]*>\u2728</text>", rasterised)
+        assert emoji_element, "the emoji should be in a text element of its own"
+        assert "Noto Color Emoji" in emoji_element.group()
 
     def test_png_is_stable_across_runs(self, rich_img, tmp_cwd):
         """PNGs get committed too, so the same output must rasterise to the same bytes."""

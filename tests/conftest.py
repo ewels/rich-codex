@@ -61,6 +61,7 @@ CODEX_SEARCH_DEFAULTS = {
     "terminal_theme": None,
     "snippet_theme": None,
     "embed_font": True,
+    "png_fallback_font": None,
     "use_pty": None,
 }
 

@@ -28,6 +28,7 @@ properties:
   terminal_theme: { "$ref": "#/$defs/terminal_theme" }
   snippet_theme: { "$ref": "#/$defs/snippet_theme" }
   embed_font: { "$ref": "#/$defs/embed_font" }
+  png_fallback_font: { "$ref": "#/$defs/png_fallback_font" }
   use_pty: { "$ref": "#/$defs/use_pty" }
 
   # Top-level only config options
@@ -109,6 +110,7 @@ properties:
         terminal_theme: { "$ref": "#/$defs/terminal_theme" }
         snippet_theme: { "$ref": "#/$defs/snippet_theme" }
         embed_font: { "$ref": "#/$defs/embed_font" }
+        png_fallback_font: { "$ref": "#/$defs/png_fallback_font" }
         use_pty: { "$ref": "#/$defs/use_pty" }
 
 # Single location to hold schema for config options, as used twice
@@ -172,6 +174,9 @@ properties:
   embed_font:
     title: Embed the terminal font in SVG images, so they render the same everywhere (default true)
     type: boolean
+  png_fallback_font:
+    title: Font family to draw characters the bundled fonts don't have, such as emoji, in PNG output
+    type: string
   use_pty:
     title: Use a pseudo-terminal for commands (may capture coloured output)
     type: boolean

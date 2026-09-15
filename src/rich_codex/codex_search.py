@@ -61,6 +61,7 @@ class CodexSearch:
         terminal_theme: str | None,
         snippet_theme: str | None,
         embed_font: bool,
+        png_fallback_font: str | None,
         use_pty: bool,
         console: Console | None,
     ) -> None:
@@ -104,6 +105,7 @@ class CodexSearch:
         self.terminal_theme = terminal_theme
         self.snippet_theme = snippet_theme
         self.embed_font = embed_font
+        self.png_fallback_font = png_fallback_font
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         self.cwd = Path.cwd().resolve()
@@ -132,6 +134,7 @@ class CodexSearch:
             "terminal_theme",
             "snippet_theme",
             "embed_font",
+            "png_fallback_font",
             "use_pty",
         ]
         # Config options that combine with more specific config, instead of being replaced by it

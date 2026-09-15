@@ -26,6 +26,7 @@ import io
 import logging
 import re
 from functools import lru_cache
+from itertools import groupby
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -72,6 +73,8 @@ FONT_FACE_RE = re.compile(r"@font-face\s*\{[^{}]*\}")
 # The same thing as raw bytes, for comparing images without decoding them
 EMBEDDED_FONT_BYTES_RE = re.compile(rb"(data:font/woff2;base64,)[A-Za-z0-9+/=]+")
 TEXT_RE = re.compile(r"<text\b([^>]*)>(.*?)</text>", re.DOTALL)
+X_RE = re.compile(r'\bx="(-?[\d.]+)"')
+TEXT_LENGTH_RE = re.compile(r'\btextLength="(-?[\d.]+)"')
 # Rich's own style rules are '.<unique_id>-r<n> { ... }'. The '-title' rule is left out:
 # it has its own font, and is always bold.
 BOLD_RULE_RE = re.compile(r"-r\d+\s*\{[^{}]*font-weight:\s*bold")
@@ -141,6 +144,68 @@ def unrenderable_characters(svg: str) -> str:
     except ImportError:  # fontTools missing; the caller has bigger problems than a warning
         return ""
     return "".join(sorted({c for c in characters if not c.isspace() and ord(c) not in drawable}))
+
+
+def split_unrenderable_text(svg: str, fallback_family: str | None = None) -> str:
+    """Move characters the bundled fonts can't draw into '<text>' elements of their own.
+
+    Only for the copy handed to the PNG rasteriser; browsers need none of this.
+
+    resvg picks a fallback font per '<text>' element rather than per character, and then
+    draws the whole element in it. One emoji is therefore enough to redraw a whole line of
+    output in some proportional serif, which is the exact breakage rich-codex exists to
+    avoid. Giving those characters an element to themselves confines the fallback to them.
+
+    Rich lays the terminal out one character to a cell, and writes 'x' and 'textLength' on
+    every element, so each piece can be put back exactly where it was. An element without
+    them - the window title, which is centred rather than placed - is left alone.
+    """
+    try:
+        drawable = bundled_codepoints()
+    except ImportError:  # fontTools missing; embedding will have complained already
+        return svg
+
+    def can_draw(character: str) -> bool:
+        return character.isspace() or ord(character) in drawable
+
+    def split_element(match: re.Match[str]) -> str:
+        attributes, content = match.group(1), match.group(2)
+        text = html.unescape(content)
+        if not text or all(can_draw(character) for character in text):
+            return match.group(0)
+
+        x = X_RE.search(attributes)
+        text_length = TEXT_LENGTH_RE.search(attributes)
+        if not (x and text_length):
+            return match.group(0)
+        start = float(x.group(1))
+        character_width = float(text_length.group(1)) / len(text)
+
+        pieces = []
+        offset = 0
+        for drawn, characters in groupby(text, key=can_draw):
+            run = "".join(characters)
+            run_attributes = X_RE.sub(f'x="{_number(start + offset * character_width)}"', attributes, count=1)
+            run_attributes = TEXT_LENGTH_RE.sub(
+                f'textLength="{_number(len(run) * character_width)}"', run_attributes, count=1
+            )
+            if not drawn and fallback_family:
+                run_attributes += f' style="font-family: {fallback_family}"'
+            pieces.append(f"<text{run_attributes}>{_escape(run)}</text>")
+            offset += len(run)
+        return "".join(pieces)
+
+    return TEXT_RE.sub(split_element, svg)
+
+
+def _number(value: float) -> str:
+    """Format a coordinate without a trail of floating point noise."""
+    return f"{value:.2f}".rstrip("0").rstrip(".")
+
+
+def _escape(text: str) -> str:
+    """Escape text for an SVG the way Rich does, so the pieces match the whole."""
+    return html.escape(text).replace(" ", "&#160;").replace("\xa0", "&#160;")
 
 
 def has_embedded_fonts(svg: str) -> bool:

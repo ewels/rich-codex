@@ -102,6 +102,9 @@ inputs:
     description: Embed the terminal font in SVG images, so that they render the same everywhere. Set to 'false' for smaller files that need Fira Code installed to look right.
     default: "true"
     required: false
+  png_fallback_font:
+    description: Font family to draw characters the bundled fonts don't have, such as emoji, in PNG output
+    required: false
   use_pty:
     description: Use a pseudo-terminal for commands (may capture coloured output)
     required: false
@@ -212,6 +215,7 @@ runs:
         TERMINAL_THEME: ${{ inputs.terminal_theme }}
         SNIPPET_THEME: ${{ inputs.snippet_theme }}
         EMBED_FONT: ${{ inputs.embed_font }}
+        PNG_FALLBACK_FONT: ${{ inputs.png_fallback_font }}
         USE_PTY: ${{ inputs.use_pty }}
         CREATED_FILES: "created.txt"
         DELETED_FILES: "deleted.txt"
