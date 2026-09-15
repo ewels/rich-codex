@@ -1,5 +1,27 @@
 # Changelog: rich-codex
 
+## Unreleased
+
+### Breaking changes
+
+- 💥 SVGs now embed a subset of Fira Code, so that they render correctly for readers who don't have the font installed ([#65](https://github.com/ewels/rich-codex/issues/65))
+  - Every SVG is regenerated on the next run, and grows by 10-30 KB
+  - Turn it off with `--no-embed-font` / `EMBED_FONT=false` / `embed_font: false` to get the old output back
+- 💥 PDF output has been removed. A path ending in `.pdf` is now an error
+- 💥 PNG files are rasterised by [resvg](https://github.com/linebender/resvg) instead of CairoSVG, so existing PNG files are rewritten once
+
+### New features
+
+- ✨ `pip install rich-codex` is now enough for PNG output. Cairo, its system libraries and the `cairo` extra are all gone, and no font has to be installed on the machine
+- ✨ PNG files are rendered from rich-codex's own bundled fonts, so the same output rasterises the same way on any machine
+  - The window title is drawn from a bundled font too, whether or not `embed_font` is on
+
+### Updates
+
+- 🐛 Double-width characters no longer break the layout. Hopefully.
+- 🐛 `min_pct_diff` and `skip_change_regex` now ignore the embedded font when comparing images, so they still measure the command's output
+- ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`.
+
 ## Version 1.3.1 (2026-08-14)
 
 ### New features

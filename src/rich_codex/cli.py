@@ -55,6 +55,8 @@ click.rich_click.OPTION_GROUPS = {
                 "--terminal-theme",
                 "--snippet-syntax",
                 "--snippet-theme",
+                "--embed-font",
+                "--png-fallback-font",
             ],
         },
         {
@@ -279,6 +281,21 @@ log = logging.getLogger()
     help="Snippet Pygments theme",
 )
 @click.option(
+    "--embed-font/--no-embed-font",
+    default=True,
+    show_default=True,
+    envvar="EMBED_FONT",
+    show_envvar=True,
+    help="Embed the terminal font in SVG images, so they render the same everywhere",
+)
+@click.option(
+    "--png-fallback-font",
+    envvar="PNG_FALLBACK_FONT",
+    show_envvar=True,
+    help="Font family for characters the bundled fonts don't have, such as CJK, in PNG output",
+    metavar="FAMILY",
+)
+@click.option(
     "--use-pty",
     is_flag=True,
     envvar="USE_PTY",
@@ -355,6 +372,8 @@ def main(
     notrim: bool,
     terminal_theme: str | None,
     snippet_theme: str | None,
+    embed_font: bool,
+    png_fallback_font: str | None,
     use_pty: bool,
     created_files: str | None,
     deleted_files: str | None,
@@ -474,6 +493,8 @@ def main(
             notrim=notrim,
             terminal_theme=terminal_theme,
             snippet_theme=snippet_theme,
+            embed_font=embed_font,
+            png_fallback_font=png_fallback_font,
             use_pty=use_pty,
             console=console,
         )
@@ -520,6 +541,8 @@ def main(
         notrim=notrim,
         terminal_theme=terminal_theme,
         snippet_theme=snippet_theme,
+        embed_font=embed_font,
+        png_fallback_font=png_fallback_font,
         use_pty=use_pty,
         console=console,
         working_dir=working_dir,

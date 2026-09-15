@@ -79,4 +79,4 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
 
 <!-- prettier-ignore-end -->
 
-Images can be generated as SVG, PNG or PDF (detected by filename extension).
+Images can be generated as SVG or PNG (detected by filename extension).

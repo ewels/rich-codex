@@ -10,17 +10,14 @@
 
 FROM python:3.14-alpine
 
-# Install Cairo for SVG -> PNG / PDF conversion
-# From: https://phauer.com/2018/install-cairo-cairosvg-alpine-docker/
-RUN apk add --no-cache \
-    git build-base cairo-dev cairo cairo-tools \
-    # pillow dependencies
-    jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev
+# Git for the repository safety checks. No fonts: rich-codex bundles its own and tells
+# the rasteriser to ignore the machine's. build-base is needed because PyYAML and
+# rapidfuzz have no musl wheels for this Python and are built from source.
+RUN apk add --no-cache git build-base
 
 # Install requirements
-# The 'cairo' extra is what actually uses the Cairo libraries installed above
 COPY . .
-RUN pip install ".[cairo]"
+RUN pip install "."
 
 # Prepare GitHub Action
 ENTRYPOINT ["rich-codex"]

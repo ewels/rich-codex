@@ -6,9 +6,10 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from conftest import svg_text
+from conftest import png_size, svg_text
 
 from rich_codex import rich_img as rich_img_module
+from rich_codex import svg_fonts
 from rich_codex.rich_img import RichImg
 
 
@@ -490,12 +491,78 @@ class TestEnoughImageDifference:
         assert changed.num_img_skipped == 1
         assert changed.num_img_saved == 0
 
+    def test_skip_change_regex_survives_the_embedded_font(self, rich_img, tmp_cwd):
+        """The ignored text changes which characters the font subset needs.
+
+        Without stripping the font before diffing, the '@font-face' line changes too, and
+        nothing the user can write in 'skip_change_regex' would ever match it.
+        """
+        out = tmp_cwd / "out.svg"
+
+        def render(timestamp):
+            img = rich_img(
+                command=f"printf 'stable output\\nGenerated at {timestamp}\\n'",
+                skip_change_regex="Generated&#160;at",
+                img_paths=[str(out)],
+                hide_command=True,
+            )
+            img.run_command()
+            img.save_images()
+            return out.read_text()
+
+        first = render("111")
+        assert render("999") == first, "the ignored timestamp rewrote the image"
+        # The second render really would have needed a different subset: '9' isn't in the
+        # first one's characters, so its embedded font could not have been the same
+        characters = svg_fonts.used_characters(first)
+        assert "1" in characters
+        assert "9" not in characters
+
+    def test_a_different_font_alone_does_not_rewrite_the_image(self, rich_img, tmp_cwd):
+        """What a fontTools upgrade looks like: same output, different font bytes.
+
+        The saved image is left alone until its content actually changes. It still renders
+        correctly with the subset it already has, and every image in the repository staying
+        put beats rewriting all of them for bytes nobody can see.
+        """
+        out = tmp_cwd / "out.svg"
+        img = rich_img(snippet="hello world", snippet_syntax="text", img_paths=[str(out)])
+        img.format_snippet()
+        img.save_images()
+        out.write_text(re.sub(r"(base64,)[A-Za-z0-9+/=]+", r"\1d09GMgABAAAA", out.read_text()))
+        stale = out.read_text()
+
+        second = rich_img(snippet="hello world", snippet_syntax="text", img_paths=[str(out)])
+        second.format_snippet()
+        second.save_images()
+        assert second.num_img_skipped == 1
+        assert out.read_text() == stale
+
+    def test_min_pct_diff_is_not_swamped_by_the_font(self, rich_img, tmp_cwd):
+        """A one-character change should read as a small percentage, not a large one."""
+        out = tmp_cwd / "out.svg"
+
+        def render(word, min_pct_diff=0):
+            img = rich_img(
+                snippet=f"the quick brown fox {word}",
+                snippet_syntax="text",
+                img_paths=[str(out)],
+                min_pct_diff=min_pct_diff,
+            )
+            img.format_snippet()
+            img.save_images()
+            return img
+
+        render("jumps")
+        changed = render("jumped", min_pct_diff=25)
+        assert changed.num_img_skipped == 1
+
     def test_no_regexes_means_no_diffing(self, rich_img, tmp_cwd, caplog):
         """Without skip_change_regex there is nothing to match, so we don't diff at all."""
-        new_file = tmp_cwd / "new.pdf"
-        old_file = tmp_cwd / "old.pdf"
-        new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
-        old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
+        new_file = tmp_cwd / "new.svg"
+        old_file = tmp_cwd / "old.svg"
+        new_file.write_text("<svg>\n<text>generated 2022-01-01</text>\n<text>content</text>\n</svg>\n")
+        old_file.write_text("<svg>\n<text>generated 1999-12-31</text>\n<text>content</text>\n</svg>\n")
         img = rich_img()
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
         assert "Checking diff" not in caplog.text
@@ -512,8 +579,8 @@ class TestEnoughImageDifference:
 
     def test_binary_files_with_no_decodable_text(self, rich_img, tmp_cwd, caplog):
         """Undecodable bytes leave nothing to run the skip regexes against."""
-        new_file = tmp_cwd / "new.pdf"
-        old_file = tmp_cwd / "old.pdf"
+        new_file = tmp_cwd / "new.png"
+        old_file = tmp_cwd / "old.png"
         new_file.write_bytes(b"\xff\xfe\xff")
         old_file.write_bytes(b"\xfd")
         img = rich_img(skip_change_regex="anything")
@@ -534,11 +601,20 @@ class TestEnoughImageDifference:
 class TestSaveImages:
     """Tests for RichImg.save_images()."""
 
-    def rendered(self, rich_img, **kwargs):
+    def rendered(self, rich_img, snippet="hello world", **kwargs):
         """Build a RichImg with a rendered snippet, ready to save."""
-        img = rich_img(snippet="hello world", snippet_syntax="text", **kwargs)
+        img = rich_img(snippet=snippet, snippet_syntax="text", **kwargs)
         img.format_snippet()
         return img
+
+    def spy_on_resvg(self, monkeypatch):
+        """Record the arguments rich-codex hands the rasteriser."""
+        import resvg_py
+
+        calls = []
+        real_svg_to_bytes = resvg_py.svg_to_bytes
+        monkeypatch.setattr(resvg_py, "svg_to_bytes", lambda **kw: (calls.append(kw), real_svg_to_bytes(**kw))[1])
+        return calls
 
     def test_aborted_does_nothing(self, rich_img, tmp_cwd):
         img = rich_img(img_paths=[str(tmp_cwd / "out.svg")])
@@ -588,6 +664,35 @@ class TestSaveImages:
         assert img.num_img_skipped == 1
         assert img.num_img_saved == 0
         assert out.stat().st_mtime_ns == first_mtime
+
+    def test_font_is_embedded_by_default(self, rich_img, tmp_cwd):
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        assert svg_fonts.FONT_DATA_URI in out.read_text()
+        assert "cdnjs.cloudflare.com" not in out.read_text()
+
+    def test_embed_font_can_be_turned_off(self, rich_img, tmp_cwd):
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)], embed_font=False).save_images()
+        assert svg_fonts.FONT_DATA_URI not in out.read_text()
+        assert "cdnjs.cloudflare.com" in out.read_text()
+
+    def test_embed_font_is_stable_across_runs(self, rich_img, tmp_cwd):
+        """Images get committed, so a second run of the same command must not rewrite them."""
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        first = out.read_text()
+        img = self.rendered(rich_img, img_paths=[str(out)])
+        img.save_images()
+        assert out.read_text() == first
+        assert img.num_img_skipped == 1
+
+    def test_embed_font_failure_still_saves_the_image(self, rich_img, tmp_cwd, caplog, block_import):
+        block_import("fontTools.subset", "fontTools.ttLib")
+        out = tmp_cwd / "out.svg"
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        assert "Could not embed the font" in caplog.text
+        assert "cdnjs.cloudflare.com" in out.read_text()
 
     def test_terminal_theme(self, rich_img, tmp_cwd):
         out = tmp_cwd / "out.svg"
@@ -689,65 +794,131 @@ class TestSaveImages:
         assert valid.exists()
 
     def test_png_conversion(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
         out = tmp_cwd / "out.png"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
         assert out.read_bytes().startswith(b"\x89PNG")
+        assert png_size(out)[0] == rich_img_module.PNG_WIDTH
 
-    def test_pdf_conversion(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        out = tmp_cwd / "out.pdf"
+    def test_png_uses_the_bundled_font(self, rich_img, tmp_cwd, monkeypatch):
+        """Nothing rasterises the font embedded in the SVG, so the renderer gets our copy.
+
+        Without it the PNG would use whatever monospace font the machine happens to have,
+        which is the whole problem this is meant to avoid.
+        """
+        calls = self.spy_on_resvg(monkeypatch)
+        self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.png")]).save_images()
+
+        assert [Path(f).name for f in calls[0]["font_files"]] == [
+            "FiraCode-Regular.ttf",
+            "FiraCode-Bold.ttf",
+            "Inter-Bold.ttf",
+            "NotoColorEmoji.ttf",
+        ]
+        assert all(Path(f).is_file() for f in calls[0]["font_files"])
+        assert calls[0]["skip_system_fonts"] is True
+
+    def png(self, rich_img, tmp_cwd, snippet, **kwargs):
+        """Render some text straight to a PNG."""
+        return self.rendered(rich_img, snippet=snippet, img_paths=[str(tmp_cwd / "out.png")], **kwargs)
+
+    def test_emoji_need_nothing_from_the_machine(self, rich_img, tmp_cwd, caplog, monkeypatch):
+        """They're drawn by the bundled emoji font, which is the whole reason it's bundled."""
+        calls = self.spy_on_resvg(monkeypatch)
+        self.png(rich_img, tmp_cwd, "all done \u2728").save_images()
+        assert calls[0]["skip_system_fonts"] is True
+        assert "No bundled font can draw" not in caplog.text
+
+    def test_png_says_when_it_cannot_draw_something(self, rich_img, tmp_cwd, caplog):
+        """CJK is beyond all three bundled fonts, and the way out is worth pointing at."""
+        self.png(rich_img, tmp_cwd, "all done \u6f22\u5b57").save_images()
+        assert "No bundled font can draw \u5b57 \u6f22" in caplog.text
+        assert "--png-fallback-font" in caplog.text
+
+    def test_png_says_nothing_when_every_character_is_covered(self, rich_img, tmp_cwd, caplog):
+        self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.png")]).save_images()
+        assert "No bundled font can draw" not in caplog.text
+
+    def test_png_looks_outside_the_bundle_only_when_asked(self, rich_img, tmp_cwd, monkeypatch):
+        """Without a fallback font named, a PNG is rendered from the bundle alone."""
+        calls = self.spy_on_resvg(monkeypatch)
+        self.png(rich_img, tmp_cwd, "all done \u6f22").save_images()
+        self.png(rich_img, tmp_cwd, "all done \u6f22", png_fallback_font="DejaVu Sans").save_images()
+        assert [call["skip_system_fonts"] for call in calls] == [True, False]
+
+    def test_png_isolates_what_the_terminal_font_cannot_draw(self, rich_img, tmp_cwd, monkeypatch):
+        """Otherwise resvg keeps the fallback font for the rest of the line."""
+        calls = self.spy_on_resvg(monkeypatch)
+        self.png(rich_img, tmp_cwd, "all done \u2728").save_images()
+        emoji_element = re.search(r"<text[^>]*>\u2728</text>", calls[0]["svg_string"])
+        assert emoji_element, "the emoji should be in a text element of its own"
+        assert svg_fonts.EMOJI_FONT_FAMILY in emoji_element.group()
+
+    def test_png_names_the_fallback_font_for_what_nothing_bundled_has(self, rich_img, tmp_cwd, monkeypatch):
+        calls = self.spy_on_resvg(monkeypatch)
+        self.png(rich_img, tmp_cwd, "all done \u6f22", png_fallback_font="DejaVu Sans").save_images()
+        element = re.search(r"<text[^>]*>\u6f22</text>", calls[0]["svg_string"])
+        assert element, "the character should be in a text element of its own"
+        assert "DejaVu Sans" in element.group()
+
+    def test_png_title_uses_the_bundled_font_even_without_embedding(self, rich_img, tmp_cwd, monkeypatch):
+        """The rasteriser is told to ignore the machine's fonts, so Arial is never there.
+
+        Embedding is what usually rewrites the title rule, so without this the title would
+        go missing from the PNG whenever embedding is turned off.
+        """
+        calls = self.spy_on_resvg(monkeypatch)
+        self.rendered(rich_img, title="My Title", embed_font=False, img_paths=[str(tmp_cwd / "out.png")]).save_images()
+        assert svg_fonts.TITLE_FAMILY_RULE not in calls[0]["svg_string"]
+        assert svg_fonts.EMBEDDED_TITLE_FAMILY_RULE in calls[0]["svg_string"]
+
+    def test_png_is_stable_across_runs(self, rich_img, tmp_cwd):
+        """PNGs get committed too, so the same output must rasterise to the same bytes."""
+        out = tmp_cwd / "out.png"
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        first = out.read_bytes()
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert out.read_bytes().startswith(b"%PDF")
+        assert img.num_img_skipped == 1
+        assert out.read_bytes() == first
 
     def test_second_png_is_copied_from_the_first(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
         first = tmp_cwd / "first.png"
         second = tmp_cwd / "second.png"
         img = self.rendered(rich_img, img_paths=[str(first), str(second)])
         img.save_images()
         assert first.read_bytes() == second.read_bytes()
 
-    def test_second_pdf_is_copied_from_the_first(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        first = tmp_cwd / "first.pdf"
-        second = tmp_cwd / "second.pdf"
-        img = self.rendered(rich_img, img_paths=[str(first), str(second)])
-        img.save_images()
-        assert first.read_bytes() == second.read_bytes()
-
-    def test_png_and_pdf_share_one_svg(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        paths = [tmp_cwd / f"out.{suffix}" for suffix in ("png", "pdf")]
+    def test_both_formats_share_one_svg(self, rich_img, tmp_cwd):
+        paths = [tmp_cwd / f"out.{suffix}" for suffix in ("svg", "png")]
         img = self.rendered(rich_img, img_paths=[str(p) for p in paths])
         img.save_images()
         assert all(p.exists() for p in paths)
         assert img.num_img_saved == 2
 
-    def test_all_three_formats_share_one_svg(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        paths = [tmp_cwd / f"out.{suffix}" for suffix in ("svg", "png", "pdf")]
-        img = self.rendered(rich_img, img_paths=[str(p) for p in paths])
+    def test_unsupported_format_is_reported(self, rich_img, tmp_cwd, caplog):
+        """PDF used to be supported, so someone will still have it in their config."""
+        out = tmp_cwd / "out.pdf"
+        img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert all(p.exists() for p in paths)
-        assert img.num_img_saved == 3
+        assert "Can only save SVG and PNG images" in caplog.text
+        assert not out.exists()
+        assert img.num_img_saved == 0
 
-    def test_missing_cairosvg_is_reported(self, rich_img, tmp_cwd, caplog, block_import):
-        block_import("cairosvg")
+    def test_missing_resvg_is_reported(self, rich_img, tmp_cwd, caplog, block_import):
+        block_import("resvg_py")
         out = tmp_cwd / "out.png"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert "CairoSVG not installed" in caplog.text
+        assert "resvg-py is not installed" in caplog.text
         assert not out.exists()
 
-    def test_missing_cairo_system_libs_are_reported(self, rich_img, tmp_cwd, caplog, block_import):
-        block_import("cairosvg", exc=OSError)
+    def test_a_broken_svg_is_reported(self, rich_img, tmp_cwd, caplog, monkeypatch):
         out = tmp_cwd / "out.png"
-        img = self.rendered(rich_img, img_paths=[str(out)])
+        img = self.rendered(rich_img, img_paths=[str(out)], embed_font=False)
+        monkeypatch.setattr(img.capture_console, "export_svg", lambda **kwargs: "<svg><unclosed>")
         img.save_images()
-        assert "Missing" in caplog.text
+        assert "Could not convert SVG to PNG" in caplog.text
         assert not out.exists()
 
 

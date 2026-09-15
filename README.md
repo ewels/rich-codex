@@ -73,6 +73,6 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
 - ⚙️ [Config files](https://ewels.github.io/rich-codex/inputs/config_file/)
   - Use one or more YAML config files for multiple images and more complex customisation.
 
-Images can be generated as SVG, PNG or PDF (detected by filename extension).
+Images can be generated as SVG or PNG (detected by filename extension).
 
 > **Keep reading!** 👉 https://ewels.github.io/rich-codex/

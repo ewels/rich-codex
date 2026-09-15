@@ -98,6 +98,13 @@ inputs:
   snippet_theme:
     description: Snippet Pygments theme
     required: false
+  embed_font:
+    description: Embed the terminal font in SVG images, so that they render the same everywhere. Set to 'false' for smaller files that need Fira Code installed to look right.
+    default: "true"
+    required: false
+  png_fallback_font:
+    description: Font family to draw characters the bundled fonts don't have, such as CJK, in PNG output
+    required: false
   use_pty:
     description: Use a pseudo-terminal for commands (may capture coloured output)
     required: false
@@ -157,19 +164,11 @@ runs:
       with:
         python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
 
-    # Needed for screenshots even when rich-codex itself is already installed
-    - name: Install fonts
-      run: |
-        echo "::group::Installing fonts"
-        sudo apt install fonts-firacode
-        echo "::endgroup::"
-      shell: bash
-
     - name: Install rich-codex with uv
       if: inputs.use_uv == 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        uv pip install "rich-codex[cairo]"
+        uv pip install rich-codex
         echo "::endgroup::"
       shell: bash
 
@@ -177,7 +176,7 @@ runs:
       if: inputs.use_uv != 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        pip install "rich-codex[cairo]"
+        pip install rich-codex
         echo "::endgroup::"
       shell: bash
 
@@ -215,6 +214,8 @@ runs:
         NOTRIM: ${{ inputs.notrim }}
         TERMINAL_THEME: ${{ inputs.terminal_theme }}
         SNIPPET_THEME: ${{ inputs.snippet_theme }}
+        EMBED_FONT: ${{ inputs.embed_font }}
+        PNG_FALLBACK_FONT: ${{ inputs.png_fallback_font }}
         USE_PTY: ${{ inputs.use_pty }}
         CREATED_FILES: "created.txt"
         DELETED_FILES: "deleted.txt"

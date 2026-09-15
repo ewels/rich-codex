@@ -3,6 +3,7 @@
 import builtins
 import logging
 import os
+import struct
 import textwrap
 from io import StringIO
 from pathlib import Path
@@ -10,6 +11,7 @@ from pathlib import Path
 import pytest
 from rich.console import Console
 
+from rich_codex import svg_fonts
 from rich_codex.codex_search import CodexSearch
 from rich_codex.rich_img import RichImg
 
@@ -20,6 +22,11 @@ def write(path, content):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(textwrap.dedent(content).lstrip("\n"))
     return path
+
+
+def png_size(path):
+    """Read the width and height out of a PNG's IHDR chunk."""
+    return struct.unpack(">II", Path(path).read_bytes()[16:24])
 
 
 def svg_text(path):
@@ -54,6 +61,8 @@ CODEX_SEARCH_DEFAULTS = {
     "notrim": None,
     "terminal_theme": None,
     "snippet_theme": None,
+    "embed_font": True,
+    "png_fallback_font": None,
     "use_pty": None,
 }
 
@@ -62,6 +71,19 @@ CODEX_SEARCH_DEFAULTS = {
 def capture_debug_logs(caplog):
     """Capture everything rich-codex logs, down to DEBUG level."""
     caplog.set_level(logging.DEBUG, logger="rich-codex")
+
+
+@pytest.fixture(autouse=True)
+def forget_cached_fonts():
+    """Clear the font caches between tests.
+
+    They're keyed on the font file and the characters wanted, so within a run they only
+    ever save work. Across tests they'd hide the very thing a test is arranging, such as
+    fontTools failing to import.
+    """
+    svg_fonts.subset_font.cache_clear()
+    svg_fonts.font_codepoints.cache_clear()
+    yield
 
 
 @pytest.fixture

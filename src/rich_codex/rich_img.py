@@ -21,6 +21,7 @@ from rich.prompt import Confirm
 from rich.syntax import Syntax
 from rich.text import Text
 
+from rich_codex import svg_fonts
 from rich_codex.utils import relative_path
 
 log = logging.getLogger("rich-codex")
@@ -36,6 +37,10 @@ RICH_IMG_ATTRS = config_schema["properties"]["outputs"]["items"]["properties"].k
 # and can be reported by CodexSearch.check_duplicate_paths().
 HASH_ATTRS = [attr for attr in RICH_IMG_ATTRS if attr != "source_line"]
 HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr != "img_paths"]
+
+# Width to rasterise PNGs at, in pixels. Big enough to stay sharp when a README scales
+# it down.
+PNG_WIDTH = 4000
 
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
@@ -73,6 +78,8 @@ class RichImg:
         notrim: bool = False,
         terminal_theme: str | None = None,
         snippet_theme: str | None = None,
+        embed_font: bool = True,
+        png_fallback_font: str | None = None,
         use_pty: bool = False,
         console: Console | None = None,
         source_type: str | None = None,
@@ -106,6 +113,8 @@ class RichImg:
         self.notrim = notrim
         self.terminal_theme = terminal_theme
         self.snippet_theme = snippet_theme
+        self.embed_font = embed_font
+        self.png_fallback_font = png_fallback_font
         self.use_pty = use_pty
         self.console = Console() if console is None else console
         # Only set once the output has been rendered, by run_command() or format_snippet()
@@ -411,10 +420,11 @@ class RichImg:
             log_msg = "new image"
 
         else:
-            # Percentage change in file
+            # Percentage change in file, ignoring any embedded font: it's derived from the
+            # text, so counting it would swamp a small change to the output itself.
             # This method works even with entirely binary files, no decoding required
-            new_file_bytes = new_file.read_bytes()
-            old_file_bytes = old_file.read_bytes()
+            new_file_bytes = svg_fonts.without_embedded_fonts(new_file.read_bytes())
+            old_file_bytes = svg_fonts.without_embedded_fonts(old_file.read_bytes())
             pct_change = (1 - ratio(new_file_bytes, old_file_bytes)) * 100.0
             if pct_change <= self.min_pct_diff:
                 create_file = False
@@ -489,6 +499,66 @@ class RichImg:
             path = Path(path.name)
         return "rich-codex-" + str(zlib.adler32(str(path).encode("utf-8")))
 
+    def _embed_svg_font(self, svg_content: str) -> str:
+        """Inline the terminal font in the SVG, so it renders the same without Fira Code installed.
+
+        Returns the SVG unchanged if the font can't be embedded: a screenshot that falls back
+        to the reader's monospace font is still better than no screenshot at all.
+        """
+        try:
+            return svg_fonts.embed_fonts(svg_content)
+        except svg_fonts.FontEmbedError as e:
+            log.error(f"[red]Could not embed the font in the SVG:[/] {e}")
+            log.info(f"[dim]Falling back to Rich's linked font for '{self.img_paths[0]}'")
+            return svg_content
+
+    def _render_png(self, svg_filename: str) -> bytes | None:
+        """Rasterise a rendered SVG, returning None if it couldn't be done.
+
+        No rasteriser implements '@font-face', so the font embedded in the SVG is of no use
+        here: they all read fonts from the machine doing the rendering. The renderer is
+        handed rich-codex's own copies of Fira Code and Inter instead, which is what makes
+        the PNG come out right on a machine that has neither.
+
+        Emoji come along in the bundle too, so even those need nothing from the machine. The
+        one thing that does is a script none of the three fonts cover, CJK above all, and
+        rich-codex only looks outside the bundle when 'png_fallback_font' names something to
+        look for. Left unset, a PNG is rendered from the bundled fonts alone and comes out
+        the same on any machine.
+        """
+        try:
+            import resvg_py
+        except ImportError as e:
+            log.debug(e)
+            log.error(f"[red]resvg-py is not installed, cannot convert SVG to PNG:[/] {svg_filename}")
+            return None
+
+        svg_content = Path(svg_filename).read_text(encoding="utf-8")
+        unrenderable = svg_fonts.unrenderable_characters(svg_content)
+        if unrenderable and not self.png_fallback_font:
+            log.warning(
+                f"No bundled font can draw {' '.join(unrenderable)}, so they will be blank in "
+                "PNG output. Set '--png-fallback-font' to draw them with a font from this machine."
+            )
+
+        # The rasteriser reads fonts from disk, so the title has to name one rich-codex
+        # bundles even when the SVG itself was left with Rich's linked font
+        svg_content = svg_fonts.use_bundled_title_font(svg_content)
+        svg_content = svg_fonts.isolate_fallback_text(svg_content, self.png_fallback_font)
+        log.debug(f"Converting SVG '{svg_filename}' to PNG")
+        try:
+            return bytes(
+                resvg_py.svg_to_bytes(
+                    svg_string=svg_content,
+                    font_files=[str(font_file) for font_file in svg_fonts.RASTER_FONT_FILES],
+                    skip_system_fonts=self.png_fallback_font is None,
+                    width=PNG_WIDTH,
+                )
+            )
+        except Exception as e:  # resvg raises its own error types for anything it can't parse
+            log.error(f"[red]Could not convert SVG to PNG:[/] {e}")
+            return None
+
     def save_images(self) -> None:
         """Save the images to the specified filenames."""
         if self.aborted:
@@ -514,14 +584,18 @@ class RichImg:
         # Save image as requested with $IMG_PATHS
         svg_img = None
         png_img = None
-        pdf_img = None
         with TemporaryDirectory() as tmp_dir:
             # Scratch files for the renders, all removed when the loop is done
             svg_tmp_filename = str(Path(tmp_dir) / "render.svg")
-            converted_filename = str(Path(tmp_dir) / "converted")
+            converted_filename = str(Path(tmp_dir) / "converted.png")
             rendered_svg = False
 
             for filename in self.img_paths:
+                suffix = Path(filename).suffix.lower()
+                if suffix not in (".svg", ".png"):
+                    log.error(f"Can only save SVG and PNG images, not '{filename}'")
+                    continue
+
                 # Make directories if necessary
                 try:
                     Path(filename).parent.mkdir(parents=True, exist_ok=True)
@@ -530,17 +604,12 @@ class RichImg:
                     continue
 
                 # If already made this image, copy it from the last destination
-                if filename.lower().endswith(".png") and png_img is not None:
+                if suffix == ".png" and png_img is not None:
                     log.debug(f"Using '{png_img}' for '{filename}'")
                     if self._enough_image_difference(png_img, filename):
                         copyfile(png_img, filename)
                     continue
-                if filename.lower().endswith(".pdf") and pdf_img is not None:
-                    log.debug(f"Using '{pdf_img}' for '{filename}'")
-                    if self._enough_image_difference(pdf_img, filename):
-                        copyfile(pdf_img, filename)
-                    continue
-                if filename.lower().endswith(".svg") and svg_img is not None:
+                if suffix == ".svg" and svg_img is not None:
                     log.debug(f"Using '{svg_img}' for '{filename}'")
                     if self._enough_image_difference(svg_img, filename):
                         copyfile(svg_img, filename)
@@ -548,62 +617,30 @@ class RichImg:
 
                 # We always render an SVG first, then reuse it for every other output
                 if svg_img is None and not rendered_svg:
-                    self.capture_console.save_svg(
-                        svg_tmp_filename,
+                    svg_content = self.capture_console.export_svg(
                         title=self.title,
                         theme=terminal_theme,
                         unique_id=self._svg_unique_id(),
                     )
+                    svg_content = svg_fonts.fix_wide_character_widths(svg_content)
+                    if self.embed_font:
+                        svg_content = self._embed_svg_font(svg_content)
+                    Path(svg_tmp_filename).write_text(svg_content, encoding="utf-8")
                     rendered_svg = True
                 svg_source = svg_img or svg_tmp_filename
 
                 # Save the SVG image if requested
-                if filename.lower().endswith(".svg"):
+                if suffix == ".svg":
                     if self._enough_image_difference(svg_source, filename):
                         copyfile(svg_source, filename)
                     svg_img = filename
 
-                # Lazy-load PNG / PDF libraries if needed
-                if filename.lower().endswith(".png") or filename.lower().endswith(".pdf"):
-                    try:
-                        from cairosvg import svg2pdf, svg2png
-                    except ImportError as e:
-                        log.debug(e)
-                        log.error("CairoSVG not installed, cannot convert SVG to PNG or PDF.")
-                        # Square brackets are escaped, so that rich doesn't read '[cairo]' as markup
-                        log.info(r"Please install with cairo extra: 'rich-codex\[cairo]'")
+                # Rasterise to PNG if requested
+                else:
+                    png_bytes = self._render_png(svg_source)
+                    if png_bytes is None:
                         continue
-                    except OSError as e:
-                        log.debug(e)
-                        log.error(
-                            "⚠️  Missing [link=https://cairosvg.org/documentation/]CairoSVG dependencies[/], "
-                            "cannot convert SVG to PNG or PDF. ⚠️\n"
-                            f"[red]Skipping image '{filename}'[/]"
-                        )
-                        continue
-
-                    # Convert to PNG if requested
-                    if filename.lower().endswith(".png"):
-                        log.debug(f"Converting SVG '{svg_source}' to PNG '{filename}'")
-                        with open(svg_source, "rb") as svg_fh:
-                            svg2png(
-                                file_obj=svg_fh,
-                                write_to=converted_filename,
-                                dpi=300,
-                                output_width=4000,
-                            )
-                        if self._enough_image_difference(converted_filename, filename):
-                            copyfile(converted_filename, filename)
-                            png_img = filename
-
-                    # Convert to PDF if requested
-                    if filename.lower().endswith(".pdf"):
-                        log.debug(f"Converting SVG '{svg_source}' to PDF '{filename}'")
-                        with open(svg_source, "rb") as svg_fh:
-                            svg2pdf(
-                                file_obj=svg_fh,
-                                write_to=converted_filename,
-                            )
-                        if self._enough_image_difference(converted_filename, filename):
-                            copyfile(converted_filename, filename)
-                            pdf_img = filename
+                    Path(converted_filename).write_bytes(png_bytes)
+                    if self._enough_image_difference(converted_filename, filename):
+                        copyfile(converted_filename, filename)
+                        png_img = filename

@@ -27,6 +27,8 @@ properties:
   notrim: { "$ref": "#/$defs/notrim" }
   terminal_theme: { "$ref": "#/$defs/terminal_theme" }
   snippet_theme: { "$ref": "#/$defs/snippet_theme" }
+  embed_font: { "$ref": "#/$defs/embed_font" }
+  png_fallback_font: { "$ref": "#/$defs/png_fallback_font" }
   use_pty: { "$ref": "#/$defs/use_pty" }
 
   # Top-level only config options
@@ -76,7 +78,7 @@ properties:
           items:
             type: string
             title: An image path
-            pattern: "(?i)\\.(svg|png|pdf)$"
+            pattern: "(?i)\\.(svg|png)$"
         # Internal fields, set by rich-codex rather than by the user
         source:
           title: Filename / meta about where the image came from
@@ -107,6 +109,8 @@ properties:
         notrim: { "$ref": "#/$defs/notrim" }
         terminal_theme: { "$ref": "#/$defs/terminal_theme" }
         snippet_theme: { "$ref": "#/$defs/snippet_theme" }
+        embed_font: { "$ref": "#/$defs/embed_font" }
+        png_fallback_font: { "$ref": "#/$defs/png_fallback_font" }
         use_pty: { "$ref": "#/$defs/use_pty" }
 
 # Single location to hold schema for config options, as used twice
@@ -166,6 +170,12 @@ properties:
     type: string
   snippet_theme:
     title: Snippet Pygments theme
+    type: string
+  embed_font:
+    title: Embed the terminal font in SVG images, so they render the same everywhere (default true)
+    type: boolean
+  png_fallback_font:
+    title: Font family to draw characters the bundled fonts don't have, such as CJK, in PNG output
     type: string
   use_pty:
     title: Use a pseudo-terminal for commands (may capture coloured output)

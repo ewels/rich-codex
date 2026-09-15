@@ -48,6 +48,7 @@ nav:
       - config/command_setup.md
       - config/width.md
       - config/colours.md
+      - config/fonts.md
       - config/cleaning.md
       - config/ignoring_changes.md
   - safety.md
