@@ -28,10 +28,6 @@ import re
 from functools import cache
 from itertools import groupby
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from fontTools.ttLib import TTFont
 
 log = logging.getLogger("rich-codex")
 
@@ -75,11 +71,15 @@ FONT_COPYRIGHTS = {
 # (0-6) plus trademark, licence description and licence URL.
 NAME_IDS = [0, 1, 2, 3, 4, 5, 6, 7, 13, 14]
 
+# How an embedded subset is written into the SVG, and how it's found again
+FONT_DATA_URI = "data:font/woff2;base64,"
+EMBEDDED_FONT_BYTES_RE = re.compile(re.escape(FONT_DATA_URI).encode() + rb"[A-Za-z0-9+/=]+")
+
 # Rich writes one '@font-face' block per weight, with no nested braces
 FONT_FACE_RE = re.compile(r"@font-face\s*\{[^{}]*\}")
-# The same thing as raw bytes, for comparing images without decoding them
-EMBEDDED_FONT_BYTES_RE = re.compile(rb"(data:font/woff2;base64,)[A-Za-z0-9+/=]+")
+# Rich puts the window title in a '<text>' of its own, classed '<unique_id>-title'
 TEXT_RE = re.compile(r"<text\b([^>]*)>(.*?)</text>", re.DOTALL)
+TITLE_CLASS_RE = re.compile(r'\bclass="[^"]*-title"')
 X_RE = re.compile(r'\bx="(-?[\d.]+)"')
 TEXT_LENGTH_RE = re.compile(r'\btextLength="(-?[\d.]+)"')
 # Rich's own style rules are '.<unique_id>-r<n> { ... }'. The '-title' rule is left out:
@@ -111,13 +111,11 @@ def embed_fonts(svg: str) -> str:
         raise FontEmbedError("Found no text to embed a font for in the rendered SVG.")
 
     weights = [400, 700] if uses_bold(svg) else [400]
-    families = ["Fira Code"]
     css = [_font_face("Fira Code", weight, FONT_FILES[weight], characters) for weight in weights]
 
     # Most images have no title, and then there is nothing to set in Inter
     title = title_characters(svg)
     if title:
-        families.append(TITLE_FONT_FAMILY)
         css.append(_font_face(TITLE_FONT_FAMILY, TITLE_FONT_WEIGHT, TITLE_FONT_FILE, title))
 
     svg = svg[: faces[0].start()] + "\n".join(css).lstrip() + svg[faces[1].end() :]
@@ -125,6 +123,7 @@ def embed_fonts(svg: str) -> str:
         if TITLE_FAMILY_RULE not in svg:
             raise FontEmbedError(f"Could not find '{TITLE_FAMILY_RULE}' to point the window title at a bundled font.")
         svg = svg.replace(TITLE_FAMILY_RULE, EMBEDDED_TITLE_FAMILY_RULE, 1)
+    families = ["Fira Code", TITLE_FONT_FAMILY] if title else ["Fira Code"]
     return svg.replace("<style>", _licence_comment(families) + "<style>", 1)
 
 
@@ -159,28 +158,37 @@ def isolate_fallback_text(svg: str, fallback_family: str | None = None) -> str:
     Only for the copy handed to the PNG rasteriser; browsers need none of this.
 
     resvg falls back per character, but then keeps the font it fell back to for as long as
-    that font can draw what follows. The emoji font has no letters, so it hands the line
-    straight back. Inter has plenty, so a single character Fira Code happens to lack would
-    otherwise redraw the rest of the line in a proportional font - the exact breakage
-    rich-codex exists to avoid. Giving those characters an element to themselves means a
-    fallback can never reach past them, whichever font it lands on.
+    that font can draw what follows. Inter, bundled for the window title, has most of the
+    Latin alphabet, so a single character Fira Code happens to lack would otherwise redraw
+    the rest of the line in a proportional font - the exact breakage rich-codex exists to
+    avoid. Giving those characters an element to themselves means a fallback can never
+    reach past them, and naming the font that draws them means the result doesn't depend on
+    which font resvg would have reached for.
 
     Rich lays the terminal out one character to a cell, and writes 'x' and 'textLength' on
     every element, so each piece can be put back exactly where it was. An element without
     them - the window title, which is centred rather than placed - is left alone.
     """
     try:
-        drawable = font_codepoints(*FONT_FILES.values())
+        terminal = font_codepoints(*FONT_FILES.values())
+        emoji = font_codepoints(EMOJI_FONT_FILE)
     except ImportError:  # fontTools missing; embedding will have complained already
         return svg
 
-    def can_draw(character: str) -> bool:
-        return character.isspace() or ord(character) in drawable
+    def font_for(character: str) -> tuple[bool, str | None]:
+        """Whether the terminal font draws this, and failing that what should be named."""
+        if character.isspace() or ord(character) in terminal:
+            return True, None
+        if ord(character) in emoji:
+            return False, EMOJI_FONT_FAMILY
+        # Nothing bundled has it. Isolate it anyway, so whatever resvg finds - or nothing
+        # at all - is confined to this one character.
+        return False, fallback_family
 
     def split_element(match: re.Match[str]) -> str:
         attributes, content = match.group(1), match.group(2)
         text = html.unescape(content)
-        if not text or all(can_draw(character) for character in text):
+        if not text or all(font_for(character)[0] for character in text):
             return match.group(0)
 
         x = X_RE.search(attributes)
@@ -192,14 +200,14 @@ def isolate_fallback_text(svg: str, fallback_family: str | None = None) -> str:
 
         pieces = []
         offset = 0
-        for drawn, characters in groupby(text, key=can_draw):
+        for (drawn, family), characters in groupby(text, key=font_for):
             run = "".join(characters)
             run_attributes = X_RE.sub(f'x="{_number(start + offset * character_width)}"', attributes, count=1)
             run_attributes = TEXT_LENGTH_RE.sub(
                 f'textLength="{_number(len(run) * character_width)}"', run_attributes, count=1
             )
-            if not drawn and fallback_family:
-                run_attributes += f' style="font-family: {fallback_family}"'
+            if not drawn and family:
+                run_attributes += f' style="font-family: {family}"'
             pieces.append(f"<text{run_attributes}>{_escape(run)}</text>")
             offset += len(run)
         return "".join(pieces)
@@ -215,11 +223,6 @@ def _number(value: float) -> str:
 def _escape(text: str) -> str:
     """Escape text for an SVG the way Rich does, so the pieces match the whole."""
     return html.escape(text).replace(" ", "&#160;").replace("\xa0", "&#160;")
-
-
-def has_embedded_fonts(svg: str) -> bool:
-    """Check whether an SVG carries its own fonts, rather than linking to them."""
-    return "data:font/woff2;base64," in svg
 
 
 def _licence_comment(families: list[str]) -> str:
@@ -242,10 +245,18 @@ def without_embedded_fonts(image: bytes) -> bytes:
     'min_pct_diff' and hand 'skip_change_regex' a changed line it can never match, so an
     ignored timestamp would still rewrite the image whenever its digits changed.
 
-    Takes bytes rather than str because it also gets handed PNGs and PDFs, which it leaves
-    alone.
+    Takes bytes rather than str because it also gets handed PNGs, which it leaves alone.
     """
-    return EMBEDDED_FONT_BYTES_RE.sub(rb"\1", image)
+    return EMBEDDED_FONT_BYTES_RE.sub(FONT_DATA_URI.encode(), image)
+
+
+def _characters(svg: str, *, in_title: bool) -> str:
+    """Collect the characters of every '<text>' inside or outside the title, sorted."""
+    characters: set[str] = set()
+    for attributes, text in TEXT_RE.findall(svg):
+        if bool(TITLE_CLASS_RE.search(attributes)) is in_title:
+            characters.update(html.unescape(text))
+    return "".join(sorted(characters))
 
 
 def used_characters(svg: str) -> str:
@@ -254,12 +265,7 @@ def used_characters(svg: str) -> str:
     Only the text drawn in the terminal matrix counts. The window title has a font of its
     own, and its characters are collected by title_characters().
     """
-    characters: set[str] = set()
-    for attrs, text in TEXT_RE.findall(svg):
-        if "-title" in attrs:
-            continue
-        characters.update(html.unescape(text))
-    return "".join(sorted(characters))
+    return _characters(svg, in_title=False)
 
 
 def title_characters(svg: str) -> str:
@@ -267,11 +273,7 @@ def title_characters(svg: str) -> str:
 
     Empty when the image has no title, which is the usual case.
     """
-    characters: set[str] = set()
-    for attrs, text in TEXT_RE.findall(svg):
-        if "-title" in attrs:
-            characters.update(html.unescape(text))
-    return "".join(sorted(characters))
+    return _characters(svg, in_title=True)
 
 
 def uses_bold(svg: str) -> bool:
@@ -296,13 +298,14 @@ def _font_face(family: str, weight: int, font_file: Path, characters: str) -> st
     return (
         "    @font-face {\n"
         f'        font-family: "{family}";\n'
-        f'        src: url("data:font/woff2;base64,{encoded}") format("woff2");\n'
+        f'        src: url("{FONT_DATA_URI}{encoded}") format("woff2");\n'
         "        font-style: normal;\n"
         f"        font-weight: {weight};\n"
         "    }"
     )
 
 
+@cache
 def subset_font(font_file: Path, characters: str) -> bytes:
     """Cut a font down to the given characters and return it as WOFF2.
 
@@ -310,6 +313,11 @@ def subset_font(font_file: Path, characters: str) -> bytes:
     the repository, so any wobble here would churn the diff on every run. Hence the
     explicit 'recalc' options, which would otherwise stamp the current time into the
     font's head table.
+
+    Cached because a run usually generates many images and subsetting is by far the most
+    expensive thing rich-codex does per image, around 150ms a time. Images that render the
+    same set of characters - the common case for a CLI's '--help' screens - then pay for it
+    once. The cached subsets are a few KB each.
     """
     try:
         from fontTools import version as fonttools_version
@@ -331,7 +339,7 @@ def subset_font(font_file: Path, characters: str) -> bytes:
     options.name_IDs = NAME_IDS
     # Keep the default layout features, so that ligatures render as they would with
     # Fira Code installed locally
-    font: TTFont = TTFont(font_file, recalcTimestamp=False, recalcBBoxes=False)
+    font = TTFont(font_file, recalcTimestamp=False, recalcBBoxes=False)
     subsetter = Subsetter(options=options)
     subsetter.populate(text=characters)
     subsetter.subset(font)

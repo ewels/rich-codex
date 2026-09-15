@@ -588,7 +588,8 @@ class RichImg:
             rendered_svg = False
 
             for filename in self.img_paths:
-                if not filename.lower().endswith((".svg", ".png")):
+                suffix = Path(filename).suffix.lower()
+                if suffix not in (".svg", ".png"):
                     log.error(f"Can only save SVG and PNG images, not '{filename}'")
                     continue
 
@@ -600,12 +601,12 @@ class RichImg:
                     continue
 
                 # If already made this image, copy it from the last destination
-                if filename.lower().endswith(".png") and png_img is not None:
+                if suffix == ".png" and png_img is not None:
                     log.debug(f"Using '{png_img}' for '{filename}'")
                     if self._enough_image_difference(png_img, filename):
                         copyfile(png_img, filename)
                     continue
-                if filename.lower().endswith(".svg") and svg_img is not None:
+                if suffix == ".svg" and svg_img is not None:
                     log.debug(f"Using '{svg_img}' for '{filename}'")
                     if self._enough_image_difference(svg_img, filename):
                         copyfile(svg_img, filename)
@@ -625,13 +626,13 @@ class RichImg:
                 svg_source = svg_img or svg_tmp_filename
 
                 # Save the SVG image if requested
-                if filename.lower().endswith(".svg"):
+                if suffix == ".svg":
                     if self._enough_image_difference(svg_source, filename):
                         copyfile(svg_source, filename)
                     svg_img = filename
 
                 # Rasterise to PNG if requested
-                if filename.lower().endswith(".png"):
+                else:
                     png_bytes = self._render_png(svg_source)
                     if png_bytes is None:
                         continue

@@ -255,25 +255,43 @@ class TestIsolateFallbackText:
         assert positions == pytest.approx([10, 10 + 2 * 12.2, 10 + 3 * 12.2], abs=0.01)
         assert lengths == pytest.approx([2 * 12.2, 12.2, 2 * 12.2], abs=0.01)
 
-    def test_consecutive_unrenderable_characters_share_an_element(self):
+    def test_consecutive_characters_needing_the_same_font_share_an_element(self):
         split = svg_fonts.isolate_fallback_text(self.element("a\u2728\U0001f92bb"))
         assert len(self.elements(split)) == 3
+
+    def test_characters_needing_different_fonts_get_an_element_each(self):
+        split = svg_fonts.isolate_fallback_text(self.element("a\u2728\u6f22b"), "DejaVu Sans")
+        assert len(self.elements(split)) == 4
 
     def test_spaces_do_not_split_anything(self):
         """Whitespace has no glyph to miss, so it stays with the text around it."""
         split = svg_fonts.isolate_fallback_text(self.element("a&#160;b"))
         assert split == self.element("a&#160;b")
 
-    def test_the_fallback_family_goes_only_on_what_needs_it(self):
-        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd"), "Noto Color Emoji")
+    def test_the_font_named_goes_only_on_what_needs_it(self):
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd"))
         styled = [e for e in self.elements(split) if "font-family" in e]
         assert len(styled) == 1
-        assert "Noto Color Emoji" in styled[0]
+        assert svg_fonts.EMOJI_FONT_FAMILY in styled[0]
         assert "\u2728" in styled[0]
 
-    def test_no_fallback_family_means_no_style_attribute(self):
-        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd"))
+    def test_an_emoji_names_the_bundled_emoji_font_without_being_asked(self):
+        """The result shouldn't depend on which font resvg would have reached for."""
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u2728cd"), "DejaVu Sans")
+        assert svg_fonts.EMOJI_FONT_FAMILY in split
+        assert "DejaVu Sans" not in split
+
+    def test_the_fallback_family_covers_what_nothing_bundled_has(self):
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u6f22cd"), "DejaVu Sans")
+        styled = [e for e in self.elements(split) if "font-family" in e]
+        assert len(styled) == 1
+        assert "DejaVu Sans" in styled[0]
+
+    def test_no_fallback_family_still_isolates_it(self):
+        """Nothing to name, but it still needs its own element to confine resvg's choice."""
+        split = svg_fonts.isolate_fallback_text(self.element("ab\u6f22cd"))
         assert "font-family" not in split
+        assert len(self.elements(split)) == 3
 
     def test_the_text_survives_the_round_trip(self):
         original = "a&lt;b&#160;\u2728&amp;c"
@@ -289,16 +307,6 @@ class TestIsolateFallbackText:
     def test_an_empty_element_is_left_alone(self):
         svg = self.element("", text_length=0)
         assert svg_fonts.isolate_fallback_text(svg) == svg
-
-
-class TestHasEmbeddedFonts:
-    """Tests for svg_fonts.has_embedded_fonts()."""
-
-    def test_an_embedded_svg(self):
-        assert svg_fonts.has_embedded_fonts(svg_fonts.embed_fonts(render())) is True
-
-    def test_richs_own_output(self):
-        assert svg_fonts.has_embedded_fonts(render()) is False
 
 
 class TestDeterminism:

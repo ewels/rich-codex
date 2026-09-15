@@ -601,11 +601,20 @@ class TestEnoughImageDifference:
 class TestSaveImages:
     """Tests for RichImg.save_images()."""
 
-    def rendered(self, rich_img, **kwargs):
+    def rendered(self, rich_img, snippet="hello world", **kwargs):
         """Build a RichImg with a rendered snippet, ready to save."""
-        img = rich_img(snippet="hello world", snippet_syntax="text", **kwargs)
+        img = rich_img(snippet=snippet, snippet_syntax="text", **kwargs)
         img.format_snippet()
         return img
+
+    def spy_on_resvg(self, monkeypatch):
+        """Record the arguments rich-codex hands the rasteriser."""
+        import resvg_py
+
+        calls = []
+        real_svg_to_bytes = resvg_py.svg_to_bytes
+        monkeypatch.setattr(resvg_py, "svg_to_bytes", lambda **kw: (calls.append(kw), real_svg_to_bytes(**kw))[1])
+        return calls
 
     def test_aborted_does_nothing(self, rich_img, tmp_cwd):
         img = rich_img(img_paths=[str(tmp_cwd / "out.svg")])
@@ -659,13 +668,13 @@ class TestSaveImages:
     def test_font_is_embedded_by_default(self, rich_img, tmp_cwd):
         out = tmp_cwd / "out.svg"
         self.rendered(rich_img, img_paths=[str(out)]).save_images()
-        assert "data:font/woff2;base64," in out.read_text()
+        assert svg_fonts.FONT_DATA_URI in out.read_text()
         assert "cdnjs.cloudflare.com" not in out.read_text()
 
     def test_embed_font_can_be_turned_off(self, rich_img, tmp_cwd):
         out = tmp_cwd / "out.svg"
         self.rendered(rich_img, img_paths=[str(out)], embed_font=False).save_images()
-        assert "data:font/woff2;base64," not in out.read_text()
+        assert svg_fonts.FONT_DATA_URI not in out.read_text()
         assert "cdnjs.cloudflare.com" in out.read_text()
 
     def test_embed_font_is_stable_across_runs(self, rich_img, tmp_cwd):
@@ -797,57 +806,32 @@ class TestSaveImages:
         Without it the PNG would use whatever monospace font the machine happens to have,
         which is the whole problem this is meant to avoid.
         """
-        import resvg_py
-
-        calls = {}
-        real_svg_to_bytes = resvg_py.svg_to_bytes
-
-        def spy(**kwargs):
-            calls.update(kwargs)
-            return real_svg_to_bytes(**kwargs)
-
-        monkeypatch.setattr(resvg_py, "svg_to_bytes", spy)
+        calls = self.spy_on_resvg(monkeypatch)
         self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.png")]).save_images()
 
-        assert [Path(f).name for f in calls["font_files"]] == [
+        assert [Path(f).name for f in calls[0]["font_files"]] == [
             "FiraCode-Regular.ttf",
             "FiraCode-Bold.ttf",
             "Inter-Bold.ttf",
             "NotoColorEmoji.ttf",
         ]
-        assert all(Path(f).is_file() for f in calls["font_files"])
-        assert calls["skip_system_fonts"] is True
+        assert all(Path(f).is_file() for f in calls[0]["font_files"])
+        assert calls[0]["skip_system_fonts"] is True
 
-    def snippet_png(self, rich_img, tmp_cwd, text, **kwargs):
-        """Build a RichImg that renders some text straight to a PNG."""
-        img = rich_img(
-            snippet=text,
-            snippet_syntax="text",
-            img_paths=[str(tmp_cwd / "out.png")],
-            **kwargs,
-        )
-        img.format_snippet()
-        return img
-
-    def spy_on_resvg(self, monkeypatch):
-        """Record the arguments rich-codex hands the rasteriser."""
-        import resvg_py
-
-        calls = []
-        real_svg_to_bytes = resvg_py.svg_to_bytes
-        monkeypatch.setattr(resvg_py, "svg_to_bytes", lambda **kw: (calls.append(kw), real_svg_to_bytes(**kw))[1])
-        return calls
+    def png(self, rich_img, tmp_cwd, snippet, **kwargs):
+        """Render some text straight to a PNG."""
+        return self.rendered(rich_img, snippet=snippet, img_paths=[str(tmp_cwd / "out.png")], **kwargs)
 
     def test_emoji_need_nothing_from_the_machine(self, rich_img, tmp_cwd, caplog, monkeypatch):
         """They're drawn by the bundled emoji font, which is the whole reason it's bundled."""
         calls = self.spy_on_resvg(monkeypatch)
-        self.snippet_png(rich_img, tmp_cwd, "all done \u2728").save_images()
+        self.png(rich_img, tmp_cwd, "all done \u2728").save_images()
         assert calls[0]["skip_system_fonts"] is True
         assert "No bundled font can draw" not in caplog.text
 
     def test_png_says_when_it_cannot_draw_something(self, rich_img, tmp_cwd, caplog):
         """CJK is beyond all three bundled fonts, and the way out is worth pointing at."""
-        self.snippet_png(rich_img, tmp_cwd, "all done \u6f22\u5b57").save_images()
+        self.png(rich_img, tmp_cwd, "all done \u6f22\u5b57").save_images()
         assert "No bundled font can draw \u5b57 \u6f22" in caplog.text
         assert "--png-fallback-font" in caplog.text
 
@@ -858,17 +842,24 @@ class TestSaveImages:
     def test_png_looks_outside_the_bundle_only_when_asked(self, rich_img, tmp_cwd, monkeypatch):
         """Without a fallback font named, a PNG is rendered from the bundle alone."""
         calls = self.spy_on_resvg(monkeypatch)
-        self.snippet_png(rich_img, tmp_cwd, "all done \u6f22").save_images()
-        self.snippet_png(rich_img, tmp_cwd, "all done \u6f22", png_fallback_font="DejaVu Sans").save_images()
+        self.png(rich_img, tmp_cwd, "all done \u6f22").save_images()
+        self.png(rich_img, tmp_cwd, "all done \u6f22", png_fallback_font="DejaVu Sans").save_images()
         assert [call["skip_system_fonts"] for call in calls] == [True, False]
 
     def test_png_isolates_what_the_terminal_font_cannot_draw(self, rich_img, tmp_cwd, monkeypatch):
         """Otherwise resvg keeps the fallback font for the rest of the line."""
         calls = self.spy_on_resvg(monkeypatch)
-        self.snippet_png(rich_img, tmp_cwd, "all done \u2728", png_fallback_font="DejaVu Sans").save_images()
+        self.png(rich_img, tmp_cwd, "all done \u2728").save_images()
         emoji_element = re.search(r"<text[^>]*>\u2728</text>", calls[0]["svg_string"])
         assert emoji_element, "the emoji should be in a text element of its own"
-        assert "DejaVu Sans" in emoji_element.group()
+        assert svg_fonts.EMOJI_FONT_FAMILY in emoji_element.group()
+
+    def test_png_names_the_fallback_font_for_what_nothing_bundled_has(self, rich_img, tmp_cwd, monkeypatch):
+        calls = self.spy_on_resvg(monkeypatch)
+        self.png(rich_img, tmp_cwd, "all done \u6f22", png_fallback_font="DejaVu Sans").save_images()
+        element = re.search(r"<text[^>]*>\u6f22</text>", calls[0]["svg_string"])
+        assert element, "the character should be in a text element of its own"
+        assert "DejaVu Sans" in element.group()
 
     def test_png_is_stable_across_runs(self, rich_img, tmp_cwd):
         """PNGs get committed too, so the same output must rasterise to the same bytes."""

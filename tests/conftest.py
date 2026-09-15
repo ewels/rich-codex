@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from rich.console import Console
 
+from rich_codex import svg_fonts
 from rich_codex.codex_search import CodexSearch
 from rich_codex.rich_img import RichImg
 
@@ -70,6 +71,19 @@ CODEX_SEARCH_DEFAULTS = {
 def capture_debug_logs(caplog):
     """Capture everything rich-codex logs, down to DEBUG level."""
     caplog.set_level(logging.DEBUG, logger="rich-codex")
+
+
+@pytest.fixture(autouse=True)
+def forget_cached_fonts():
+    """Clear the font caches between tests.
+
+    They're keyed on the font file and the characters wanted, so within a run they only
+    ever save work. Across tests they'd hide the very thing a test is arranging, such as
+    fontTools failing to import.
+    """
+    svg_fonts.subset_font.cache_clear()
+    svg_fonts.font_codepoints.cache_clear()
+    yield
 
 
 @pytest.fixture
