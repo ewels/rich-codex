@@ -1,6 +1,6 @@
 # Changelog: rich-codex
 
-## Unreleased
+## Version 1.4.0 (2026-09-15)
 
 ### Breaking changes
 
@@ -12,13 +12,15 @@
 
 ### New features
 
+- ✨ Emoji now render in PNG output, from a bundled copy of Noto Color Emoji
+- ✨ New `png_fallback_font` option, to draw characters the bundled fonts don't have, such as CJK, with a font from the machine
 - ✨ `pip install rich-codex` is now enough for PNG output. Cairo, its system libraries and the `cairo` extra are all gone, and no font has to be installed on the machine
 - ✨ PNG files are rendered from rich-codex's own bundled fonts, so the same output rasterises the same way on any machine
   - The window title is drawn from a bundled font too, whether or not `embed_font` is on
 
 ### Updates
 
-- 🐛 Double-width characters no longer break the layout. Hopefully.
+- 🐛 Double-width characters, such as emoji and CJK, no longer break the layout ([#34](https://github.com/ewels/rich-codex/issues/34))
 - 🐛 `min_pct_diff` and `skip_change_regex` now ignore the embedded font when comparing images, so they still measure the command's output
 - ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`.
 
