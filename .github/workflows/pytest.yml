@@ -70,12 +70,16 @@ jobs:
         run: |
           rich-codex --no-confirm --skip-git-checks --no-search \
             --command "echo hello from rich-codex" --img-paths embedded.svg
-          grep -q 'data:font/woff2;base64' embedded.svg
-          ! grep -q 'cdnjs.cloudflare.com' embedded.svg
           rich-codex --no-confirm --skip-git-checks --no-search --no-embed-font \
             --command "echo hello from rich-codex" --img-paths linked.svg
+          grep -q 'data:font/woff2;base64' embedded.svg
           grep -q 'cdnjs.cloudflare.com' linked.svg
-          ! grep -q 'data:font/woff2;base64' linked.svg
+          if grep -q 'cdnjs.cloudflare.com' embedded.svg; then
+            echo "The embedded SVG still points at the CDN" && exit 1
+          fi
+          if grep -q 'data:font/woff2;base64' linked.svg; then
+            echo "The linked SVG carries an embedded font" && exit 1
+          fi
 
       # Covers both comment styles: HTML comments in markdown, JSX comments in MDX
       - name: Generate images by searching markdown and MDX

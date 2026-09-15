@@ -261,8 +261,12 @@ class TestFixWideCharacterWidths:
         assert self.text_length(fixed) == pytest.approx(4 * 12.2, abs=0.01)
 
     def test_a_zero_width_character_is_narrowed(self):
-        """The variation selector in an emoji presentation sequence takes no cell."""
-        fixed = svg_fonts.fix_wide_character_widths(self.element("\u26a0\ufe0f", 2 * 12.2))
+        """A combining accent joins the letter in front of it, so the pair takes one cell.
+
+        Not an emoji presentation sequence: Rich measures those as one cell up to 14 and
+        as two from 15, and the correction follows whichever Rich used to place the text.
+        """
+        fixed = svg_fonts.fix_wide_character_widths(self.element("e\u0301", 2 * 12.2))
         assert self.text_length(fixed) == pytest.approx(12.2, abs=0.01)
 
     def test_a_trailing_newline_is_left_alone(self):
