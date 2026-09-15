@@ -20,6 +20,11 @@ external fetch, so `<img>` mode is happy to use it and the image looks the same 
 everyone. Only the characters the image actually renders are embedded, and the bold
 weight is left out when nothing in the image is bold.
 
+Rich sets the window title in Arial, which has the same problem: it isn't on most Linux
+machines either. Arial is proprietary, so it can't be bundled to fix that. Images with a
+title get [Inter](https://rsms.me/inter/) embedded instead, and the title asks for that
+first, falling back to `arial, sans-serif` for anything that can't use the embedded face.
+
 This is on by default. Turn it off with `--no-embed-font` / `$EMBED_FONT` /
 `embed_font` (CLI, env var, action/config) to go back to Rich's linked font:
 
@@ -55,17 +60,30 @@ width pulls the columns out of line and leaves gaps between box-drawing characte
 
 <!-- prettier-ignore-start -->
 !!! note
-    This only affects SVG output. PNGs are rasterised by [resvg](https://github.com/linebender/resvg),
-    and no rasteriser implements `@font-face` — they all read fonts from the machine doing
-    the rendering. rich-codex hands resvg its own bundled copy of Fira Code instead, so PNGs
-    come out right without it installed either. The only exception is the window title, which
-    Rich sets in Arial and which falls back to whatever sans-serif the machine has.
+    PNGs are rasterised by [resvg](https://github.com/linebender/resvg), and no rasteriser
+    implements `@font-face` — they all read fonts from the machine doing the rendering. So
+    rich-codex hands resvg its own bundled copies of Fira Code and Inter and tells it to use
+    only those. The same output rasterises the same way on any machine, whatever it has
+    installed.
 <!-- prettier-ignore-end -->
+
+### Emoji don't make it into PNGs
+
+Neither bundled font carries emoji, and with nothing else to draw them with they come out as
+blank boxes in PNG output. rich-codex warns when it hits one. They're fine in SVG, where the
+reader's browser fills them in, so use SVG if your output is full of them.
+
+This is the better of two bad options. Letting the machine's fonts stand in for the missing
+glyphs sounds preferable, but resvg falls back per glyph and then keeps the fallback font for
+the rest of the line — so a single emoji redraws everything after it in some proportional
+font, which is exactly the breakage this page is about. A blank box costs one character
+instead of the rest of the line.
 
 ## File size
 
 Embedding is not free. Expect somewhere between 10 KB and 30 KB per image, depending on
-how many distinct characters the image uses and whether any of them are bold:
+how many distinct characters the image uses and whether any of them are bold. A window
+title adds about 6 KB on top, and images without one pay nothing for Inter:
 
 | Image                                     | `embed_font: false` |  Default |
 | ----------------------------------------- | ------------------: | -------: |
@@ -97,7 +115,9 @@ still measure the output rather than the font.
 
 ## Licence
 
-Fira Code is licensed under the [SIL Open Font License, Version 1.1](https://scripts.sil.org/OFL),
-which permits embedding. The copyright and licence notice travels with the font: it's kept
-in the subset's own `name` table, and repeated as a comment near the top of every SVG that
-carries one.
+Both bundled fonts — [Fira Code](https://github.com/tonsky/FiraCode) and
+[Inter](https://github.com/rsms/inter) — are licensed under the
+[SIL Open Font License, Version 1.1](https://scripts.sil.org/OFL), which permits embedding.
+Each copyright and licence notice travels with its font: it's kept in the subset's own
+`name` table, and repeated as a comment near the top of every SVG that carries one. The
+full licence texts are in the `fonts` directory of the rich-codex package.

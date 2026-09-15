@@ -809,8 +809,24 @@ class TestSaveImages:
         monkeypatch.setattr(resvg_py, "svg_to_bytes", spy)
         self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.png")]).save_images()
 
-        assert [Path(f).name for f in calls["font_files"]] == ["FiraCode-Regular.ttf", "FiraCode-Bold.ttf"]
+        assert [Path(f).name for f in calls["font_files"]] == [
+            "FiraCode-Regular.ttf",
+            "FiraCode-Bold.ttf",
+            "Inter-Bold.ttf",
+        ]
         assert all(Path(f).is_file() for f in calls["font_files"])
+        assert calls["skip_system_fonts"] is True
+
+    def test_png_warns_about_characters_no_bundled_font_has(self, rich_img, tmp_cwd, caplog):
+        """Emoji end up blank in a PNG, which is worth saying out loud."""
+        img = rich_img(snippet="all done \u2728", snippet_syntax="text", img_paths=[str(tmp_cwd / "out.png")])
+        img.format_snippet()
+        img.save_images()
+        assert "No bundled font can draw \u2728" in caplog.text
+
+    def test_png_says_nothing_when_every_character_is_covered(self, rich_img, tmp_cwd, caplog):
+        self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.png")]).save_images()
+        assert "No bundled font can draw" not in caplog.text
 
     def test_png_is_stable_across_runs(self, rich_img, tmp_cwd):
         """PNGs get committed too, so the same output must rasterise to the same bytes."""

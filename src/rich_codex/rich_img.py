@@ -513,11 +513,18 @@ class RichImg:
     def _render_png(self, svg_filename: str) -> bytes | None:
         """Rasterise a rendered SVG, returning None if it couldn't be done.
 
-        The renderer is handed rich-codex's own copy of Fira Code, so the PNG comes out
-        right whether or not the machine has the font installed. It can't read the font
-        embedded in the SVG, and nothing else can either: no rasteriser implements
-        '@font-face'. The window title is the one exception, as Rich sets that in Arial,
-        which falls to whatever sans-serif the machine has.
+        No rasteriser implements '@font-face', so the font embedded in the SVG is of no use
+        here: they all read fonts from the machine doing the rendering. The renderer is
+        handed rich-codex's own copies of Fira Code and Inter instead, and told to use only
+        those, so the same output rasterises the same way on any machine.
+
+        The machine's own fonts are switched off rather than left underneath as a fallback,
+        which costs something worth knowing about. resvg falls back per glyph, and having
+        done so it keeps the fallback font for the rest of the line, so one emoji in a line
+        of output redraws everything after it in whatever proportional font it landed on -
+        the very problem this is all here to fix. With nothing to fall back to, the emoji is
+        a blank box and the line around it stays in Fira Code. Anything the bundled fonts
+        can't draw is warned about below; the SVG renders it properly either way.
         """
         try:
             import resvg_py
@@ -526,12 +533,21 @@ class RichImg:
             log.error(f"[red]resvg-py is not installed, cannot convert SVG to PNG:[/] {svg_filename}")
             return None
 
+        svg_content = Path(svg_filename).read_text(encoding="utf-8")
+        unrenderable = svg_fonts.unrenderable_characters(svg_content)
+        if unrenderable:
+            log.warning(
+                f"No bundled font can draw {' '.join(unrenderable)} - "
+                "these will be blank in PNG output, but are fine in SVG"
+            )
+
         log.debug(f"Converting SVG '{svg_filename}' to PNG")
         try:
             return bytes(
                 resvg_py.svg_to_bytes(
-                    svg_path=svg_filename,
-                    font_files=[str(font_file) for font_file in svg_fonts.FONT_FILES.values()],
+                    svg_string=svg_content,
+                    font_files=[str(font_file) for font_file in svg_fonts.RASTER_FONT_FILES],
+                    skip_system_fonts=True,
                     width=PNG_WIDTH,
                 )
             )

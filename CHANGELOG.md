@@ -12,13 +12,16 @@
 
 ### New features
 
-- ✨ `pip install rich-codex` is now all you need for PNG output: no Cairo, no system libraries, no `cairo` extra, and no Fira Code installed on the machine
-- ✨ PNGs use rich-codex's own bundled copy of Fira Code, so they no longer depend on which fonts the machine happens to have
+- ✨ `pip install rich-codex` is now all you need for PNG output: no Cairo, no system libraries, no `cairo` extra, and no fonts installed on the machine
+- ✨ PNGs are rendered from rich-codex's own bundled fonts alone, so the same output rasterises the same way on any machine
+  - The cost is that emoji, which no bundled font carries, come out as blank boxes in PNG output. rich-codex warns when it hits one, and SVGs are unaffected
+- ✨ Window titles are set in [Inter](https://rsms.me/inter/), bundled and embedded like Fira Code, instead of Arial — which is proprietary, so it can't be bundled, and isn't on most Linux machines
 
 ### Updates
 
 - 🐛 `min_pct_diff` and `skip_change_regex` now ignore the embedded font when comparing images, so they still measure the command's output
 - ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`, all of which ship as wheels
+- ⬆️ The package now bundles Fira Code and Inter, adding about 200 KB to the wheel
 
 ## Version 1.3.1 (2026-08-14)
 

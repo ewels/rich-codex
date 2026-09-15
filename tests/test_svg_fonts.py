@@ -12,16 +12,30 @@ from rich_codex import svg_fonts
 DATA_URI_RE = re.compile(r'src: url\("data:font/woff2;base64,([A-Za-z0-9+/=]+)"\)')
 
 
-def render(text="hello world", **kwargs):
-    """Render some text to an SVG the way RichImg does, without touching the filesystem."""
+def render(text="hello world", title="", **kwargs):
+    """Render some text to an SVG the way RichImg does, without touching the filesystem.
+
+    Rich titles the window 'Rich' by default; rich-codex passes no title unless one is set,
+    which is the usual case, so that is what this defaults to as well.
+    """
     console = Console(record=True, file=io.StringIO(), width=40, force_terminal=True)
     console.print(text, **kwargs)
-    return console.export_svg(unique_id="test")
+    return console.export_svg(title=title, unique_id="test")
 
 
 def embedded_fonts(svg):
     """Pull the embedded WOFF2 fonts back out of an SVG."""
     return [base64.b64decode(match) for match in DATA_URI_RE.findall(svg)]
+
+
+def after_the_font_rules(svg):
+    """Everything past the last '@font-face' rule, which embedding shouldn't touch."""
+    return svg[list(svg_fonts.FONT_FACE_RE.finditer(svg))[-1].end() :]
+
+
+def families(svg):
+    """The font families named by the SVG's '@font-face' rules, in order."""
+    return re.findall(r'@font-face \{\s*font-family: "([^"]+)"', svg)
 
 
 class TestRichTemplate:
@@ -89,11 +103,8 @@ class TestEmbedFonts:
         svg = render()
         embedded = svg_fonts.embed_fonts(svg)
 
-        def after_the_font_rules(text):
-            return text[list(svg_fonts.FONT_FACE_RE.finditer(text))[-1].end() :]
-
         assert after_the_font_rules(embedded) == after_the_font_rules(svg)
-        assert embedded.split("<style>")[0].replace(svg_fonts.LICENCE_COMMENT, "") == svg.split("<style>")[0]
+        assert embedded.count("<!--") == svg.count("<!--") + 1
 
     def test_no_font_face_rules_is_an_error(self):
         with pytest.raises(svg_fonts.FontEmbedError, match="found 0"):
@@ -124,6 +135,95 @@ class TestEmbedFonts:
         caplog.set_level(logging.DEBUG)
         svg_fonts.embed_fonts(render())
         assert [record for record in caplog.records if record.name.startswith("fontTools")] == []
+
+
+class TestTitleFont:
+    """Rich sets the window title in Arial, which can't be bundled and isn't everywhere."""
+
+    def test_no_title_means_no_title_font(self):
+        svg = svg_fonts.embed_fonts(render())
+        assert families(svg) == ["Fira Code"]
+        assert svg_fonts.TITLE_FAMILY_RULE in svg
+
+    def test_a_title_gets_inter(self):
+        svg = svg_fonts.embed_fonts(render(title="My Title"))
+        assert families(svg) == ["Fira Code", "Inter"]
+
+    def test_the_title_rule_asks_for_the_embedded_font(self):
+        svg = svg_fonts.embed_fonts(render(title="My Title"))
+        assert svg_fonts.EMBEDDED_TITLE_FAMILY_RULE in svg
+        assert svg_fonts.TITLE_FAMILY_RULE not in svg
+
+    def test_arial_is_kept_as_a_fallback(self):
+        """Anything that can't use the embedded face should land where it used to."""
+        assert "arial" in svg_fonts.EMBEDDED_TITLE_FAMILY_RULE
+
+    def test_only_the_title_characters_are_embedded(self):
+        from fontTools.ttLib import TTFont
+
+        svg = svg_fonts.embed_fonts(render("zzz", title="abc"))
+        inter = TTFont(io.BytesIO(embedded_fonts(svg)[-1]))
+        codepoints = set(inter.getBestCmap())
+        assert codepoints >= set(map(ord, "abc"))
+        assert ord("z") not in codepoints
+
+    def test_the_title_licence_notice_is_added(self):
+        svg = svg_fonts.embed_fonts(render(title="My Title"))
+        assert "The Inter Project Authors" in svg
+        assert "The Fira Code Project Authors" in svg
+
+    def test_a_missing_title_rule_is_an_error(self):
+        svg = render(title="My Title").replace(svg_fonts.TITLE_FAMILY_RULE, "font-family: helvetica;", 1)
+        with pytest.raises(svg_fonts.FontEmbedError, match="window title"):
+            svg_fonts.embed_fonts(svg)
+
+    def test_nothing_else_in_the_svg_changes(self):
+        svg = render(title="My Title")
+        embedded = svg_fonts.embed_fonts(svg)
+        assert after_the_font_rules(embedded) == after_the_font_rules(svg).replace(
+            svg_fonts.TITLE_FAMILY_RULE, svg_fonts.EMBEDDED_TITLE_FAMILY_RULE, 1
+        )
+
+
+class TestTitleCharacters:
+    """Tests for svg_fonts.title_characters()."""
+
+    def test_no_title(self):
+        assert svg_fonts.title_characters(render()) == ""
+
+    def test_a_title(self):
+        assert svg_fonts.title_characters(render(title="cab")) == "abc"
+
+    def test_terminal_text_is_ignored(self):
+        svg = '<text class="x-title">ab</text><text class="x-r1">zzz</text>'
+        assert svg_fonts.title_characters(svg) == "ab"
+
+
+class TestUnrenderableCharacters:
+    """Tests for svg_fonts.unrenderable_characters()."""
+
+    def test_ordinary_text_is_all_covered(self):
+        assert svg_fonts.unrenderable_characters(render("hello world 123")) == ""
+
+    def test_emoji_are_not(self):
+        assert svg_fonts.unrenderable_characters(render("done \u2728\U0001f92b")) == "\u2728\U0001f92b"
+
+    def test_a_title_counts_too(self):
+        assert svg_fonts.unrenderable_characters(render("plain", title="done \u2728")) == "\u2728"
+
+    def test_whitespace_is_not_reported(self):
+        """Rich's text elements carry newlines, which have no glyph to miss."""
+        assert "\n" not in svg_fonts.unrenderable_characters(render("two\nlines"))
+
+
+class TestHasEmbeddedFonts:
+    """Tests for svg_fonts.has_embedded_fonts()."""
+
+    def test_an_embedded_svg(self):
+        assert svg_fonts.has_embedded_fonts(svg_fonts.embed_fonts(render())) is True
+
+    def test_richs_own_output(self):
+        assert svg_fonts.has_embedded_fonts(render()) is False
 
 
 class TestDeterminism:

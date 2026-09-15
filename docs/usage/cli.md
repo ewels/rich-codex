@@ -39,5 +39,5 @@ extra_env:
 
 Nothing extra. `PNG` output is rasterised by [resvg](https://github.com/linebender/resvg),
 which ships as a self-contained wheel, so `pip install rich-codex` is the whole story on
-every platform. Fira Code is bundled with rich-codex, so you don't need it installed
-either — see [embedding the terminal font](../config/fonts.md).
+every platform. The fonts are bundled with rich-codex too, so the images don't depend on
+Fira Code being installed — see [embedding the terminal font](../config/fonts.md).
