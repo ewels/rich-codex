@@ -39,7 +39,7 @@ HASH_ATTRS = [attr for attr in RICH_IMG_ATTRS if attr != "source_line"]
 HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr != "img_paths"]
 
 # Width to rasterise PNGs at, in pixels. Big enough to stay sharp when a README scales
-# it down, and unchanged from when CairoSVG did this job.
+# it down.
 PNG_WIDTH = 4000
 
 # Base list of commands to ignore
@@ -541,6 +541,9 @@ class RichImg:
                 "PNG output. Set '--png-fallback-font' to draw them with a font from this machine."
             )
 
+        # The rasteriser reads fonts from disk, so the title has to name one rich-codex
+        # bundles even when the SVG itself was left with Rich's linked font
+        svg_content = svg_fonts.use_bundled_title_font(svg_content)
         svg_content = svg_fonts.isolate_fallback_text(svg_content, self.png_fallback_font)
         log.debug(f"Converting SVG '{svg_filename}' to PNG")
         try:

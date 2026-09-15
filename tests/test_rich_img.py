@@ -559,10 +559,10 @@ class TestEnoughImageDifference:
 
     def test_no_regexes_means_no_diffing(self, rich_img, tmp_cwd, caplog):
         """Without skip_change_regex there is nothing to match, so we don't diff at all."""
-        new_file = tmp_cwd / "new.pdf"
-        old_file = tmp_cwd / "old.pdf"
-        new_file.write_text("%PDF-1.4\n/CreationDate (D:20220101)\ncontent\n")
-        old_file.write_text("%PDF-1.4\n/CreationDate (D:19991231)\ncontent\n")
+        new_file = tmp_cwd / "new.svg"
+        old_file = tmp_cwd / "old.svg"
+        new_file.write_text("<svg>\n<text>generated 2022-01-01</text>\n<text>content</text>\n</svg>\n")
+        old_file.write_text("<svg>\n<text>generated 1999-12-31</text>\n<text>content</text>\n</svg>\n")
         img = rich_img()
         assert img._enough_image_difference(str(new_file), str(old_file)) is True
         assert "Checking diff" not in caplog.text
@@ -579,8 +579,8 @@ class TestEnoughImageDifference:
 
     def test_binary_files_with_no_decodable_text(self, rich_img, tmp_cwd, caplog):
         """Undecodable bytes leave nothing to run the skip regexes against."""
-        new_file = tmp_cwd / "new.pdf"
-        old_file = tmp_cwd / "old.pdf"
+        new_file = tmp_cwd / "new.png"
+        old_file = tmp_cwd / "old.png"
         new_file.write_bytes(b"\xff\xfe\xff")
         old_file.write_bytes(b"\xfd")
         img = rich_img(skip_change_regex="anything")
@@ -860,6 +860,17 @@ class TestSaveImages:
         element = re.search(r"<text[^>]*>\u6f22</text>", calls[0]["svg_string"])
         assert element, "the character should be in a text element of its own"
         assert "DejaVu Sans" in element.group()
+
+    def test_png_title_uses_the_bundled_font_even_without_embedding(self, rich_img, tmp_cwd, monkeypatch):
+        """The rasteriser is told to ignore the machine's fonts, so Arial is never there.
+
+        Embedding is what usually rewrites the title rule, so without this the title would
+        go missing from the PNG whenever embedding is turned off.
+        """
+        calls = self.spy_on_resvg(monkeypatch)
+        self.rendered(rich_img, title="My Title", embed_font=False, img_paths=[str(tmp_cwd / "out.png")]).save_images()
+        assert svg_fonts.TITLE_FAMILY_RULE not in calls[0]["svg_string"]
+        assert svg_fonts.EMBEDDED_TITLE_FAMILY_RULE in calls[0]["svg_string"]
 
     def test_png_is_stable_across_runs(self, rich_img, tmp_cwd):
         """PNGs get committed too, so the same output must rasterise to the same bytes."""

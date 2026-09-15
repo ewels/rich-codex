@@ -10,10 +10,10 @@
 
 FROM python:3.14-alpine
 
-# Git for the repository safety checks, and a sans-serif for the window title in PNGs
-# (Fira Code itself is bundled with rich-codex). build-base is still needed because
-# PyYAML and rapidfuzz have no musl wheels for this Python and are built from source.
-RUN apk add --no-cache git build-base ttf-dejavu
+# Git for the repository safety checks. No fonts: rich-codex bundles its own and tells
+# the rasteriser to ignore the machine's. build-base is needed because PyYAML and
+# rapidfuzz have no musl wheels for this Python and are built from source.
+RUN apk add --no-cache git build-base
 
 # Install requirements
 COPY . .

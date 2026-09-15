@@ -14,6 +14,7 @@
 
 - ✨ `pip install rich-codex` is now enough for PNG output. Cairo, its system libraries and the `cairo` extra are all gone, and no font has to be installed on the machine
 - ✨ PNG files are rendered from rich-codex's own bundled fonts, so the same output rasterises the same way on any machine
+  - The window title is drawn from a bundled font too, whether or not `embed_font` is on
 
 ### Updates
 

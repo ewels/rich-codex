@@ -12,7 +12,7 @@ This is problematic because Rich positions each chunk of text using an absolute
 Browser fallback fonts have different widths, so the glyphs drift inside each chunk and
 the box-drawing characters no longer join up.
 
-To solve this, rich-codex embeds the font into within the SVG instead, as a base64 data URI.
+To solve this, rich-codex embeds the font in the SVG instead, as a base64 data URI.
 SVGs rendered in `<img>` mode can use this, so the image renders the same way for every
 reader.
 
@@ -84,6 +84,8 @@ png_fallback_font: Noto Sans CJK JP
 ```
 
 This option makes a PNG depend on the machine again, which is why it is off by default.
+The GitHub Action runs in a container that carries no fonts of its own, so install one
+there first.
 
 <!-- prettier-ignore-start -->
 !!! note

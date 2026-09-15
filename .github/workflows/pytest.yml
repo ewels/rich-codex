@@ -63,7 +63,7 @@ jobs:
           test -s snippet.svg
           test -s out.svg && test -s out.png
 
-      # Embedding reads the vendored WOFF2 files, so it only works if they were packaged.
+      # Embedding reads the bundled font files, so it only works if they were packaged.
       # Checking the installed CLI is the only place that catches that.
       - name: Check the embedded font, on by default and off on request
         working-directory: ${{ runner.temp }}

@@ -59,7 +59,7 @@ class TestRichTemplate:
         between = CONSOLE_SVG_FORMAT.split("@font-face {{")[1].split("}}")[1]
         assert not between.strip()
 
-    def test_vendored_weights_cover_the_template(self):
+    def test_bundled_weights_cover_the_template(self):
         assert set(svg_fonts.FONT_FILES) == {400, 700}
         for font_file in svg_fonts.FONT_FILES.values():
             assert font_file.is_file()
@@ -122,10 +122,12 @@ class TestEmbedFonts:
         with pytest.raises(svg_fonts.FontEmbedError, match="no longer adjacent"):
             svg_fonts.embed_fonts(svg)
 
-    def test_no_text_is_an_error(self):
+    def test_an_image_with_no_text_just_loses_the_rules(self):
+        """A command that printed nothing is not an error, and needs no font."""
         svg = re.sub(r"<text.*?</text>", "", render(), flags=re.DOTALL)
-        with pytest.raises(svg_fonts.FontEmbedError, match="no text"):
-            svg_fonts.embed_fonts(svg)
+        embedded = svg_fonts.embed_fonts(svg)
+        assert "@font-face" not in embedded
+        assert "cdnjs" not in embedded
 
     def test_missing_fonttools_is_an_error(self, block_import):
         block_import("fontTools.subset", "fontTools.ttLib")
@@ -219,6 +221,14 @@ class TestUnrenderableCharacters:
     def test_whitespace_is_not_reported(self):
         """Rich's text elements carry newlines, which have no glyph to miss."""
         assert "\n" not in svg_fonts.unrenderable_characters(render("two\nlines"))
+
+    def test_an_emoji_presentation_sequence_is_not_reported(self):
+        """No font has the variation selector, and none needs to: it draws nothing."""
+        assert svg_fonts.unrenderable_characters(render("done \u2764\ufe0f")) == ""
+
+    def test_a_joined_emoji_sequence_is_not_reported(self):
+        """The zero-width joiner holds the sequence together and draws nothing itself."""
+        assert svg_fonts.unrenderable_characters(render("done \U0001f468\u200d\U0001f4bb")) == ""
 
 
 class TestFixWideCharacterWidths:

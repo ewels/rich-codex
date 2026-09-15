@@ -25,6 +25,7 @@ import html
 import io
 import logging
 import re
+import unicodedata
 from functools import cache
 from itertools import groupby
 from pathlib import Path
@@ -109,23 +110,28 @@ def embed_fonts(svg: str) -> str:
         raise FontEmbedError("Rich's two '@font-face' rules are no longer adjacent in the rendered SVG.")
 
     characters = used_characters(svg)
-    if not characters:
-        raise FontEmbedError("Found no text to embed a font for in the rendered SVG.")
-
-    weights = [400, 700] if uses_bold(svg) else [400]
-    css = [_font_face("Fira Code", weight, FONT_FILES[weight], characters) for weight in weights]
-
     # Most images have no title, and then there is nothing to set in Inter
     title = title_characters(svg)
+    if not characters and not title:
+        # A command that printed nothing. There is no glyph to embed, and dropping the
+        # rules still leaves an SVG that asks the network for nothing.
+        return svg[: faces[0].start()] + svg[faces[1].end() :]
+
+    css = []
+    families = []
+    if characters:
+        weights = [400, 700] if uses_bold(svg) else [400]
+        css += [_font_face("Fira Code", weight, FONT_FILES[weight], characters) for weight in weights]
+        families.append("Fira Code")
     if title:
         css.append(_font_face(TITLE_FONT_FAMILY, TITLE_FONT_WEIGHT, TITLE_FONT_FILE, title))
+        families.append(TITLE_FONT_FAMILY)
 
     svg = svg[: faces[0].start()] + "\n".join(css).lstrip() + svg[faces[1].end() :]
     if title:
         if TITLE_FAMILY_RULE not in svg:
             raise FontEmbedError(f"Could not find '{TITLE_FAMILY_RULE}' to point the window title at a bundled font.")
-        svg = svg.replace(TITLE_FAMILY_RULE, EMBEDDED_TITLE_FAMILY_RULE, 1)
-    families = ["Fira Code", TITLE_FONT_FAMILY] if title else ["Fira Code"]
+        svg = use_bundled_title_font(svg)
     return svg.replace("<style>", _licence_comment(families) + "<style>", 1)
 
 
@@ -140,18 +146,42 @@ def font_codepoints(*font_files: Path) -> frozenset[int]:
     return frozenset(codepoints)
 
 
+def use_bundled_title_font(svg: str) -> str:
+    """Point the window title rule at Inter, the sans-serif that rich-codex bundles.
+
+    Rich asks for Arial, which is proprietary and so can't be bundled. Returns the SVG
+    unchanged if the rule isn't there, which is the case for an image with no title.
+    """
+    return svg.replace(TITLE_FAMILY_RULE, EMBEDDED_TITLE_FAMILY_RULE, 1)
+
+
 def unrenderable_characters(svg: str) -> str:
     """Visible characters in the image that none of the bundled fonts can draw.
 
-    Whitespace is left out: it has no glyph to miss. What's left is scripts none of the
-    three bundled fonts cover, CJK above all.
+    Characters with no glyph of their own are left out: there is nothing to miss. What's
+    left is scripts none of the three bundled fonts cover, CJK above all.
     """
     characters = used_characters(svg) + title_characters(svg)
     try:
         drawable = font_codepoints(*RASTER_FONT_FILES)
     except ImportError:  # fontTools missing; the caller has bigger problems than a warning
         return ""
-    return "".join(sorted({c for c in characters if not c.isspace() and ord(c) not in drawable}))
+    return "".join(sorted({c for c in characters if not _draws_nothing(c) and ord(c) not in drawable}))
+
+
+def _draws_nothing(character: str) -> bool:
+    """Whether the character has no glyph of its own, so no font needs to cover it.
+
+    Whitespace, formatting characters such as the zero-width joiner that holds an emoji
+    sequence together, and the variation selector that asks for emoji presentation. These
+    sit next to emoji all the time, and naming them in a warning would only confuse.
+    """
+    return (
+        character.isspace()
+        or unicodedata.category(character) == "Cf"
+        or 0xFE00 <= ord(character) <= 0xFE0F
+        or 0xE0100 <= ord(character) <= 0xE01EF
+    )
 
 
 def fix_wide_character_widths(svg: str) -> str:
