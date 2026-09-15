@@ -14,16 +14,12 @@
 
 - ✨ `pip install rich-codex` is now enough for PNG output. Cairo, its system libraries and the `cairo` extra are all gone, and no font has to be installed on the machine
 - ✨ PNG files are rendered from rich-codex's own bundled fonts, so the same output rasterises the same way on any machine
-  - Fira Code, Inter and Noto Color Emoji are bundled, which covers Latin, Greek, Cyrillic, box drawing and emoji. Emoji are drawn in colour
-  - New `--png-fallback-font` option, which names a font on the machine to draw characters the bundled fonts don't have, such as CJK
-- ✨ Window titles use [Inter](https://rsms.me/inter/), embedded like Fira Code, in place of Arial. Arial is proprietary, so it can't be bundled, and most Linux machines don't have it
 
 ### Updates
 
-- 🐛 Double-width characters no longer break the layout. Rich moves along each line in terminal cells, and an emoji or a CJK character fills two of them, but it sizes `textLength` by counting characters. The glyph then overlapped the text after it and the box drawing stopped lining up. rich-codex now corrects the value
+- 🐛 Double-width characters no longer break the layout. Hopefully.
 - 🐛 `min_pct_diff` and `skip_change_regex` now ignore the embedded font when comparing images, so they still measure the command's output
-- ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`. All three ship as wheels
-- ⬆️ The package now bundles Fira Code, Inter and Noto Color Emoji, which takes it from about 0.5 MB to 3 MB
+- ⬆️ New required dependencies: `fonttools`, `brotli` and `resvg-py`.
 
 ## Version 1.3.1 (2026-08-14)
 
