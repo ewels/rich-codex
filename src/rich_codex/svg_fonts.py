@@ -29,9 +29,11 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("rich-codex")
 
-# Fira Code 6.2.0, the same release that Rich's SVG template links to on cdnjs
+# Fira Code 6.2, the same release that Rich's SVG template links to on cdnjs. Bundled as
+# TTF rather than WOFF2 because the PNG renderer can only read TTF, and subsetting gives
+# byte-identical output from either.
 FONTS_DIR = Path(__file__).parent / "fonts"
-FONT_FILES = {400: FONTS_DIR / "FiraCode-Regular.woff2", 700: FONTS_DIR / "FiraCode-Bold.woff2"}
+FONT_FILES = {400: FONTS_DIR / "FiraCode-Regular.ttf", 700: FONTS_DIR / "FiraCode-Bold.ttf"}
 
 # OFL 1.1 requires the copyright and licence notice to travel with the font. It is also
 # kept in the subset's own name table (see NAME_IDS), but a reader of the SVG shouldn't

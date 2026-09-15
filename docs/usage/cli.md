@@ -35,22 +35,9 @@ extra_env:
 
 ![`rich-codex --help`](../img/rich-codex-cli-help.svg)
 
-## Requirements for PNG / PDF outputs
+## Requirements for PNG outputs
 
-If you wish to generate `PNG` or `PDF` images (not just `SVG`) then there are a few additional requirements. Conversion is done using [CairoSVG](https://cairosvg.org/). First, install rich-codex with the `cairo` [extra](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-setuptools-extras):
-
-```bash
-pip install rich-codex[cairo]
-```
-
-You'll then probably need some additional libraries, see the [Cairo documentation](https://cairosvg.org/documentation/):
-
-> CairoSVG and its dependencies may require additional tools during the installation: a compiler, Python headers, Cairo, and FFI headers. These tools have different names depending on the OS you are using, but:
->
-> - on Windows, you’ll have to install Visual C++ compiler for Python and Cairo;
-> - on macOS, you’ll have to install cairo and libffi (eg. with [Homebrew](https://brew.sh): `brew install cairo`);
-> - on Linux, you’ll have to install the cairo, python3-dev and libffi-dev packages (names may vary for your distribution).
-
-Installation can be messy, so be prepared to do a bit of googling to get things to work. Remember that running rich-codex with the `-v` flag to get verbose logging can give you more information about what's going wrong (if anything).
-
-You'll also need Fira Code installed, an open-licence font: [GitHub repo](https://github.com/tonsky/FiraCode) / [Google Fonts](https://fonts.google.com/specimen/Fira+Code).
+Nothing extra. `PNG` output is rasterised by [resvg](https://github.com/linebender/resvg),
+which ships as a self-contained wheel, so `pip install rich-codex` is the whole story on
+every platform. Fira Code is bundled with rich-codex, so you don't need it installed
+either — see [embedding the terminal font](../config/fonts.md).

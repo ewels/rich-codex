@@ -32,12 +32,8 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      # CairoSVG dlopens the Cairo shared library, so the runtime package is enough
-      - name: Install Cairo
-        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends libcairo2
-
       - name: Install rich-codex and test dependencies
-        run: pip install '.[dev,cairo]'
+        run: pip install '.[dev]'
 
       # Coverage roughly doubles the runtime, so only measure it once
       - name: Run pytest
@@ -54,8 +50,8 @@ jobs:
       - name: Check that the installed CLI runs
         run: rich-codex --help
 
-      # Writing SVG, PNG and PDF in one run also covers reusing a rendered SVG for the
-      # other formats, which is easy to break and hard to see in a unit test
+      # Writing SVG and PNG in one run also covers rasterising the rendered SVG, which is
+      # easy to break and hard to see in a unit test
       - name: Generate images from direct input
         working-directory: ${{ runner.temp }}
         run: |
@@ -63,9 +59,9 @@ jobs:
             --snippet '{"rich":"codex"}' --img-paths snippet.svg
           rich-codex --no-confirm --skip-git-checks --no-search \
             --command "echo hello from rich-codex" \
-            --img-paths "$(printf 'out.svg\nout.png\nout.pdf')"
+            --img-paths "$(printf 'out.svg\nout.png')"
           test -s snippet.svg
-          test -s out.svg && test -s out.png && test -s out.pdf
+          test -s out.svg && test -s out.png
 
       # Embedding reads the vendored WOFF2 files, so it only works if they were packaged.
       # Checking the installed CLI is the only place that catches that.

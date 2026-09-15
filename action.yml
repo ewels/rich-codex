@@ -161,20 +161,11 @@ runs:
       with:
         python-version: ${{ inputs.python_version || inputs.python_verison || '3.x' }}
 
-    # SVGs embed the font themselves, but PNG and PDF are rasterised by CairoSVG,
-    # which can only use the fonts installed on this runner
-    - name: Install fonts
-      run: |
-        echo "::group::Installing fonts"
-        sudo apt install fonts-firacode
-        echo "::endgroup::"
-      shell: bash
-
     - name: Install rich-codex with uv
       if: inputs.use_uv == 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        uv pip install "rich-codex[cairo]"
+        uv pip install rich-codex
         echo "::endgroup::"
       shell: bash
 
@@ -182,7 +173,7 @@ runs:
       if: inputs.use_uv != 'true' && inputs.skip_install != 'true'
       run: |
         echo "::group::Installing rich-codex"
-        pip install "rich-codex[cairo]"
+        pip install rich-codex
         echo "::endgroup::"
       shell: bash
 

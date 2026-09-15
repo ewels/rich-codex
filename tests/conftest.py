@@ -3,6 +3,7 @@
 import builtins
 import logging
 import os
+import struct
 import textwrap
 from io import StringIO
 from pathlib import Path
@@ -20,6 +21,11 @@ def write(path, content):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(textwrap.dedent(content).lstrip("\n"))
     return path
+
+
+def png_size(path):
+    """Read the width and height out of a PNG's IHDR chunk."""
+    return struct.unpack(">II", Path(path).read_bytes()[16:24])
 
 
 def svg_text(path):

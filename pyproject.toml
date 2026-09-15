@@ -32,10 +32,10 @@ dependencies = [
     "jsonschema",
     "levenshtein>=0.18.1",
     "pyyaml",
+    "resvg-py>=0.5",
     "rich>=12.4.3",
     "rich-click>=1.9",
 ]
-optional-dependencies.cairo = [ "cairosvg>=2.5.2" ]
 optional-dependencies.dev = [
     "mypy",
     "prek",

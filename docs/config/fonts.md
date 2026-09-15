@@ -55,10 +55,11 @@ width pulls the columns out of line and leaves gaps between box-drawing characte
 
 <!-- prettier-ignore-start -->
 !!! note
-    This only affects SVG output. PNG and PDF are rasterised by [CairoSVG](https://cairosvg.org),
-    which ignores `@font-face` altogether and uses the fonts installed on the machine
-    generating them. Those files have never depended on the reader's fonts anyway, which is
-    why the GitHub Action still installs Fira Code on the runner.
+    This only affects SVG output. PNGs are rasterised by [resvg](https://github.com/linebender/resvg),
+    and no rasteriser implements `@font-face` — they all read fonts from the machine doing
+    the rendering. rich-codex hands resvg its own bundled copy of Fira Code instead, so PNGs
+    come out right without it installed either. The only exception is the window title, which
+    Rich sets in Arial and which falls back to whatever sans-serif the machine has.
 <!-- prettier-ignore-end -->
 
 ## File size
@@ -72,7 +73,7 @@ how many distinct characters the image uses and whether any of them are bold:
 | `rich-codex --help` (70 characters, bold) |             73.0 KB | 101.3 KB |
 
 Turn it off if you'd rather keep the files small and you know your readers have Fira Code,
-or if you're only using the PNG or PDF output.
+or if you're only using the PNG output.
 
 <!-- prettier-ignore-start -->
 !!! tip

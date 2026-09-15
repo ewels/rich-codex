@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from conftest import svg_text
+from conftest import png_size, svg_text
 
 from rich_codex import rich_img as rich_img_module
 from rich_codex import svg_fonts
@@ -785,65 +785,80 @@ class TestSaveImages:
         assert valid.exists()
 
     def test_png_conversion(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
         out = tmp_cwd / "out.png"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
         assert out.read_bytes().startswith(b"\x89PNG")
+        assert png_size(out)[0] == rich_img_module.PNG_WIDTH
 
-    def test_pdf_conversion(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        out = tmp_cwd / "out.pdf"
+    def test_png_uses_the_bundled_font(self, rich_img, tmp_cwd, monkeypatch):
+        """Nothing rasterises the font embedded in the SVG, so the renderer gets our copy.
+
+        Without it the PNG would use whatever monospace font the machine happens to have,
+        which is the whole problem this is meant to avoid.
+        """
+        import resvg_py
+
+        calls = {}
+        real_svg_to_bytes = resvg_py.svg_to_bytes
+
+        def spy(**kwargs):
+            calls.update(kwargs)
+            return real_svg_to_bytes(**kwargs)
+
+        monkeypatch.setattr(resvg_py, "svg_to_bytes", spy)
+        self.rendered(rich_img, img_paths=[str(tmp_cwd / "out.png")]).save_images()
+
+        assert [Path(f).name for f in calls["font_files"]] == ["FiraCode-Regular.ttf", "FiraCode-Bold.ttf"]
+        assert all(Path(f).is_file() for f in calls["font_files"])
+
+    def test_png_is_stable_across_runs(self, rich_img, tmp_cwd):
+        """PNGs get committed too, so the same output must rasterise to the same bytes."""
+        out = tmp_cwd / "out.png"
+        self.rendered(rich_img, img_paths=[str(out)]).save_images()
+        first = out.read_bytes()
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert out.read_bytes().startswith(b"%PDF")
+        assert img.num_img_skipped == 1
+        assert out.read_bytes() == first
 
     def test_second_png_is_copied_from_the_first(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
         first = tmp_cwd / "first.png"
         second = tmp_cwd / "second.png"
         img = self.rendered(rich_img, img_paths=[str(first), str(second)])
         img.save_images()
         assert first.read_bytes() == second.read_bytes()
 
-    def test_second_pdf_is_copied_from_the_first(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        first = tmp_cwd / "first.pdf"
-        second = tmp_cwd / "second.pdf"
-        img = self.rendered(rich_img, img_paths=[str(first), str(second)])
-        img.save_images()
-        assert first.read_bytes() == second.read_bytes()
-
-    def test_png_and_pdf_share_one_svg(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        paths = [tmp_cwd / f"out.{suffix}" for suffix in ("png", "pdf")]
+    def test_both_formats_share_one_svg(self, rich_img, tmp_cwd):
+        paths = [tmp_cwd / f"out.{suffix}" for suffix in ("svg", "png")]
         img = self.rendered(rich_img, img_paths=[str(p) for p in paths])
         img.save_images()
         assert all(p.exists() for p in paths)
         assert img.num_img_saved == 2
 
-    def test_all_three_formats_share_one_svg(self, rich_img, tmp_cwd):
-        pytest.importorskip("cairosvg", reason="CairoSVG is an optional extra")
-        paths = [tmp_cwd / f"out.{suffix}" for suffix in ("svg", "png", "pdf")]
-        img = self.rendered(rich_img, img_paths=[str(p) for p in paths])
+    def test_unsupported_format_is_reported(self, rich_img, tmp_cwd, caplog):
+        """PDF used to be supported, so someone will still have it in their config."""
+        out = tmp_cwd / "out.pdf"
+        img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert all(p.exists() for p in paths)
-        assert img.num_img_saved == 3
+        assert "Can only save SVG and PNG images" in caplog.text
+        assert not out.exists()
+        assert img.num_img_saved == 0
 
-    def test_missing_cairosvg_is_reported(self, rich_img, tmp_cwd, caplog, block_import):
-        block_import("cairosvg")
+    def test_missing_resvg_is_reported(self, rich_img, tmp_cwd, caplog, block_import):
+        block_import("resvg_py")
         out = tmp_cwd / "out.png"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert "CairoSVG not installed" in caplog.text
+        assert "resvg-py is not installed" in caplog.text
         assert not out.exists()
 
-    def test_missing_cairo_system_libs_are_reported(self, rich_img, tmp_cwd, caplog, block_import):
-        block_import("cairosvg", exc=OSError)
+    def test_a_broken_svg_is_reported(self, rich_img, tmp_cwd, caplog, monkeypatch):
         out = tmp_cwd / "out.png"
-        img = self.rendered(rich_img, img_paths=[str(out)])
+        img = self.rendered(rich_img, img_paths=[str(out)], embed_font=False)
+        monkeypatch.setattr(img.capture_console, "export_svg", lambda **kwargs: "<svg><unclosed>")
         img.save_images()
-        assert "Missing" in caplog.text
+        assert "Could not convert SVG to PNG" in caplog.text
         assert not out.exists()
 
 
