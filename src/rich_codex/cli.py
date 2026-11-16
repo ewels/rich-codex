@@ -389,6 +389,7 @@ def main(
     cleaned_paths = []
     num_skipped_images = 0
     num_saved_images = 0
+    num_errors = 0
     img_obj = None
     codex_obj = None
 
@@ -509,6 +510,7 @@ def main(
         img_obj.img_paths = utils.clean_list(img_paths.splitlines()) if img_paths else []
         if img_obj.confirm_command():
             img_obj.get_output()
+            num_errors += img_obj.aborted
             img_obj.save_images()
             saved_image_paths += img_obj.saved_img_paths
             num_saved_images += img_obj.num_img_saved
@@ -555,14 +557,14 @@ def main(
     if no_search:
         log.info("Skipping file search")
     else:
-        num_errors = codex_obj.search_files()
-        if num_errors > 0:
+        num_search_errors = codex_obj.search_files()
+        if num_search_errors > 0:
             log.error("Found errors whilst running")
             exit(1)
     codex_obj.collapse_duplicates()
     codex_obj.confirm_commands()
     codex_obj.check_duplicate_paths()
-    num_save_errors = codex_obj.save_all_images()
+    num_errors += codex_obj.save_all_images()
     saved_image_paths += codex_obj.saved_img_paths
     num_saved_images += codex_obj.num_img_saved
     num_skipped_images += codex_obj.num_img_skipped
@@ -587,15 +589,15 @@ def main(
             f.write("\n".join([str(path) for path in cleaned_paths]))
 
     if num_skipped_images > 0:
-        log.info(f"[dim]Skipped {num_skipped_images} images 🤫")
+        log.info(f"[dim]Skipped {num_skipped_images} unchanged outputs 🤫")
     if num_saved_images > 0:
-        log.info(f"Saved {num_saved_images} images ✨")
+        log.info(f"Saved {num_saved_images} outputs ✨")
     if len(cleaned_paths) > 0:
-        log.info(f"Deleted {len(cleaned_paths)} images 💥")
-    if num_skipped_images == 0 and num_saved_images == 0 and num_save_errors == 0:
+        log.info(f"Deleted {len(cleaned_paths)} files 💥")
+    if num_skipped_images == 0 and num_saved_images == 0 and num_errors == 0:
         log.warning("Couldn't find anything to do 🙄")
-    if num_save_errors > 0:
-        log.error("Found errors whilst saving")
+    if num_errors > 0:
+        log.error(f"Found {num_errors} errors whilst running")
         exit(1)
 
 

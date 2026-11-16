@@ -420,7 +420,7 @@ class TestEnoughImageDifference:
         img = rich_img()
         assert img._enough_image_difference(str(new_file), str(tmp_cwd / "target.svg")) is True
         assert img.num_img_saved == 1
-        assert "new image" in caplog.text
+        assert "new file" in caplog.text
 
     def test_identical_files_are_skipped(self, rich_img, tmp_cwd):
         content = "<svg>identical</svg>"
@@ -624,7 +624,7 @@ class TestEnoughImageDifference:
         img = rich_img()
         img._enough_image_difference(str(new_file), target)
         img._enough_image_difference(str(new_file), target)
-        assert "More than one image with file name" in caplog.text
+        assert "More than one output with file name" in caplog.text
         assert img.saved_img_paths == [target]
 
 

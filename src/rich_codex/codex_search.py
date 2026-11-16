@@ -570,8 +570,10 @@ class CodexSearch:
     def save_all_images(self) -> int:
         """Save the images and code block outputs that we have collected. Returns the number of errors."""
         block_outputs: dict[str, dict[int, tuple[str, list[str]]]] = {}
+        num_errors = 0
         for img_obj in self.rich_imgs:
             img_obj.get_output()
+            num_errors += img_obj.aborted
             text = img_obj.ansi_text() if img_obj.output_blocks else None
             if text is not None:
                 for path, fence_line, block_command in img_obj.output_blocks:
@@ -582,7 +584,7 @@ class CodexSearch:
             self.num_img_saved += img_obj.num_img_saved
             self.num_img_skipped += img_obj.num_img_skipped
         # Only edit files once every command has run, as edits shift the line numbers
-        return sum(self.save_output_blocks(path, outputs) for path, outputs in block_outputs.items())
+        return num_errors + sum(self.save_output_blocks(path, outputs) for path, outputs in block_outputs.items())
 
     def save_output_blocks(self, path: str, outputs: dict[int, tuple[str, list[str]]]) -> int:
         """Write command output into the code blocks of one file, keyed by fence line number.

@@ -800,7 +800,7 @@ class TestOutputBlocks:
     def test_ignored_commands_are_not_written(self, tmp_cwd, codex_search):
         content = "<!-- RICH-CODEX -->\n```sh\necho hi\nrm -f nothing\n# [!output]\n```\n"
         md = write(tmp_cwd / "README.md", content)
-        self.run(codex_search())
+        assert self.run(codex_search()) == 1
         assert md.read_text() == content
 
     def test_output_is_not_searched(self, tmp_cwd, codex_search):

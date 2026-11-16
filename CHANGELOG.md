@@ -8,7 +8,9 @@
   - Put a config comment above a fenced code block, with `img_paths` to save the output to `.ansi` files, or an `[!output]` marker line to write it into the code block after the marker
   - `.ansi` files hold raw escape codes. Inside code blocks, colours are written as `\e[33m` style escape codes
   - An empty `<!-- RICH-CODEX -->` comment is now valid config, instead of an error
+- ✨ The log talks about outputs and files rather than images, as not all outputs are images now
 - ✨ `.ansi` is a new output format for `img_paths` everywhere, including config files and the command line
+- 💥 A command refused by the `rm` / `cp` / `mv` / `sudo` check now fails the run with exit code 1, instead of only logging a warning
 - 🐛 Commands with a part starting with `rm`, `cp`, `mv` or `sudo` after a new line, `;`, `&` or `|` are now ignored too, not only those that start with one. Before, only a literal `&;` was treated as a separator
 
 ## Version 1.4.0 (2026-09-15)

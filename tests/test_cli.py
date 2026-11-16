@@ -241,7 +241,13 @@ class TestSearch:
         assert invoke(runner, args).exit_code == 0
         result = invoke(runner, args)
         assert result.exit_code == 0
-        assert "Skipped 1 images" in result.output
+        assert "Skipped 1 unchanged outputs" in result.output
+
+    def test_refused_command_fails_the_run(self, runner, tmp_cwd):
+        result = invoke(runner, ["--command", "rm -f nothing", "--img-paths", "out.svg", "--no-confirm"])
+        assert result.exit_code == 1
+        assert "Refusing to run a command with 'rm'" in result.output
+        assert not (tmp_cwd / "out.svg").exists()
 
     def test_nothing_to_do_warns(self, runner, tmp_cwd):
         result = invoke(runner, ["--no-search"])
@@ -284,7 +290,7 @@ class TestFileLists:
         assert result.exit_code == 0
         assert not stale.exists()
         assert (tmp_cwd / "out.svg").exists()
-        assert "Deleted 1 images" in result.output
+        assert "Deleted 1 files" in result.output
 
     def test_deleted_files_list(self, runner, tmp_cwd):
         (tmp_cwd / "stale.svg").write_text("<svg />")

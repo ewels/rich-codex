@@ -50,7 +50,9 @@ jobs:
         uses: ./ # Would normally be ewels/rich-codex@v1
         with:
           commit_changes: "true"
-          clean_img_paths: docs/img/*.svg
+          clean_img_paths: |
+            docs/img/*.svg
+            docs/img/*.ansi
           skip_python_setup: "true"
           skip_install: "true"
 

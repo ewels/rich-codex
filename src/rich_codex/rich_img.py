@@ -178,7 +178,7 @@ class RichImg:
 
         for ignore in IGNORE_COMMANDS:
             if any(cmd_part.strip().startswith(ignore) for cmd_part in re.split(r"[;&|\n]", self.command)):
-                log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.command} [/]")
+                log.error(f"[red][✗] Refusing to run a command with '{ignore}': [white on black] {self.command} [/]")
                 self.aborted = True
                 return
 
@@ -430,7 +430,7 @@ class RichImg:
 
         # Target file doesn't exist yet, nothing to compare against
         if not old_file.exists():
-            log_msg = "new image"
+            log_msg = "new file"
 
         else:
             # Percentage change in file, ignoring any embedded font: it's derived from the
@@ -484,7 +484,7 @@ class RichImg:
         if create_file:
             self.num_img_saved += 1
             if old_fn in self.saved_img_paths:
-                log.warning(f"More than one image with file name '{old_fn}'")
+                log.warning(f"More than one output with file name '{old_fn}'")
             else:
                 self.saved_img_paths.append(old_fn)
             log.info(f"Saved: '{old_fn_relative}' ({log_msg})")
