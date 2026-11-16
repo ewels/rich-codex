@@ -10,6 +10,7 @@
   - `min_pct_diff` and `skip_change_regex` apply to both, so that changes such as timings don't rewrite the output
   - An empty `<!-- RICH-CODEX -->` comment is now valid config, instead of an error
 - ✨ The log talks about outputs and files rather than images, as not all outputs are images now
+- ✨ Python 3.15 is now tested and supported
 - ✨ `.ansi` is a new output format for `img_paths` everywhere, including config files and the command line
 - 💥 A command refused by the `rm` / `cp` / `mv` / `sudo` check now fails the run with exit code 1, instead of only logging a warning
 - 🐛 Commands with a part starting with `rm`, `cp`, `mv` or `sudo` after a new line, `;`, `&` or `|` are now ignored too, not only those that start with one. Before, only a literal `&;` was treated as a separator
