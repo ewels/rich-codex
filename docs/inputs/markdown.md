@@ -114,69 +114,53 @@ Both comment styles are recognised in every file that is searched, so you can us
 
 ## Code block output
 
-Rich-codex can also run the command in a fenced code block and save its output as text, with the ANSI colour codes kept.
-This is useful for docs sites that render ANSI colours in code blocks as HTML, such as Astro Starlight with the [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks) plugin (version 1.4.0 or later, with `runnable.outputLang=ansi` on the code block).
+Rich-codex can run the command in a code block and save its output as text with colours, for docs sites that show ANSI colours, such as Astro Starlight with [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks).
 
-Put a config comment directly above the code block. Rich-codex runs the code in the block as the command, and saves the output to a file, into the code block itself, or both.
-Blank lines between the comment and the code block are fine, and the comment can be empty (`<!-- RICH-CODEX -->` or `{/* RICH-CODEX */}`).
-A `$ ` shell prompt at the start of a line is left out of the command, so `$ python colors.py` runs `python colors.py`.
+Put a config comment directly above the code block (it can be empty), and say where the output goes.
 
-### Output to a file
+### To a file
 
-Set `runnable.outputFile` on the code block's fence line to an `.ansi` file, relative to the markdown file.
-This is the starlight-codeblocks attribute that shows the file as the block's output, so the path is only written once.
-`.ansi` files hold the output as text with raw escape codes, so `cat` shows it in colour.
-Rich-codex doesn't change the markdown file.
+Set `runnable.outputFile` on the fence line, relative to the markdown file. starlight-codeblocks shows the file as the block's output, in colour ([needs starlight-codeblocks#35](https://github.com/ewels/starlight-codeblocks/pull/35)).
 
 <!-- prettier-ignore-start -->
 
 ````markdown
 <!-- RICH-CODEX -->
-```sh runnable.static runnable.outputLang=ansi runnable.outputFile="../img/checks-passed.ansi"
-$ printf '\033[1;32m✓\033[0m All checks passed\n'
+```sh runnable.outputFile="../img/help.ansi"
+$ my-tool --help
 ```
 ````
 
 <!-- prettier-ignore-end -->
 
-You can also, or instead, set `img_paths` in the config comment, also relative to the markdown file.
-`.svg` and `.png` paths work there too, to get an image of the same output.
+`img_paths` in the config comment works too, and can add `.svg` or `.png` images of the same output.
 
-### Output into the code block
+### Into the code block
 
-Put an `[!output]` marker line inside the code block.
-Rich-codex runs the lines above the marker, and replaces everything between the marker and the closing fence (or an `[!output end]` line) with the output:
+Put an `[!output]` line in the block. Rich-codex replaces everything after it, up to the closing fence or an `[!output end]` line, with the output. Colours are written as `\e[33m`, which starlight-codeblocks shows with `runnable.outputLang=ansi`.
 
 <!-- prettier-ignore-start -->
 
 ````markdown
-<!-- RICH-CODEX terminal_width: 80 -->
-```sh
-printf '\033[1;32m✓\033[0m All checks passed\n'
+<!-- RICH-CODEX -->
+```sh runnable.outputLang=ansi
+$ my-tool --version
 # [!output]
-\e[1;32m✓\e[0m All checks passed
-# [!output end]
+\e[1mmy-tool\e[0m 1.0
 ```
 ````
 
 <!-- prettier-ignore-end -->
 
-- The text before the marker (`#`, `//`, ...) doesn't matter, and anything after `[!output` inside the brackets is ignored, eg. `[!output lang=ansi]`.
-- Colours are written as text with the escape character as `\e`, eg. `\e[33m`, so that they're readable in diffs. A literal `\e[` in the output is written as `\\e[`.
-- The file is only rewritten when the output changes. `min_pct_diff` and `skip_change_regex` work as they do for images, to ignore changes such as timings. Code blocks without an `[!output]` marker or `img_paths` are left alone.
-- Rich-codex won't write the output, and the run fails, if:
-  - the code block has no closing fence or `[!output end]` line,
-  - a line of the output would end the code block (a fence or `[!output end]`). Write it to a file instead.
-  - the code block changed while rich-codex was running, for example because a command edited the markdown file.
+If the output has a line that would end the block, rich-codex doesn't write it and the run fails. Write that output to a file instead.
 
-### Options
+### Good to know
 
-- Set `command` in the config comment to run a different command from the one shown in the code block.
-- The command line is never written to text output (`.ansi` files and code blocks), as anything that shows the text shows the command too. This is the case for images that list an `.ansi` file in `img_paths` too: the `.svg` or `.png` keeps the command line, unless `hide_command` is set. Images from code blocks hide it by default, which `hide_command: false` turns off.
-- Hyperlinks are left out of text output, keeping their text, as Rich gives each one a random ID.
-- Commands are run with `FORCE_COLOR=1`, unless it's already set, and with `COLUMNS` and `TERMINAL_WIDTH` set to `terminal_width` when that's set, as a terminal would give them. `extra_env` overrides any of these.
-- A command that isn't found (exit code 127) gives a warning, but its output is still written.
-- All other config options, such as `terminal_width`, `head` and `extra_env`, work as they do for images.
+- A `$ ` prompt at the start of a line isn't part of the command.
+- `command` in the config comment runs something other than what the block shows. Other options work as they do for images.
+- Text output never has the command line, or hyperlinks.
+- Commands get `FORCE_COLOR=1`, and `COLUMNS` and `TERMINAL_WIDTH` from `terminal_width`.
+- Code blocks inside another code block, such as the examples on this page, are never run.
 
 ## Code snippets
 

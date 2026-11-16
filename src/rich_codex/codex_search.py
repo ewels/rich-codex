@@ -279,6 +279,9 @@ class CodexSearch:
                 in_config = False
                 awaiting_block = False
                 skip_to_line = 0
+                # The fence of the code block we're in, if any. Code blocks inside it are just text.
+                outer_fence: str | None = None
+                config_in_fence = False
                 comment_end: str | None = None
                 local_config_str = ""
                 for line_number, line in enumerate(lines, 1):
@@ -309,11 +312,12 @@ class CodexSearch:
                             num_errors += 1
                         local_config_str = ""
                         awaiting_block = True
+                        config_in_fence = outer_fence is not None
 
                     # A config comment directly above a code block, with an '[!output]' marker
                     # or 'img_paths' to write the output to
                     code_block = None
-                    if awaiting_block and line.strip():
+                    if awaiting_block and line.strip() and not outer_fence:
                         awaiting_block = False
                         try:
                             code_block = parse_code_block(lines, line_number - 1)
@@ -330,6 +334,17 @@ class CodexSearch:
                                 continue
                         else:
                             code_block = None
+                    awaiting_block = awaiting_block and not line.strip()
+
+                    if not in_config and not code_block:
+                        if outer_fence is None:
+                            if fence_match := FENCE_RE.match(line):
+                                outer_fence = fence_match["fence"]
+                        elif closes_fence(outer_fence, line):
+                            outer_fence = None
+                            # A config comment in an example only applies to an image in the same example
+                            if config_in_fence:
+                                local_config, config_in_fence = {}, False
 
                     # Look for images
                     # Both patterns capture 'img_path' and 'title'; only the command one has 'cmd'

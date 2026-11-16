@@ -769,6 +769,28 @@ class TestOutputBlocks:
         assert "echo" in (tmp_cwd / "hi.svg").read_text()
         assert (tmp_cwd / "hi.ansi").read_text() == "hi\n"
 
+    def test_code_block_inside_an_example_is_not_run(self, tmp_cwd, codex_search):
+        """eg. a CONTRIBUTING.md that shows the syntax, with a path that only works from the docs."""
+        content = (
+            "````mdx\n{/* RICH-CODEX\nworking_dir: examples\n*/}\n"
+            '```sh runnable.outputFile="../images/colors.ansi"\n$ python colors.py\n# [!output]\n```\n````\n'
+            "\n![`echo later`](later.svg)\n"
+        )
+        md = write(tmp_cwd / "CONTRIBUTING.md", content)
+        cs = codex_search()
+        assert self.run(cs) == 0
+        assert md.read_text() == content
+        assert not (tmp_cwd.parent / "images").exists()
+        # The example's config doesn't leak to the next image
+        assert [(img.command, img.working_dir) for img in cs.rich_imgs] == [("echo later", tmp_cwd)]
+
+    def test_image_inside_an_example_still_runs(self, tmp_cwd, codex_search):
+        """The rich-codex docs show the markup for each example, and it generates the image."""
+        write(tmp_cwd / "README.md", "```markdown\n<!-- RICH-CODEX hide_command: true -->\n![`echo hi`](hi.svg)\n```\n")
+        cs = codex_search()
+        cs.search_files()
+        assert [(img.command, img.hide_command) for img in cs.rich_imgs] == [("echo hi", True)]
+
     def test_config_file_output_needs_img_paths(self, tmp_cwd, codex_search):
         write(tmp_cwd / ".rich-codex.yml", "outputs:\n  - command: echo hi\n    output_blocks: [[README.md, 2]]\n")
         with pytest.raises(ValidationError):
