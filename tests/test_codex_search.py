@@ -735,6 +735,40 @@ class TestOutputBlocks:
         assert "hi" in (tmp_cwd / "docs" / "out" / "hi.svg").read_text()
         assert "echo" not in (tmp_cwd / "docs" / "out" / "hi.svg").read_text()
 
+    def test_shell_prompt_is_stripped(self, tmp_cwd, codex_search):
+        md = write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\n  $ echo one\n  $ echo two\n# [!output]\n```\n")
+        cs = codex_search()
+        assert self.run(cs) == 0
+        assert cs.rich_imgs[0].command == "echo one\necho two"
+        assert md.read_text().endswith("# [!output]\none\ntwo\n```\n")
+
+    @pytest.mark.parametrize("attr", ['"out/hi.ansi"', "'out/hi.ansi'", "out/hi.ansi"])
+    def test_output_file_from_the_fence(self, tmp_cwd, codex_search, attr):
+        content = f"{{/* RICH-CODEX */}}\n```sh runnable.static runnable.outputFile={attr}\n$ echo hi\n```\n"
+        md = write(tmp_cwd / "docs" / "page.mdx", content)
+        assert self.run(codex_search()) == 0
+        assert md.read_text() == content
+        assert (tmp_cwd / "docs" / "out" / "hi.ansi").read_text() == "hi\n"
+
+    def test_output_file_adds_to_img_paths(self, tmp_cwd, codex_search):
+        write(
+            tmp_cwd / "README.md",
+            '<!-- RICH-CODEX\nimg_paths: [hi.svg, hi.ansi]\n-->\n```sh runnable.outputFile="hi.ansi"\necho hi\n```\n',
+        )
+        cs = codex_search()
+        cs.search_files()
+        assert [Path(p).name for p in cs.rich_imgs[0].img_paths] == ["hi.svg", "hi.ansi"]
+
+    def test_ansi_file_never_has_the_command(self, tmp_cwd, codex_search):
+        write(
+            tmp_cwd / "README.md",
+            "![`echo hi`](hi.svg)\n<!-- RICH-CODEX\nimg_paths: [hi.ansi]\n-->\n![`echo hi`](hi.svg)\n",
+        )
+        cs = codex_search()
+        assert self.run(cs) == 0
+        assert "echo" in (tmp_cwd / "hi.svg").read_text()
+        assert (tmp_cwd / "hi.ansi").read_text() == "hi\n"
+
     def test_config_file_output_needs_img_paths(self, tmp_cwd, codex_search):
         write(tmp_cwd / ".rich-codex.yml", "outputs:\n  - command: echo hi\n    output_blocks: [[README.md, 2]]\n")
         with pytest.raises(ValidationError):

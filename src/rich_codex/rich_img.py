@@ -1,11 +1,14 @@
+import contextlib
 import difflib
 import io
 import json
 import logging
 import os
 import re
+import select
 import signal
 import subprocess
+import time
 import zlib
 from pathlib import Path
 from shutil import copyfile
@@ -44,6 +47,9 @@ PNG_WIDTH = 4000
 
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
+
+# eg. \x1b]8;id=123;https://example.com\x1b\\
+OSC8_LINK_RE = re.compile(r"\x1b\]8;[^\x07\x1b]*(?:\x07|\x1b\\)")
 
 
 class RichImg:
@@ -125,6 +131,8 @@ class RichImg:
         self.num_img_skipped = 0
         self.no_confirm = False
         self.aborted = False
+        # Lines at the start of the output that show the command, left out of text output
+        self.num_command_lines = 0
         self.source_type = source_type
         self.source = Path(source) if source is not None else None
         self.source_line = source_line
@@ -212,6 +220,12 @@ class RichImg:
         # Set up the command environment vars, with extra_env if set
         command_env = os.environ.copy()
         command_env["RICH_CODEX"] = "1"
+        if not run_with_pty:
+            # What a terminal would give the command, as its output is captured to keep its colours.
+            # Width is set even if the caller has it, as TERMINAL_WIDTH is rich-codex's own setting.
+            command_env.setdefault("FORCE_COLOR", "1")
+            if self.terminal_width is not None:
+                command_env["COLUMNS"] = command_env["TERMINAL_WIDTH"] = str(self.terminal_width)
         if len(self.extra_env):
             log.debug(f"Adding extra env variables: {self.extra_env}")
             command_env.update({str(k): str(v) for k, v in self.extra_env.items()})
@@ -244,12 +258,16 @@ class RichImg:
             # Resize routine for pty
             # First, get our own current terminal size
             # (struct is documented here: https://www.delorie.com/djgpp/doc/libc/libc_495.html)
-            size = fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack("HHHH", 0, 0, 0, 0))
-
-            # Rewrite size with selected terminal width if set
+            try:
+                rows, cols = struct.unpack("HHHH", fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack("HHHH", 0, 0, 0, 0)))[
+                    :2
+                ]
+            except OSError:
+                # stdin isn't a terminal, eg. in a git hook or CI
+                rows, cols = 24, 80
             if self.terminal_width is not None:
-                winsize = struct.unpack("HHHH", size)
-                size = struct.pack("HHHH", winsize[0], self.terminal_width, 0, 0)
+                cols = self.terminal_width
+            size = struct.pack("HHHH", rows, cols, 0, 0)
 
             # Issue command to pty to resize
             fcntl.ioctl(write_end, termios.TIOCSWINSZ, size)
@@ -258,37 +276,43 @@ class RichImg:
             signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(read_end, termios.TIOCSWINSZ, size))
 
             # Run subprocess in pty
-            try:
-                process = subprocess.Popen(
-                    self.command,
-                    cwd=self.working_dir,
-                    shell=True,
-                    env=command_env,
-                    close_fds=True,
-                    start_new_session=True,  # Needed for subprocess termination
-                    stdin=write_end,
-                    stdout=write_end,
-                    stderr=write_end,
-                )
-                process.wait(timeout=self.timeout)
-            except subprocess.TimeoutExpired:
-                log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
-                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            process = subprocess.Popen(
+                self.command,
+                cwd=self.working_dir,
+                shell=True,
+                env=command_env,
+                close_fds=True,
+                start_new_session=True,  # Needed for subprocess termination
+                stdin=write_end,
+                stdout=write_end,
+                stderr=write_end,
+            )
+            # Our copy of the child's end has to be closed for the read to end when the child does
             os.close(write_end)
 
+            # Read while the command runs, as on macOS it can't finish exiting until its output is read
             output_arr: list[bytes] = []
-
-            # This loop will keep going until no more data is incoming (child process closed their pipe)
+            deadline = time.monotonic() + self.timeout
+            timed_out = False
             while True:
+                if not timed_out and (
+                    time.monotonic() >= deadline
+                    or not select.select([read_end], [], [], deadline - time.monotonic())[0]
+                ):
+                    log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
+                    # The process group ID is the PID, as it started a new session
+                    with contextlib.suppress(ProcessLookupError):
+                        os.killpg(process.pid, signal.SIGKILL)
+                    timed_out = True
+                    continue
                 try:
                     data = os.read(read_end, 1024)
-                except OSError:
+                except OSError:  # Linux raises EIO once the child's end is closed
                     data = b""
-
-                if data:
-                    output_arr.append(data)
-                else:
+                if not data:
                     break
+                output_arr.append(data)
+            process.wait()
 
             os.close(read_end)
             output = b"".join(output_arr).decode("utf-8")
@@ -313,6 +337,9 @@ class RichImg:
                 output_bytes, _ = process.communicate()
             output = output_bytes.decode("utf-8")
 
+        if process.returncode == 127:
+            log.warning(f"[yellow]Command not found, exit code 127: [white on black] {self.command} [/]")
+
         # Run after_command if set
         if self.after_command:
             log.debug("Running 'after_command'")
@@ -335,6 +362,9 @@ class RichImg:
                 )
             log.debug(Text.from_ansi(capture.get()).plain)
 
+        # Rich 15+ reads '\r' as a carriage return, which blanks every line of PTY output
+        # ('\r\n'), and reads a final newline as an extra empty line
+        output = output.replace("\r\n", "\n").removesuffix("\n")
         decoder = AnsiDecoder()
 
         # Count lines and find longest line
@@ -361,6 +391,7 @@ class RichImg:
         # Print the command
         if not self.hide_command:
             self.capture_console.print(f"$ {self.fake_command if self.fake_command else self.command}")
+            self.num_command_lines = len(self.capture_console.export_text(clear=False).splitlines())
 
         # Decode and print the output (captured)
         truncated = False
@@ -408,12 +439,17 @@ class RichImg:
             log.warning("Tried to get output with no command or snippet")
 
     def ansi_text(self) -> list[str] | None:
-        """Get the rendered output as lines of text with ANSI escape codes."""
+        """Get the rendered output as lines of text with ANSI escape codes.
+
+        Without the command line, as anything showing text output shows the command itself,
+        and without hyperlinks, as Rich gives each one a random ID.
+        """
         if self.aborted or self.capture_console is None:
             return None
         # clear=False so that the same output can be exported again
         text = self.capture_console.export_text(styles=True, clear=False)
-        lines = [line.rstrip() for line in text.splitlines()]
+        text = OSC8_LINK_RE.sub("", text)
+        lines = [line.rstrip() for line in text.splitlines()[self.num_command_lines :]]
         while lines and not lines[-1]:
             lines.pop()
         return lines

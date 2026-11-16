@@ -118,28 +118,29 @@ Rich-codex can also run the command in a fenced code block and save its output a
 This is useful for docs sites that render ANSI colours in code blocks as HTML, such as Astro Starlight with the [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks) plugin (version 1.4.0 or later, with `runnable.outputLang=ansi` on the code block).
 
 Put a config comment directly above the code block. Rich-codex runs the code in the block as the command, and saves the output to a file, into the code block itself, or both.
-Blank lines between the comment and the code block are fine, and the comment can be empty (`<!-- RICH-CODEX -->`) for inline output.
+Blank lines between the comment and the code block are fine, and the comment can be empty (`<!-- RICH-CODEX -->` or `{/* RICH-CODEX */}`).
+A `$ ` shell prompt at the start of a line is left out of the command, so `$ python colors.py` runs `python colors.py`.
 
 ### Output to a file
 
-Set `img_paths` in the config comment to one or more `.ansi` files, relative to the markdown file.
-They hold the output as text with raw escape codes, so `cat` shows it in colour.
+Set `runnable.outputFile` on the code block's fence line to an `.ansi` file, relative to the markdown file.
+This is the starlight-codeblocks attribute that shows the file as the block's output, so the path is only written once.
+`.ansi` files hold the output as text with raw escape codes, so `cat` shows it in colour.
 Rich-codex doesn't change the markdown file.
 
 <!-- prettier-ignore-start -->
 
 ````markdown
-<!-- RICH-CODEX
-img_paths: [../img/checks-passed.ansi]
--->
+<!-- RICH-CODEX -->
 ```sh runnable.static runnable.outputLang=ansi runnable.outputFile="../img/checks-passed.ansi"
-printf '\033[1;32m✓\033[0m All checks passed\n'
+$ printf '\033[1;32m✓\033[0m All checks passed\n'
 ```
 ````
 
 <!-- prettier-ignore-end -->
 
-`.svg` and `.png` paths work here too, to get an image of the same output.
+You can also, or instead, set `img_paths` in the config comment, also relative to the markdown file.
+`.svg` and `.png` paths work there too, to get an image of the same output.
 
 ### Output into the code block
 
@@ -171,7 +172,10 @@ printf '\033[1;32m✓\033[0m All checks passed\n'
 ### Options
 
 - Set `command` in the config comment to run a different command from the one shown in the code block.
-- The command line itself isn't printed, as the code block already shows it. Set `hide_command: false` to print it.
+- The command line is never written to text output (`.ansi` files and code blocks), as anything that shows the text shows the command too. This is the case for images that list an `.ansi` file in `img_paths` too: the `.svg` or `.png` keeps the command line, unless `hide_command` is set. Images from code blocks hide it by default, which `hide_command: false` turns off.
+- Hyperlinks are left out of text output, keeping their text, as Rich gives each one a random ID.
+- Commands are run with `FORCE_COLOR=1`, unless it's already set, and with `COLUMNS` and `TERMINAL_WIDTH` set to `terminal_width` when that's set, as a terminal would give them. `extra_env` overrides any of these.
+- A command that isn't found (exit code 127) gives a warning, but its output is still written.
 - All other config options, such as `terminal_width`, `head` and `extra_env`, work as they do for images.
 
 ## Code snippets

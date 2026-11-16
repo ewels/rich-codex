@@ -32,6 +32,10 @@ FENCE_RE = re.compile(r"\s*(?P<fence>`{3,}|~{3,})")
 # eg. # [!output]  or  // [!output lang=ansi]
 OUTPUT_MARKER_RE = re.compile(r"\[!output(?:\s[^\]]*)?\]")
 OUTPUT_END = "[!output end]"
+# eg. ```sh runnable.outputFile="out/help.ansi"  (starlight-codeblocks)
+OUTPUT_FILE_RE = re.compile(r"""(?:^|\s)runnable\.outputFile=(?:"(?P<dq>[^"]*)"|'(?P<sq>[^']*)'|(?P<bare>[^\s"']+))""")
+# eg. $ python colors.py  (a shell prompt, which starlight-codeblocks shows but doesn't copy)
+PROMPT_RE = re.compile(r"^(\s*)\$ ")
 # A literal '\e[' (or '\x1b[' ...) in the output, which would otherwise read as an escape code
 LITERAL_ESCAPE_RE = re.compile(r"\\(?=(?:e|x1b|033|u001b)\[)", re.IGNORECASE)
 
@@ -41,6 +45,8 @@ class CodeBlock(NamedTuple):
 
     fence: str
     command: str
+    # Path from 'runnable.outputFile' on the fence line, if set
+    output_file: str | None
     # Slice of lines after the '[!output]' marker, or None if the block has no marker
     output: tuple[int, int] | None
     # Index of the line that ends the block
@@ -55,7 +61,8 @@ def closes_fence(fence: str, line: str) -> bool:
 def parse_code_block(lines: list[str], fence_idx: int) -> CodeBlock | None:
     """Parse the fenced code block that opens at lines[fence_idx].
 
-    The command is the code above the '[!output]' marker, or all of it if there's no marker.
+    The command is the code above the '[!output]' marker, or all of it if there's no marker,
+    without any '$ ' shell prompts.
     Returns None if the line doesn't open a code block, and raises ValueError if the block
     is never closed.
     """
@@ -63,18 +70,20 @@ def parse_code_block(lines: list[str], fence_idx: int) -> CodeBlock | None:
     if not fence_match:
         return None
     fence = fence_match["fence"]
+    file_match = OUTPUT_FILE_RE.search(lines[fence_idx])
+    output_file = next((path for path in file_match.groups() if path is not None), None) if file_match else None
     command_lines: list[str] = []
     start: int | None = None
     for idx in range(fence_idx + 1, len(lines)):
         line = lines[idx]
         if closes_fence(fence, line) or (start is not None and OUTPUT_END in line):
             command = textwrap.dedent("\n".join(ln.rstrip("\r\n") for ln in command_lines)).strip("\n")
-            return CodeBlock(fence, command, None if start is None else (start, idx), idx)
+            return CodeBlock(fence, command, output_file, None if start is None else (start, idx), idx)
         if start is None:
             if OUTPUT_MARKER_RE.search(line) and OUTPUT_END not in line:
                 start = idx + 1
             else:
-                command_lines.append(line)
+                command_lines.append(PROMPT_RE.sub(r"\1", line))
     raise ValueError(f"No closing '{fence}' or '{OUTPUT_END}' for the code block")
 
 
@@ -313,7 +322,7 @@ class CodexSearch:
                             local_config = {}
                             num_errors += 1
                             continue
-                        if code_block and (code_block.output or "img_paths" in local_config):
+                        if code_block and (code_block.output or code_block.output_file or "img_paths" in local_config):
                             # Don't search the code or output as markdown
                             skip_to_line = code_block.end + 1
                             if local_config.get("skip"):
@@ -342,10 +351,12 @@ class CodexSearch:
                             if code_block.output:
                                 local_config["output_blocks"] = [(str(file), line_number, code_block.command)]
                             # Relative to the markdown file, like an image path
-                            local_config["img_paths"] = [
-                                str((Path(file).parent / img_path).resolve())
-                                for img_path in local_config.get("img_paths", [])
-                            ]
+                            img_paths = local_config.get("img_paths", [])
+                            if code_block.output_file:
+                                img_paths = [*img_paths, code_block.output_file]
+                            local_config["img_paths"] = list(
+                                dict.fromkeys(str((Path(file).parent / img_path).resolve()) for img_path in img_paths)
+                            )
                             num_commands += 1
                             img_type = "[blue]code block[/]"
 

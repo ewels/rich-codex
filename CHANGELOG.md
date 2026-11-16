@@ -11,6 +11,11 @@
   - An empty `<!-- RICH-CODEX -->` comment is now valid config, instead of an error
 - ✨ The log talks about outputs and files rather than images, as not all outputs are images now
 - ✨ Python 3.15 is now tested and supported
+- ✨ Code blocks: a `$ ` shell prompt is left out of the command, and `runnable.outputFile="<path>"` on the fence line (from starlight-codeblocks) is used as an output file, so the path is only written once
+- ✨ Text output (`.ansi` files and code blocks) never has the command line, and leaves out hyperlinks, whose random IDs changed the output on every run
+- ✨ Commands are run with `FORCE_COLOR=1` (unless already set), and with `COLUMNS` and `TERMINAL_WIDTH` set to `terminal_width`, as a terminal would give them. A command that isn't found (exit code 127) gives a warning
+- 🐛 `--use-pty` crashed when stdin wasn't a terminal, eg. in git hooks and some CI, and hung until the timeout on macOS. It now falls back to 24x80 (with `terminal_width` applied), and reads the output as the command runs
+- 🐛 Command output lost every line ending in `\r\n`, which is all output from `--use-pty`, and gained a blank last line, with Rich 15 or later
 - ✨ `.ansi` is a new output format for `img_paths` everywhere, including config files and the command line
 - 💥 A command refused by the `rm` / `cp` / `mv` / `sudo` check now fails the run with exit code 1, instead of only logging a warning
 - 🐛 Commands with a part starting with `rm`, `cp`, `mv` or `sudo` after a new line, `;`, `&` or `|` are now ignored too, not only those that start with one. Before, only a literal `&;` was treated as a separator
