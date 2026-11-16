@@ -85,7 +85,7 @@ class RichImg:
         source_type: str | None = None,
         source: str | Path | None = None,
         source_line: int | None = None,
-        output_blocks: list[tuple[str, int]] | None = None,
+        output_blocks: list[tuple[str, int, str]] | None = None,
     ) -> None:
         """Initialise the RichImg object with core console options."""
         self.command = command
@@ -177,7 +177,7 @@ class RichImg:
         self.command = self.command.strip()
 
         for ignore in IGNORE_COMMANDS:
-            if any(cmd_part.strip().startswith(ignore) for cmd_part in re.split("&;|\n", self.command)):
+            if any(cmd_part.strip().startswith(ignore) for cmd_part in re.split(r"[;&|\n]", self.command)):
                 log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.command} [/]")
                 self.aborted = True
                 return
@@ -408,11 +408,11 @@ class RichImg:
             log.warning("Tried to get output with no command or snippet")
 
     def ansi_text(self) -> list[str] | None:
-        r"""Get the rendered output as lines of text, with ANSI escapes written as a literal '\e'."""
+        """Get the rendered output as lines of text with ANSI escape codes."""
         if self.aborted or self.capture_console is None:
             return None
-        # clear=False so that save_images() can still export the same output
-        text = self.capture_console.export_text(styles=True, clear=False).replace("\x1b", "\\e")
+        # clear=False so that the same output can be exported again
+        text = self.capture_console.export_text(styles=True, clear=False)
         lines = [line.rstrip() for line in text.splitlines()]
         while lines and not lines[-1]:
             lines.pop()
@@ -605,8 +605,8 @@ class RichImg:
 
             for filename in self.img_paths:
                 suffix = Path(filename).suffix.lower()
-                if suffix not in (".svg", ".png"):
-                    log.error(f"Can only save SVG and PNG images, not '{filename}'")
+                if suffix not in (".svg", ".png", ".ansi"):
+                    log.error(f"Can only save SVG, PNG and ANSI files, not '{filename}'")
                     continue
 
                 # Make directories if necessary
@@ -614,6 +614,13 @@ class RichImg:
                     Path(filename).parent.mkdir(parents=True, exist_ok=True)
                 except OSError:  # Covers PermissionError, which is a subclass
                     log.error(f"Invalid path: {filename}")
+                    continue
+
+                if suffix == ".ansi":
+                    ansi_tmp_filename = Path(tmp_dir) / "render.ansi"
+                    ansi_tmp_filename.write_text("\n".join(self.ansi_text() or []) + "\n", encoding="utf-8")
+                    if self._enough_image_difference(str(ansi_tmp_filename), filename):
+                        copyfile(ansi_tmp_filename, filename)
                     continue
 
                 # If already made this image, copy it from the last destination
@@ -631,6 +638,7 @@ class RichImg:
                 # We always render an SVG first, then reuse it for every other output
                 if svg_img is None and not rendered_svg:
                     svg_content = self.capture_console.export_svg(
+                        clear=False,
                         title=self.title,
                         theme=terminal_theme,
                         unique_id=self._svg_unique_id(),

@@ -73,7 +73,7 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
 - 💬 [Markdown comments](inputs/markdown.md#code-snippets)
     - Search markdown files for special HTML / JSX comments.
 - 📝 [Markdown code blocks](inputs/markdown.md#code-block-output)
-    - Write command output as text into code blocks with an `[!output]` marker.
+    - Run the command in a code block and save its output as text, to a file or into the code block.
 - ➡️ [Command-line / action inputs](inputs/direct_inputs.md)
     - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](inputs/config_file.md)
@@ -81,4 +81,4 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
 
 <!-- prettier-ignore-end -->
 
-Images can be generated as SVG or PNG (detected by filename extension).
+Images can be generated as SVG or PNG, or the output saved as text with ANSI colour codes in an `.ansi` file (detected by filename extension).

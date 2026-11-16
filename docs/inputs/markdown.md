@@ -114,11 +114,37 @@ Both comment styles are recognised in every file that is searched, so you can us
 
 ## Code block output
 
-Rich-codex can also write a command's output as text, straight into a fenced code block in your markdown.
-This is useful for docs sites that render ANSI colour codes in code blocks as HTML, such as Astro Starlight with the [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks) plugin (version 1.4.0 or later, with `runnable.outputLang=ansi` on the code block).
+Rich-codex can also run the command in a fenced code block and save its output as text, with the ANSI colour codes kept.
+This is useful for docs sites that render ANSI colours in code blocks as HTML, such as Astro Starlight with the [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks) plugin (version 1.4.0 or later, with `runnable.outputLang=ansi` on the code block).
 
-Put a config comment directly above the code block, and an `[!output]` marker line inside it.
-Rich-codex runs the lines above the marker as the command, and replaces everything between the marker and the closing fence (or an `[!output end]` line) with the output:
+Put a config comment directly above the code block. Rich-codex runs the code in the block as the command, and saves the output to a file, into the code block itself, or both.
+Blank lines between the comment and the code block are fine, and the comment can be empty (`<!-- RICH-CODEX -->`) for inline output.
+
+### Output to a file
+
+Set `img_paths` in the config comment to one or more `.ansi` files, relative to the markdown file.
+They hold the output as text with raw escape codes, so `cat` shows it in colour.
+Rich-codex doesn't change the markdown file.
+
+<!-- prettier-ignore-start -->
+
+````markdown
+<!-- RICH-CODEX
+img_paths: [../img/checks-passed.ansi]
+-->
+```sh runnable.static runnable.outputLang=ansi runnable.outputFile="../img/checks-passed.ansi"
+printf '\033[1;32m✓\033[0m All checks passed\n'
+```
+````
+
+<!-- prettier-ignore-end -->
+
+`.svg` and `.png` paths work here too, to get an image of the same output.
+
+### Output into the code block
+
+Put an `[!output]` marker line inside the code block.
+Rich-codex runs the lines above the marker, and replaces everything between the marker and the closing fence (or an `[!output end]` line) with the output:
 
 <!-- prettier-ignore-start -->
 
@@ -134,13 +160,19 @@ printf '\033[1;32m✓\033[0m All checks passed\n'
 
 <!-- prettier-ignore-end -->
 
-- The comment can be a one-line or multi-line config comment, and can be empty (`<!-- RICH-CODEX -->`).
-  Blank lines between it and the code block are fine.
 - The text before the marker (`#`, `//`, ...) doesn't matter, and anything after `[!output` inside the brackets is ignored, eg. `[!output lang=ansi]`.
+- Colours are written as text with the escape character as `\e`, eg. `\e[33m`, so that they're readable in diffs. A literal `\e[` in the output is written as `\\e[`.
+- The file is only rewritten when the output changes. Code blocks without an `[!output]` marker or `img_paths` are left alone.
+- Rich-codex won't write the output, and the run fails, if:
+  - the code block has no closing fence or `[!output end]` line,
+  - a line of the output would end the code block (a fence or `[!output end]`). Write it to a file instead.
+  - the code block changed while rich-codex was running, for example because a command edited the markdown file.
+
+### Options
+
 - Set `command` in the config comment to run a different command from the one shown in the code block.
-- Colours are written as text with the escape character as `\e`, eg. `\e[33m`, so that they're readable in diffs.
-- The command line itself is never printed, as the code block already shows it. All other config options, such as `terminal_width`, `head` and `extra_env`, work as they do for images.
-- The file is only rewritten when the output changes. Code blocks without an `[!output]` marker are left alone.
+- The command line itself isn't printed, as the code block already shows it. Set `hide_command: false` to print it.
+- All other config options, such as `terminal_width`, `head` and `extra_env`, work as they do for images.
 
 ## Code snippets
 

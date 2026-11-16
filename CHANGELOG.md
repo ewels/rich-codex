@@ -4,11 +4,12 @@
 
 ### New features
 
-- ✨ Write command output as text into markdown code blocks, for docs sites that render ANSI colours as HTML
-  - Put a config comment above a fenced code block with an `[!output]` marker line, and rich-codex replaces the lines after the marker with the output
-  - Colours are written as `\e[33m` style escape codes
+- ✨ Run the command in a markdown code block and save its output as text, for docs sites that render ANSI colours as HTML
+  - Put a config comment above a fenced code block, with `img_paths` to save the output to `.ansi` files, or an `[!output]` marker line to write it into the code block after the marker
+  - `.ansi` files hold raw escape codes. Inside code blocks, colours are written as `\e[33m` style escape codes
   - An empty `<!-- RICH-CODEX -->` comment is now valid config, instead of an error
-- 🐛 Commands with a line starting with `rm`, `cp`, `mv` or `sudo` after the first are now ignored too, not only those that start with one
+- ✨ `.ansi` is a new output format for `img_paths` everywhere, including config files and the command line
+- 🐛 Commands with a part starting with `rm`, `cp`, `mv` or `sudo` after a new line, `;`, `&` or `|` are now ignored too, not only those that start with one. Before, only a literal `&;` was treated as a separator
 
 ## Version 1.4.0 (2026-09-15)
 

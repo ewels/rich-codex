@@ -562,7 +562,7 @@ def main(
     codex_obj.collapse_duplicates()
     codex_obj.confirm_commands()
     codex_obj.check_duplicate_paths()
-    codex_obj.save_all_images()
+    num_save_errors = codex_obj.save_all_images()
     saved_image_paths += codex_obj.saved_img_paths
     num_saved_images += codex_obj.num_img_saved
     num_skipped_images += codex_obj.num_img_skipped
@@ -592,8 +592,11 @@ def main(
         log.info(f"Saved {num_saved_images} images ✨")
     if len(cleaned_paths) > 0:
         log.info(f"Deleted {len(cleaned_paths)} images 💥")
-    if num_skipped_images == 0 and num_saved_images == 0:
+    if num_skipped_images == 0 and num_saved_images == 0 and num_save_errors == 0:
         log.warning("Couldn't find anything to do 🙄")
+    if num_save_errors > 0:
+        log.error("Found errors whilst saving")
+        exit(1)
 
 
 if __name__ == "__main__":

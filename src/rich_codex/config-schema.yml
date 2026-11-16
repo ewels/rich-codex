@@ -44,19 +44,14 @@ properties:
       title: A single output to generate
       type: object
       additionalProperties: false
-      allOf:
-        # Need somewhere to write the output
-        - anyOf:
-            - required:
-                - img_paths
-            - required:
-                - output_blocks
-        # Need either a command or a snippet
-        - anyOf:
-            - required:
-                - command
-            - required:
-                - snippet
+      required:
+        - img_paths
+      # Need either a command or a snippet
+      anyOf:
+        - required:
+            - command
+        - required:
+            - snippet
 
       # Additional properties needed to create an output, beyond config
       properties:
@@ -79,11 +74,10 @@ properties:
         img_paths:
           title: Array of image filenames to generate
           type: array
-          minItems: 1
           items:
             type: string
             title: An image path
-            pattern: "(?i)\\.(svg|png)$"
+            pattern: "(?i)\\.(svg|png|ansi)$"
         # Internal fields, set by rich-codex rather than by the user
         source:
           title: Filename / meta about where the image came from
@@ -94,7 +88,7 @@ properties:
           title: Line number in the source file that the image came from
           type: integer
         output_blocks:
-          title: Markdown code blocks to write the output into, as (file, fence line number) pairs
+          title: Markdown code blocks to write the output into, as (file, fence line number, command) items
           type: array
 
         # Shared config options

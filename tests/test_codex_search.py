@@ -609,8 +609,7 @@ class TestOutputBlocks:
         cs.collapse_duplicates()
         cs.confirm_commands()
         cs.check_duplicate_paths()
-        cs.save_all_images()
-        return errors
+        return errors + cs.save_all_images()
 
     def test_output_is_written_between_the_markers(self, tmp_cwd, codex_search):
         md = write(
@@ -659,11 +658,79 @@ class TestOutputBlocks:
         assert md.read_text().splitlines()[-2:] == ["real", "```"]
 
     def test_multiline_command(self, tmp_cwd, codex_search):
-        md = write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\n  echo one\n\n  echo two\n# [!output]\n```\n")
+        md = write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\n\n  echo one\n\n  echo two\n# [!output]\n```\n")
         cs = codex_search()
         self.run(cs)
-        assert cs.rich_imgs[0].command == "echo one\necho two"
+        assert cs.rich_imgs[0].command == "echo one\n\necho two"
         assert md.read_text().splitlines()[-3:] == ["one", "two", "```"]
+
+    def test_command_keeps_its_indentation(self, tmp_cwd, codex_search):
+        md = write(
+            tmp_cwd / "README.md",
+            "<!-- RICH-CODEX -->\n```sh\npython3 - <<EOF\nfor i in range(2):\n    print(i)\nEOF\n# [!output]\n```\n",
+        )
+        assert self.run(codex_search()) == 0
+        assert md.read_text().endswith("# [!output]\n0\n1\n```\n")
+
+    def test_unclosed_block_is_an_error(self, tmp_cwd, codex_search, caplog):
+        content = "<!-- RICH-CODEX -->\n````sh\necho hi\n# [!output]\n```\n\n## Important section\n\nText\n"
+        md = write(tmp_cwd / "README.md", content)
+        cs = codex_search()
+        assert cs.search_files() == 1
+        assert cs.rich_imgs == []
+        assert "No closing '````'" in caplog.text
+        assert md.read_text() == content
+
+    def test_output_that_ends_the_block_is_not_written(self, tmp_cwd, codex_search, caplog):
+        for output in ["```", "[!output end]"]:
+            content = f"<!-- RICH-CODEX -->\n```sh\nprintf 'a\\n{output}\\nb\\n'\n# [!output]\n```\n"
+            md = write(tmp_cwd / "README.md", content)
+            assert self.run(codex_search()) == 1
+            assert md.read_text() == content
+        assert "would end the code block" in caplog.text
+
+    def test_literal_escapes_are_doubled(self, tmp_cwd, codex_search):
+        md = write(
+            tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\nprintf '%s\\n' 'C:\\e[1] C:\\env'\n# [!output]\n```\n"
+        )
+        self.run(codex_search())
+        assert "# [!output]\nC:\\\\e[1] C:\\env\n```" in md.read_text()
+
+    def test_block_edited_during_the_run_is_an_error(self, tmp_cwd, codex_search, caplog):
+        md = write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\necho hi\n# [!output]\n```\n")
+        cs = codex_search()
+        cs.search_files()
+        edited = "# New title\n\n" + md.read_text()
+        md.write_text(edited)
+        assert cs.save_all_images() == 1
+        assert md.read_text() == edited
+        assert "changed during the run" in caplog.text
+
+    def test_skip_does_not_leak(self, tmp_cwd, codex_search):
+        write(
+            tmp_cwd / "README.md",
+            "<!-- RICH-CODEX\nskip: true\n-->\n```sh\necho hi\n# [!output]\n![`echo inside`](in.svg)\n```\n"
+            "\n![`echo later`](later.svg)\n",
+        )
+        cs = codex_search()
+        cs.search_files()
+        assert [img.command for img in cs.rich_imgs] == ["echo later"]
+
+    def test_output_to_file(self, tmp_cwd, codex_search):
+        content = (
+            "<!-- RICH-CODEX\nimg_paths: [out/hi.ansi, out/hi.svg]\n-->\n```sh\nprintf '\\033[33mhi\\033[0m\\n'\n```\n"
+        )
+        md = write(tmp_cwd / "docs" / "page.md", content)
+        assert self.run(codex_search()) == 0
+        assert md.read_text() == content
+        assert (tmp_cwd / "docs" / "out" / "hi.ansi").read_text() == "\x1b[33mhi\x1b[0m\n"
+        assert "hi" in (tmp_cwd / "docs" / "out" / "hi.svg").read_text()
+        assert "echo" not in (tmp_cwd / "docs" / "out" / "hi.svg").read_text()
+
+    def test_config_file_output_needs_img_paths(self, tmp_cwd, codex_search):
+        write(tmp_cwd / ".rich-codex.yml", "outputs:\n  - command: echo hi\n    output_blocks: [[README.md, 2]]\n")
+        with pytest.raises(ValidationError):
+            codex_search(configs=".rich-codex.yml").parse_configs()
 
     def test_no_command_is_an_error(self, tmp_cwd, codex_search, caplog):
         write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\n# [!output]\n```\n")

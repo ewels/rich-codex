@@ -69,12 +69,12 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
 - 💬 [Markdown comments](https://ewels.github.io/rich-codex/inputs/markdown/#code-snippets)
   - Search markdown files for special HTML / JSX comments.
 - 📝 [Markdown code blocks](https://ewels.github.io/rich-codex/inputs/markdown/#code-block-output)
-  - Write command output as text into code blocks with an `[!output]` marker.
+  - Run the command in a code block and save its output as text, to a file or into the code block.
 - ➡️ [Command-line / action inputs](https://ewels.github.io/rich-codex/inputs/direct_inputs/)
   - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](https://ewels.github.io/rich-codex/inputs/config_file/)
   - Use one or more YAML config files for multiple images and more complex customisation.
 
-Images can be generated as SVG or PNG (detected by filename extension).
+Images can be generated as SVG or PNG, or the output saved as text with ANSI colour codes in an `.ansi` file (detected by filename extension).
 
 > **Keep reading!** 👉 https://ewels.github.io/rich-codex/

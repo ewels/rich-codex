@@ -1,7 +1,8 @@
 import logging
 import re
+import textwrap
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import yaml
 from jsonschema.exceptions import ValidationError
@@ -31,35 +32,55 @@ FENCE_RE = re.compile(r"\s*(?P<fence>`{3,}|~{3,})")
 # eg. # [!output]  or  // [!output lang=ansi]
 OUTPUT_MARKER_RE = re.compile(r"\[!output(?:\s[^\]]*)?\]")
 OUTPUT_END = "[!output end]"
+# A literal '\e[' (or '\x1b[' ...) in the output, which would otherwise read as an escape code
+LITERAL_ESCAPE_RE = re.compile(r"\\(?=(?:e|x1b|033|u001b)\[)", re.IGNORECASE)
 
 
-def find_output_region(lines: list[str], fence_idx: int) -> tuple[str, int, int] | None:
-    """Find the '[!output]' region of the fenced code block that opens at lines[fence_idx].
+class CodeBlock(NamedTuple):
+    """A fenced code block in a markdown file."""
 
-    Returns the command written above the marker, and the start and end of the slice of
-    lines to replace. None if the line doesn't open a code block or the block has no marker.
+    fence: str
+    command: str
+    # Slice of lines after the '[!output]' marker, or None if the block has no marker
+    output: tuple[int, int] | None
+    # Index of the line that ends the block
+    end: int
+
+
+def closes_fence(fence: str, line: str) -> bool:
+    """Whether a line closes a code block opened with 'fence'."""
+    return re.fullmatch(rf"\s*{re.escape(fence[0])}{{{len(fence)},}}\s*", line) is not None
+
+
+def parse_code_block(lines: list[str], fence_idx: int) -> CodeBlock | None:
+    """Parse the fenced code block that opens at lines[fence_idx].
+
+    The command is the code above the '[!output]' marker, or all of it if there's no marker.
+    Returns None if the line doesn't open a code block, and raises ValueError if the block
+    is never closed.
     """
     fence_match = FENCE_RE.match(lines[fence_idx])
     if not fence_match:
         return None
     fence = fence_match["fence"]
-    closing_fence_re = re.compile(rf"\s*{re.escape(fence[0])}{{{len(fence)},}}\s*$")
-    start: int | None = None
     command_lines: list[str] = []
-    end = len(lines)
+    start: int | None = None
     for idx in range(fence_idx + 1, len(lines)):
         line = lines[idx]
-        if closing_fence_re.match(line) or (start is not None and OUTPUT_END in line):
-            end = idx
-            break
+        if closes_fence(fence, line) or (start is not None and OUTPUT_END in line):
+            command = textwrap.dedent("\n".join(ln.rstrip("\r\n") for ln in command_lines)).strip("\n")
+            return CodeBlock(fence, command, None if start is None else (start, idx), idx)
         if start is None:
             if OUTPUT_MARKER_RE.search(line) and OUTPUT_END not in line:
                 start = idx + 1
-            elif line.strip():
-                command_lines.append(line.strip())
-    if start is None:
-        return None
-    return "\n".join(command_lines), start, end
+            else:
+                command_lines.append(line)
+    raise ValueError(f"No closing '{fence}' or '{OUTPUT_END}' for the code block")
+
+
+def escape_output_line(line: str) -> str:
+    r"""Write ANSI escape codes as a literal '\e', doubling any backslash that would read as one."""
+    return LITERAL_ESCAPE_RE.sub(r"\\\\", line).replace("\x1b", "\\e")
 
 
 class CodexSearch:
@@ -244,7 +265,7 @@ class CodexSearch:
         for file in files_to_search:
             file_rel_fn = file.relative_to(self.cwd)
             log.debug(f"Searching: [magenta]{file_rel_fn}[/]")
-            with open(file) as fh:
+            with open(file, encoding="utf-8") as fh:
                 lines = fh.readlines()
                 in_config = False
                 awaiting_block = False
@@ -279,31 +300,51 @@ class CodexSearch:
                         local_config_str = ""
                         awaiting_block = True
 
-                    # A config comment directly above a code block with an '[!output]' marker
-                    output_region = None
+                    # A config comment directly above a code block, with an '[!output]' marker
+                    # or 'img_paths' to write the output to
+                    code_block = None
                     if awaiting_block and line.strip():
                         awaiting_block = False
-                        output_region = find_output_region(lines, line_number - 1)
+                        try:
+                            code_block = parse_code_block(lines, line_number - 1)
+                        except ValueError as e:
+                            log.error(f"[red][✗] {e} in '{file_rel_fn}' line {line_number}")
+                            local_config = {}
+                            num_errors += 1
+                            continue
+                        if code_block and (code_block.output or "img_paths" in local_config):
+                            # Don't search the code or output as markdown
+                            skip_to_line = code_block.end + 1
+                            if local_config.get("skip"):
+                                local_config = {}
+                                continue
+                        else:
+                            code_block = None
 
                     # Look for images
                     # Both patterns capture 'img_path' and 'title'; only the command one has 'cmd'
                     img_cmd_match = img_cmd_re.match(line)
                     img_match = img_cmd_match or img_snippet_re.match(line)
-                    if (output_region or img_match) and not local_config.get("skip"):
+                    if (code_block or img_match) and not local_config.get("skip"):
                         # Logging string of original local config
                         local_config_logmsg = f" with config: {local_config}" if len(local_config) > 0 else ""
 
-                        if output_region:
-                            block_command, _, skip_to_line = output_region
-                            local_config["command"] = local_config.get("command") or block_command
+                        if code_block:
+                            local_config["command"] = local_config.get("command") or code_block.command
                             if not local_config["command"]:
                                 log.error(f"[red][✗] No command for code block in '{file_rel_fn}' line {line_number}")
                                 local_config = {}
                                 num_errors += 1
                                 continue
                             # The code block already shows the command
-                            local_config["hide_command"] = True
-                            local_config["output_blocks"] = [(str(file), line_number)]
+                            local_config["hide_command"] = local_config.get("hide_command", True)
+                            if code_block.output:
+                                local_config["output_blocks"] = [(str(file), line_number, code_block.command)]
+                            # Relative to the markdown file, like an image path
+                            local_config["img_paths"] = [
+                                str((Path(file).parent / img_path).resolve())
+                                for img_path in local_config.get("img_paths", [])
+                            ]
                             num_commands += 1
                             img_type = "[blue]code block[/]"
 
@@ -488,7 +529,7 @@ class CodexSearch:
                     rel_source = f"{rel_source}:{img_obj.source_line}"
                 outputs = "\n".join(
                     [self._path_link(p) for p in img_obj.img_paths]
-                    + [self._path_link(p, f"{self._relative_path(p)}:{line}") for p, line in img_obj.output_blocks]
+                    + [self._path_link(p, f"{self._relative_path(p)}:{line}") for p, line, _ in img_obj.output_blocks]
                 )
                 table.add_row(img_obj.command, outputs, self._path_link(img_obj.source, rel_source))
 
@@ -526,41 +567,58 @@ class CodexSearch:
                 src_paths = "', '".join({self._relative_path(s) for s in src})
                 log.warning(f"Duplicate output file path '{img_path_rel}' found in '{src_paths}'")
 
-    def save_all_images(self) -> None:
-        """Save the images and code block outputs that we have collected."""
-        block_outputs: dict[str, dict[int, list[str]]] = {}
+    def save_all_images(self) -> int:
+        """Save the images and code block outputs that we have collected. Returns the number of errors."""
+        block_outputs: dict[str, dict[int, tuple[str, list[str]]]] = {}
         for img_obj in self.rich_imgs:
             img_obj.get_output()
             text = img_obj.ansi_text() if img_obj.output_blocks else None
             if text is not None:
-                for path, fence_line in img_obj.output_blocks:
-                    block_outputs.setdefault(path, {})[fence_line] = text
+                for path, fence_line, block_command in img_obj.output_blocks:
+                    block_outputs.setdefault(path, {})[fence_line] = (block_command, text)
             if img_obj.img_paths or not img_obj.output_blocks:
                 img_obj.save_images()
             self.saved_img_paths += img_obj.saved_img_paths
             self.num_img_saved += img_obj.num_img_saved
             self.num_img_skipped += img_obj.num_img_skipped
         # Only edit files once every command has run, as edits shift the line numbers
-        for path, outputs in block_outputs.items():
-            self.save_output_blocks(path, outputs)
+        return sum(self.save_output_blocks(path, outputs) for path, outputs in block_outputs.items())
 
-    def save_output_blocks(self, path: str, outputs: dict[int, list[str]]) -> None:
-        """Write command output into the code blocks of one file, keyed by fence line number."""
-        with open(path, newline="") as fh:
+    def save_output_blocks(self, path: str, outputs: dict[int, tuple[str, list[str]]]) -> int:
+        """Write command output into the code blocks of one file, keyed by fence line number.
+
+        Returns the number of blocks that couldn't be written.
+        """
+        num_errors = 0
+        with open(path, encoding="utf-8", newline="") as fh:
             lines = fh.readlines()
         new_lines = list(lines)
         # Bottom-up, so that each edit leaves the line numbers above it unchanged
         for fence_line in sorted(outputs, reverse=True):
+            block_command, text = outputs[fence_line]
             block_name = f"{self._relative_path(path)}:{fence_line}"
-            region = find_output_region(lines, fence_line - 1)
-            if region is None:
-                log.error(f"[red]Couldn't find the code block at '{block_name}'")
+            try:
+                block = parse_code_block(lines, fence_line - 1) if fence_line <= len(lines) else None
+            except ValueError:
+                block = None
+            # A command may have edited the file since it was searched
+            if block is None or block.output is None or block.command != block_command:
+                log.error(f"[red][✗] The code block at '{block_name}' changed during the run, not writing its output")
+                num_errors += 1
                 continue
-            _, start, end = region
+            output_lines = [escape_output_line(line) for line in text]
+            if any(closes_fence(block.fence, line) or OUTPUT_END in line for line in output_lines):
+                log.error(
+                    f"[red][✗] The output for '{block_name}' has a line that would end the code block, "
+                    "not writing it. Write it to a file with 'img_paths' instead."
+                )
+                num_errors += 1
+                continue
+            start, end = block.output
             fence = lines[fence_line - 1]
             indent = fence[: len(fence) - len(fence.lstrip())]
             newline = "\r\n" if fence.endswith("\r\n") else "\n"
-            replacement = [f"{indent}{line}{newline}" if line else newline for line in outputs[fence_line]]
+            replacement = [f"{indent}{line}{newline}" if line else newline for line in output_lines]
             if new_lines[start:end] == replacement:
                 self.num_img_skipped += 1
                 log.debug(f"[dim]Skipped: '{block_name}' (no change)")
@@ -569,6 +627,7 @@ class CodexSearch:
                 self.num_img_saved += 1
                 log.info(f"Saved: '{block_name}'")
         if new_lines != lines:
-            with open(path, "w", newline="") as fh:
+            with open(path, "w", encoding="utf-8", newline="") as fh:
                 fh.writelines(new_lines)
             self.saved_img_paths.append(path)
+        return num_errors

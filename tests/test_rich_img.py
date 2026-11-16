@@ -395,7 +395,7 @@ class TestAnsiText:
     def test_escapes_are_written_out(self, rich_img, tmp_cwd):
         img = rich_img(command=r"printf '\033[33mhi\033[0m'", hide_command=True)
         img.get_output()
-        assert img.ansi_text() == [r"\e[33mhi\e[0m"]
+        assert img.ansi_text() == ["\x1b[33mhi\x1b[0m"]
 
     def test_trailing_whitespace_is_dropped(self, rich_img, tmp_cwd):
         img = rich_img(command=r"printf 'a   \n\nb\n\n\n'", hide_command=True, terminal_min_width=80)
@@ -931,7 +931,7 @@ class TestSaveImages:
         out = tmp_cwd / "out.pdf"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert "Can only save SVG and PNG images" in caplog.text
+        assert "Can only save SVG, PNG and ANSI files" in caplog.text
         assert not out.exists()
         assert img.num_img_saved == 0
 
@@ -976,3 +976,10 @@ def test_ignored_commands_are_matched_as_prefixes(rich_img, tmp_cwd):
     img.run_command()
     assert img.aborted is True
     assert rich_img(command="echo rm").aborted is False
+
+
+def test_ignored_commands_after_a_separator(rich_img, tmp_cwd):
+    for command in ["echo hi && rm -f x", "echo hi; sudo true", "echo hi | mv a b", "echo hi\ncp a b"]:
+        img = rich_img(command=command)
+        img.run_command()
+        assert img.aborted is True, command
