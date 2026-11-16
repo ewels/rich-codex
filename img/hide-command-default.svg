@@ -1,0 +1,57 @@
+<svg class="rich-terminal" viewBox="0 0 994 98.8" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generated with Rich https://www.textualize.io -->
+    <!--
+    Embedded by rich-codex, subset to the characters used above: Fira Code.
+    Copyright (c) 2014, The Fira Code Project Authors (https://github.com/tonsky/FiraCode)
+    Licensed under the SIL Open Font License, Version 1.1 (https://scripts.sil.org/OFL)
+    -->
+    <style>
+
+    @font-face {
+        font-family: "Fira Code";
+        src: url("data:font/woff2;base64,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") format("woff2");
+        font-style: normal;
+        font-weight: 400;
+    }
+
+    .rich-codex-3516992635-matrix {
+        font-family: Fira Code, monospace;
+        font-size: 20px;
+        line-height: 24.4px;
+        font-variant-east-asian: full-width;
+    }
+
+    .rich-codex-3516992635-title {
+        font-size: 18px;
+        font-weight: bold;
+        font-family: arial;
+    }
+
+    .rich-codex-3516992635-r1 { fill: #c5c8c6 }
+    </style>
+
+    <defs>
+    <clipPath id="rich-codex-3516992635-clip-terminal">
+      <rect x="0" y="0" width="975.0" height="47.8" />
+    </clipPath>
+    <clipPath id="rich-codex-3516992635-line-0">
+    <rect x="0" y="1.5" width="976" height="24.65"/>
+            </clipPath>
+    </defs>
+
+    <rect fill="#292929" stroke="rgba(255,255,255,0.35)" stroke-width="1" x="1" y="1" width="992" height="96.8" rx="8"/>
+            <g transform="translate(26,22)">
+            <circle cx="0" cy="0" r="7" fill="#ff5f57"/>
+            <circle cx="22" cy="0" r="7" fill="#febc2e"/>
+            <circle cx="44" cy="0" r="7" fill="#28c840"/>
+            </g>
+        
+    <g transform="translate(9, 41)" clip-path="url(#rich-codex-3516992635-clip-terminal)">
+    
+    <g class="rich-codex-3516992635-matrix">
+    <text class="rich-codex-3516992635-r1" x="0" y="20" textLength="536.8" clip-path="url(#rich-codex-3516992635-line-0)">$&#160;echo&#160;&quot;See&#160;the&#160;command&#160;printed&#160;at&#160;the&#160;top?&quot;</text><text class="rich-codex-3516992635-r1" x="976" y="20" textLength="12.2" clip-path="url(#rich-codex-3516992635-line-0)">
+</text><text class="rich-codex-3516992635-r1" x="0" y="44.4" textLength="427" clip-path="url(#rich-codex-3516992635-line-1)">See&#160;the&#160;command&#160;printed&#160;at&#160;the&#160;top?</text><text class="rich-codex-3516992635-r1" x="976" y="44.4" textLength="12.2" clip-path="url(#rich-codex-3516992635-line-1)">
+</text>
+    </g>
+    </g>
+</svg>
