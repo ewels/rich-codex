@@ -115,7 +115,7 @@ Both comment styles are recognised in every file that is searched, so you can us
 ## Code block output
 
 Rich-codex can also write a command's output as text, straight into a fenced code block in your markdown.
-This is useful for docs sites that render ANSI colour codes in code blocks as HTML, such as Astro Starlight with the [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks) plugin.
+This is useful for docs sites that render ANSI colour codes in code blocks as HTML, such as Astro Starlight with the [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks) plugin (version 1.4.0 or later, with `runnable.outputLang=ansi` on the code block).
 
 Put a config comment directly above the code block, and an `[!output]` marker line inside it.
 Rich-codex runs the lines above the marker as the command, and replaces everything between the marker and the closing fence (or an `[!output end]` line) with the output:
