@@ -742,6 +742,22 @@ class TestOutputBlocks:
         assert cs.rich_imgs[0].command == "echo one\necho two"
         assert md.read_text().endswith("# [!output]\none\ntwo\n```\n")
 
+    @pytest.mark.parametrize(
+        ("lang", "code", "command"),
+        [
+            # Lines without a prompt are output, unless they continue a command
+            ("console", ["$ echo a \\\\", "  b", "a b", "> echo c", "c"], "echo a \\\\\n  b\necho c"),
+            ("sh", ["$ cat <<EOF", "> hi", "> EOF", "hi"], "cat <<EOF\nhi\nEOF"),
+            # No prompts: all of it is the command
+            ("sh", ["echo a", "echo b"], "echo a\necho b"),
+            # Prompts only count in terminal languages
+            ("text", ["$ echo a", "a"], "$ echo a\na"),
+        ],
+    )
+    def test_shell_prompts_match_starlight_codeblocks(self, lang, code, command):
+        lines = [f"```{lang} runnable.static\n", *[f"{line}\n" for line in code], "```\n"]
+        assert codex_search_module.parse_code_block(lines, 0).command == command
+
     @pytest.mark.parametrize("attr", ['"out/hi.ansi"', "'out/hi.ansi'", "out/hi.ansi"])
     def test_output_file_from_the_fence(self, tmp_cwd, codex_search, attr):
         content = f"{{/* RICH-CODEX */}}\n```sh runnable.static runnable.outputFile={attr}\n$ echo hi\n```\n"

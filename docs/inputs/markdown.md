@@ -156,7 +156,7 @@ If the output has a line that would end the block, rich-codex doesn't write it a
 
 ### Good to know
 
-- A `$ ` prompt at the start of a line isn't part of the command.
+- Shell prompts work as in starlight-codeblocks. In a terminal block (`sh`, `console`, ...) with lines that start with `$ ` or `> `, only those lines are run, without the prompt, plus lines that continue them with a trailing `\`. The other lines are output.
 - `command` in the config comment runs something other than what the block shows. Other options work as they do for images.
 - Text output never has the command line, or hyperlinks.
 - Commands get `FORCE_COLOR=1`, and `COLUMNS` and `TERMINAL_WIDTH` from `terminal_width`.

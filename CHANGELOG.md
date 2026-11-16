@@ -10,7 +10,7 @@
 
 - ✨ Run the command in a markdown code block and save its output as text with colours, for docs sites that show ANSI colours ([docs](https://ewels.github.io/rich-codex/inputs/markdown/#code-block-output))
   - The output goes to a `.ansi` file (`runnable.outputFile` on the fence line, or `img_paths`), or into the code block after an `[!output]` line
-  - A `$ ` prompt isn't part of the command, and code blocks inside another code block are never run
+  - Shell prompts (`$ ` and `> `) work as in starlight-codeblocks, and code blocks inside another code block are never run
 - ✨ `.ansi` is a new output format for `img_paths` everywhere. Text output never has the command line or hyperlinks
 - ✨ Commands get `FORCE_COLOR=1`, and `COLUMNS` and `TERMINAL_WIDTH` from `terminal_width`. A command that isn't found gives a warning
 - ✨ An empty `<!-- RICH-CODEX -->` comment is valid config

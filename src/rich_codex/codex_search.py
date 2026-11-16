@@ -28,14 +28,18 @@ with config_schema_fn.open() as fh:
     CONFIG_SCHEMA = yaml.safe_load(fh)
 
 # eg. ```sh  or  ~~~~
-FENCE_RE = re.compile(r"\s*(?P<fence>`{3,}|~{3,})")
+FENCE_RE = re.compile(r"\s*(?P<fence>`{3,}|~{3,})\s*(?P<lang>[^\s{]*)")
 # eg. # [!output]  or  // [!output lang=ansi]
 OUTPUT_MARKER_RE = re.compile(r"\[!output(?:\s[^\]]*)?\]")
 OUTPUT_END = "[!output end]"
 # eg. ```sh runnable.outputFile="out/help.ansi"  (starlight-codeblocks)
 OUTPUT_FILE_RE = re.compile(r"""(?:^|\s)runnable\.outputFile=(?:"(?P<dq>[^"]*)"|'(?P<sq>[^']*)'|(?P<bare>[^\s"']+))""")
-# eg. $ python colors.py  (a shell prompt, which starlight-codeblocks shows but doesn't copy)
-PROMPT_RE = re.compile(r"^(\s*)\$ ")
+# Shell prompts and terminal languages, as starlight-codeblocks and Expressive Code have them
+PROMPTS = ("$ ", "> ")
+TERMINAL_LANGUAGES = {
+    *("ansi", "bash", "bat", "batch", "cmd", "console", "fish", "nu", "nushell", "powershell", "ps", "ps1"),
+    *("psd1", "psm1", "sh", "shell", "shellscript", "shellsession", "zsh"),
+}
 # A literal '\e[' (or '\x1b[' ...) in the output, which would otherwise read as an escape code
 LITERAL_ESCAPE_RE = re.compile(r"\\(?=(?:e|x1b|033|u001b)\[)", re.IGNORECASE)
 
@@ -58,11 +62,27 @@ def closes_fence(fence: str, line: str) -> bool:
     return re.fullmatch(rf"\s*{re.escape(fence[0])}{{{len(fence)},}}\s*", line) is not None
 
 
+def shell_commands(lines: list[str]) -> list[str]:
+    """Get the commands in a terminal session, as starlight-codeblocks copies them.
+
+    That's the lines with a prompt, without it, and the lines that continue them with a
+    trailing backslash. The other lines are output.
+    """
+    commands: list[str] = []
+    continued = False
+    for line in lines:
+        prompt = next((p for p in PROMPTS if line.startswith(p)), None)
+        if prompt or continued:
+            commands.append(line.removeprefix(prompt or ""))
+        continued = (prompt is not None or continued) and line.rstrip().endswith("\\")
+    return commands
+
+
 def parse_code_block(lines: list[str], fence_idx: int) -> CodeBlock | None:
     """Parse the fenced code block that opens at lines[fence_idx].
 
-    The command is the code above the '[!output]' marker, or all of it if there's no marker,
-    without any '$ ' shell prompts.
+    The command is the code above the '[!output]' marker, or all of it if there's no marker.
+    In a terminal block with prompts, only the commands after them are run.
     Returns None if the line doesn't open a code block, and raises ValueError if the block
     is never closed.
     """
@@ -77,13 +97,16 @@ def parse_code_block(lines: list[str], fence_idx: int) -> CodeBlock | None:
     for idx in range(fence_idx + 1, len(lines)):
         line = lines[idx]
         if closes_fence(fence, line) or (start is not None and OUTPUT_END in line):
-            command = textwrap.dedent("\n".join(ln.rstrip("\r\n") for ln in command_lines)).strip("\n")
+            code = textwrap.dedent("\n".join(ln.rstrip("\r\n") for ln in command_lines)).splitlines()
+            if fence_match["lang"] in TERMINAL_LANGUAGES and any(ln.startswith(PROMPTS) for ln in code):
+                code = shell_commands(code)
+            command = "\n".join(code).strip("\n")
             return CodeBlock(fence, command, output_file, None if start is None else (start, idx), idx)
         if start is None:
             if OUTPUT_MARKER_RE.search(line) and OUTPUT_END not in line:
                 start = idx + 1
             else:
-                command_lines.append(PROMPT_RE.sub(r"\1", line))
+                command_lines.append(line)
     raise ValueError(f"No closing '{fence}' or '{OUTPUT_END}' for the code block")
 
 
