@@ -136,7 +136,7 @@ steps:
       python-version: "3.x"
 
   - name: Install rich-codex
-    run: pip install rich-codex==1.4.0
+    run: pip install rich-codex==1.5.0
 
   - name: Generate terminal images with rich-codex
     uses: ewels/rich-codex@v1
