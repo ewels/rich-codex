@@ -120,7 +120,7 @@ Put a config comment directly above the code block (it can be empty), and say wh
 
 ### To a file
 
-Set `runnable.outputFile` on the fence line, relative to the markdown file. starlight-codeblocks shows the file as the block's output, in colour ([needs starlight-codeblocks#35](https://github.com/ewels/starlight-codeblocks/pull/35)).
+Set `runnable.outputFile` on the fence line, relative to the markdown file. starlight-codeblocks shows the file as the block's output, in colour (needs [starlight-codeblocks 1.4.1](https://github.com/ewels/starlight-codeblocks/releases/tag/v1.4.1) or later).
 
 <!-- prettier-ignore-start -->
 
