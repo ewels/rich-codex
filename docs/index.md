@@ -60,10 +60,10 @@ It collects either commands or code snippets, together with output filenames and
 
 <!-- prettier-ignore-start -->
 !!! tip
-    Rich-codex creates the images that your markdown docs expect. It doesn't require a HTML build-step and doesn't make any changes to your markdown or its output. As such, it's compatible with _**any documentation engine**_, including rendering markdown on [github.com](https://github.com).
+    Rich-codex creates the images that your markdown docs expect. It doesn't require a HTML build-step and doesn't make any changes to your markdown, unless you ask it to write command output into a code block. As such, it's compatible with _**any documentation engine**_, including rendering markdown on [github.com](https://github.com).
 <!-- prettier-ignore-end -->
 
-Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
+Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in five different ways:
 
 <!-- prettier-ignore-start -->
 <!-- (mkdocs needs 4-space indentation for nested lists) -->
@@ -72,6 +72,8 @@ Rich-codex needs **inputs** (commands / snippets) and **output filenames** to wo
     - Search markdown files for image tags with command alt text. eg: `` ![`rich-codex --help`](img/rich-codex-help.svg) ``
 - 💬 [Markdown comments](inputs/markdown.md#code-snippets)
     - Search markdown files for special HTML / JSX comments.
+- 📝 [Markdown code blocks](inputs/markdown.md#code-block-output)
+    - Write command output as text into code blocks with an `[!output]` marker.
 - ➡️ [Command-line / action inputs](inputs/direct_inputs.md)
     - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](inputs/config_file.md)

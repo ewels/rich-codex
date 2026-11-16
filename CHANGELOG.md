@@ -1,5 +1,15 @@
 # Changelog: rich-codex
 
+## Version 1.5.0.dev0
+
+### New features
+
+- ✨ Write command output as text into markdown code blocks, for docs sites that render ANSI colours as HTML
+  - Put a config comment above a fenced code block with an `[!output]` marker line, and rich-codex replaces the lines after the marker with the output
+  - Colours are written as `\e[33m` style escape codes
+  - An empty `<!-- RICH-CODEX -->` comment is now valid config, instead of an error
+- 🐛 Commands with a line starting with `rm`, `cp`, `mv` or `sudo` after the first are now ignored too, not only those that start with one
+
 ## Version 1.4.0 (2026-09-15)
 
 ### Breaking changes

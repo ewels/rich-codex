@@ -44,14 +44,19 @@ properties:
       title: A single output to generate
       type: object
       additionalProperties: false
-      required:
-        - img_paths
-      # Need either a command or a snippet
-      anyOf:
-        - required:
-            - command
-        - required:
-            - snippet
+      allOf:
+        # Need somewhere to write the output
+        - anyOf:
+            - required:
+                - img_paths
+            - required:
+                - output_blocks
+        # Need either a command or a snippet
+        - anyOf:
+            - required:
+                - command
+            - required:
+                - snippet
 
       # Additional properties needed to create an output, beyond config
       properties:
@@ -88,6 +93,9 @@ properties:
         source_line:
           title: Line number in the source file that the image came from
           type: integer
+        output_blocks:
+          title: Markdown code blocks to write the output into, as (file, fence line number) pairs
+          type: array
 
         # Shared config options
         extra_env: { "$ref": "#/$defs/extra_env" }

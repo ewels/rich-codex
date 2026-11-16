@@ -112,6 +112,36 @@ Both comment styles are recognised in every file that is searched, so you can us
 
 <!-- prettier-ignore-end -->
 
+## Code block output
+
+Rich-codex can also write a command's output as text, straight into a fenced code block in your markdown.
+This is useful for docs sites that render ANSI colour codes in code blocks as HTML, such as Astro Starlight with the [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks) plugin.
+
+Put a config comment directly above the code block, and an `[!output]` marker line inside it.
+Rich-codex runs the lines above the marker as the command, and replaces everything between the marker and the closing fence (or an `[!output end]` line) with the output:
+
+<!-- prettier-ignore-start -->
+
+````markdown
+<!-- RICH-CODEX terminal_width: 80 -->
+```sh
+printf '\033[1;32m✓\033[0m All checks passed\n'
+# [!output]
+\e[1;32m✓\e[0m All checks passed
+# [!output end]
+```
+````
+
+<!-- prettier-ignore-end -->
+
+- The comment can be a one-line or multi-line config comment, and can be empty (`<!-- RICH-CODEX -->`).
+  Blank lines between it and the code block are fine.
+- The text before the marker (`#`, `//`, ...) doesn't matter, and anything after `[!output` inside the brackets is ignored, eg. `[!output lang=ansi]`.
+- Set `command` in the config comment to run a different command from the one shown in the code block.
+- Colours are written as text with the escape character as `\e`, eg. `\e[33m`, so that they're readable in diffs.
+- The command line itself is never printed, as the code block already shows it. All other config options, such as `terminal_width`, `head` and `extra_env`, work as they do for images.
+- The file is only rewritten when the output changes. Code blocks without an `[!output]` marker are left alone.
+
 ## Code snippets
 
 In addition to running commands, you can format code blocks or "snippets".

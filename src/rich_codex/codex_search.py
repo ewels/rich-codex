@@ -26,6 +26,41 @@ config_schema_fn = Path(__file__).parent / "config-schema.yml"
 with config_schema_fn.open() as fh:
     CONFIG_SCHEMA = yaml.safe_load(fh)
 
+# eg. ```sh  or  ~~~~
+FENCE_RE = re.compile(r"\s*(?P<fence>`{3,}|~{3,})")
+# eg. # [!output]  or  // [!output lang=ansi]
+OUTPUT_MARKER_RE = re.compile(r"\[!output(?:\s[^\]]*)?\]")
+OUTPUT_END = "[!output end]"
+
+
+def find_output_region(lines: list[str], fence_idx: int) -> tuple[str, int, int] | None:
+    """Find the '[!output]' region of the fenced code block that opens at lines[fence_idx].
+
+    Returns the command written above the marker, and the start and end of the slice of
+    lines to replace. None if the line doesn't open a code block or the block has no marker.
+    """
+    fence_match = FENCE_RE.match(lines[fence_idx])
+    if not fence_match:
+        return None
+    fence = fence_match["fence"]
+    closing_fence_re = re.compile(rf"\s*{re.escape(fence[0])}{{{len(fence)},}}\s*$")
+    start: int | None = None
+    command_lines: list[str] = []
+    end = len(lines)
+    for idx in range(fence_idx + 1, len(lines)):
+        line = lines[idx]
+        if closing_fence_re.match(line) or (start is not None and OUTPUT_END in line):
+            end = idx
+            break
+        if start is None:
+            if OUTPUT_MARKER_RE.search(line) and OUTPUT_END not in line:
+                start = idx + 1
+            elif line.strip():
+                command_lines.append(line.strip())
+    if start is None:
+        return None
+    return "\n".join(command_lines), start, end
+
 
 class CodexSearch:
     """File search class for rich-codex.
@@ -210,12 +245,16 @@ class CodexSearch:
             file_rel_fn = file.relative_to(self.cwd)
             log.debug(f"Searching: [magenta]{file_rel_fn}[/]")
             with open(file) as fh:
-                line_number = 0
+                lines = fh.readlines()
                 in_config = False
+                awaiting_block = False
+                skip_to_line = 0
                 comment_end: str | None = None
                 local_config_str = ""
-                for line in fh:
-                    line_number += 1
+                for line_number, line in enumerate(lines, 1):
+                    # Don't search output that rich-codex wrote itself
+                    if line_number <= skip_to_line:
+                        continue
 
                     # Keep saving config if we're in a config block
                     if in_config:
@@ -228,7 +267,8 @@ class CodexSearch:
                     # Parse +  validate config yaml
                     if local_config_str != "" and not in_config:
                         try:
-                            local_config = yaml.safe_load(local_config_str)
+                            # An empty comment is enough to mark a code block for output
+                            local_config = yaml.safe_load(local_config_str.strip() or "{}")
                             if not isinstance(local_config, dict):
                                 raise ValueError("config YAML is not a dictionary")
                         except (yaml.YAMLError, ValueError) as e:
@@ -237,43 +277,65 @@ class CodexSearch:
                             local_config = {}
                             num_errors += 1
                         local_config_str = ""
+                        awaiting_block = True
+
+                    # A config comment directly above a code block with an '[!output]' marker
+                    output_region = None
+                    if awaiting_block and line.strip():
+                        awaiting_block = False
+                        output_region = find_output_region(lines, line_number - 1)
 
                     # Look for images
                     # Both patterns capture 'img_path' and 'title'; only the command one has 'cmd'
                     img_cmd_match = img_cmd_re.match(line)
                     img_match = img_cmd_match or img_snippet_re.match(line)
-                    if img_match and not local_config.get("skip"):
+                    if (output_region or img_match) and not local_config.get("skip"):
                         # Logging string of original local config
                         local_config_logmsg = f" with config: {local_config}" if len(local_config) > 0 else ""
 
-                        m = img_match.groupdict()
-
-                        # Get the command and title from a command regex match
-                        if img_cmd_match:
-                            local_config["command"] = m["cmd"]
-                            # Save the title if set
-                            if m["title"]:
-                                local_config["title"] = m["title"].strip("'\" ")
-
-                        # Counters for commands / snippets
-                        if "command" in local_config:
+                        if output_region:
+                            block_command, _, skip_to_line = output_region
+                            local_config["command"] = local_config.get("command") or block_command
+                            if not local_config["command"]:
+                                log.error(f"[red][✗] No command for code block in '{file_rel_fn}' line {line_number}")
+                                local_config = {}
+                                num_errors += 1
+                                continue
+                            # The code block already shows the command
+                            local_config["hide_command"] = True
+                            local_config["output_blocks"] = [(str(file), line_number)]
                             num_commands += 1
-                            img_type = "[blue]command[/]"
-                        elif local_config.get("snippet", "") != "":
-                            num_snippets += 1
-                            img_type = "[red]snippet[/]"
-                        # Just a regular image with no command / snippet - carry on
-                        else:
-                            log.debug(f"[dim]Skipped markdown image, line {line_number}: {m}")
-                            if len(local_config) > 0:
-                                log.warning(f"Skipped image but local_config was not empty: {local_config}")
-                            local_config = {}
-                            local_config_str = ""
-                            continue
+                            img_type = "[blue]code block[/]"
 
-                        # Set the image path (append in case any others were in the config)
-                        img_path = Path(file).parent / Path(m["img_path"].strip())
-                        local_config["img_paths"] = local_config.get("img_paths", []) + [str(img_path.resolve())]
+                        elif img_match:
+                            m = img_match.groupdict()
+
+                            # Get the command and title from a command regex match
+                            if img_cmd_match:
+                                local_config["command"] = m["cmd"]
+                                # Save the title if set
+                                if m["title"]:
+                                    local_config["title"] = m["title"].strip("'\" ")
+
+                            # Counters for commands / snippets
+                            if "command" in local_config:
+                                num_commands += 1
+                                img_type = "[blue]command[/]"
+                            elif local_config.get("snippet", "") != "":
+                                num_snippets += 1
+                                img_type = "[red]snippet[/]"
+                            # Just a regular image with no command / snippet - carry on
+                            else:
+                                log.debug(f"[dim]Skipped markdown image, line {line_number}: {m}")
+                                if len(local_config) > 0:
+                                    log.warning(f"Skipped image but local_config was not empty: {local_config}")
+                                local_config = {}
+                                local_config_str = ""
+                                continue
+
+                            # Set the image path (append in case any others were in the config)
+                            img_path = Path(file).parent / Path(m["img_path"].strip())
+                            local_config["img_paths"] = local_config.get("img_paths", []) + [str(img_path.resolve())]
 
                         # Set other config defaults if not supplied
                         local_config["working_dir"] = local_config.get("working_dir", str(Path(file).parent))
@@ -388,6 +450,7 @@ class CodexSearch:
             ri_hash = ri._hash_no_fn()
             if ri_hash in merged_imgs:
                 merged_imgs[ri_hash].img_paths.extend(ri.img_paths)
+                merged_imgs[ri_hash].output_blocks.extend(ri.output_blocks)
             else:
                 merged_imgs[ri_hash] = ri
         log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
@@ -423,7 +486,10 @@ class CodexSearch:
                 rel_source = self._relative_path(img_obj.source)
                 if img_obj.source_line:
                     rel_source = f"{rel_source}:{img_obj.source_line}"
-                outputs = "\n".join(self._path_link(p) for p in img_obj.img_paths)
+                outputs = "\n".join(
+                    [self._path_link(p) for p in img_obj.img_paths]
+                    + [self._path_link(p, f"{self._relative_path(p)}:{line}") for p, line in img_obj.output_blocks]
+                )
                 table.add_row(img_obj.command, outputs, self._path_link(img_obj.source, rel_source))
 
         if table.row_count == 0:
@@ -461,10 +527,48 @@ class CodexSearch:
                 log.warning(f"Duplicate output file path '{img_path_rel}' found in '{src_paths}'")
 
     def save_all_images(self) -> None:
-        """Save the images that we have collected."""
+        """Save the images and code block outputs that we have collected."""
+        block_outputs: dict[str, dict[int, list[str]]] = {}
         for img_obj in self.rich_imgs:
             img_obj.get_output()
-            img_obj.save_images()
+            text = img_obj.ansi_text() if img_obj.output_blocks else None
+            if text is not None:
+                for path, fence_line in img_obj.output_blocks:
+                    block_outputs.setdefault(path, {})[fence_line] = text
+            if img_obj.img_paths or not img_obj.output_blocks:
+                img_obj.save_images()
             self.saved_img_paths += img_obj.saved_img_paths
             self.num_img_saved += img_obj.num_img_saved
             self.num_img_skipped += img_obj.num_img_skipped
+        # Only edit files once every command has run, as edits shift the line numbers
+        for path, outputs in block_outputs.items():
+            self.save_output_blocks(path, outputs)
+
+    def save_output_blocks(self, path: str, outputs: dict[int, list[str]]) -> None:
+        """Write command output into the code blocks of one file, keyed by fence line number."""
+        with open(path, newline="") as fh:
+            lines = fh.readlines()
+        new_lines = list(lines)
+        # Bottom-up, so that each edit leaves the line numbers above it unchanged
+        for fence_line in sorted(outputs, reverse=True):
+            block_name = f"{self._relative_path(path)}:{fence_line}"
+            region = find_output_region(lines, fence_line - 1)
+            if region is None:
+                log.error(f"[red]Couldn't find the code block at '{block_name}'")
+                continue
+            _, start, end = region
+            fence = lines[fence_line - 1]
+            indent = fence[: len(fence) - len(fence.lstrip())]
+            newline = "\r\n" if fence.endswith("\r\n") else "\n"
+            replacement = [f"{indent}{line}{newline}" if line else newline for line in outputs[fence_line]]
+            if new_lines[start:end] == replacement:
+                self.num_img_skipped += 1
+                log.debug(f"[dim]Skipped: '{block_name}' (no change)")
+            else:
+                new_lines[start:end] = replacement
+                self.num_img_saved += 1
+                log.info(f"Saved: '{block_name}'")
+        if new_lines != lines:
+            with open(path, "w", newline="") as fh:
+                fh.writelines(new_lines)
+            self.saved_img_paths.append(path)

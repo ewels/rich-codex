@@ -60,14 +60,16 @@ Rich-codex is a command-line tool that you can run [via a GitHub action](https:/
 
 It collects either commands or code snippets, together with output filenames and configuration options. Commands are run in a subprocess and the standard output & standard error collected. These are then rendered as an image using [Textualize/rich](https://github.com/textualize/rich).
 
-> Rich-codex creates the images that your markdown docs expect. It doesn't require a HTML build-step and doesn't make any changes to your markdown or its output. As such, it's compatible with _**any documentation engine**_, including rendering markdown on [github.com](https://github.com).
+> Rich-codex creates the images that your markdown docs expect. It doesn't require a HTML build-step and doesn't make any changes to your markdown, unless you ask it to write command output into a code block. As such, it's compatible with _**any documentation engine**_, including rendering markdown on [github.com](https://github.com).
 
-Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in four different ways:
+Rich-codex needs **inputs** (commands / snippets) and **output filenames** to work. These can be configured in five different ways:
 
 - 🖼 [Markdown images](https://ewels.github.io/rich-codex/inputs/markdown/)
   - Search markdown files for image tags with command alt text. eg: ``![`rich-codex --help`](docs/img/rich-codex-help.svg)``
 - 💬 [Markdown comments](https://ewels.github.io/rich-codex/inputs/markdown/#code-snippets)
   - Search markdown files for special HTML / JSX comments.
+- 📝 [Markdown code blocks](https://ewels.github.io/rich-codex/inputs/markdown/#code-block-output)
+  - Write command output as text into code blocks with an `[!output]` marker.
 - ➡️ [Command-line / action inputs](https://ewels.github.io/rich-codex/inputs/direct_inputs/)
   - Specify a command or snippet using the action `with` inputs.
 - ⚙️ [Config files](https://ewels.github.io/rich-codex/inputs/config_file/)

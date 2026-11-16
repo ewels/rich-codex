@@ -1,5 +1,6 @@
 """Tests for rich_codex.codex_search."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -596,6 +597,157 @@ class TestSaveAllImages:
             cs.save_all_images()
         assert cs.num_img_saved == 0
         assert cs.num_img_skipped == 1
+
+
+class TestOutputBlocks:
+    """Tests for writing command output into '[!output]' code blocks."""
+
+    @staticmethod
+    def run(cs):
+        """Run a search through to saving, the same way as the CLI."""
+        errors = cs.search_files()
+        cs.collapse_duplicates()
+        cs.confirm_commands()
+        cs.check_duplicate_paths()
+        cs.save_all_images()
+        return errors
+
+    def test_output_is_written_between_the_markers(self, tmp_cwd, codex_search):
+        md = write(
+            tmp_cwd / "README.md",
+            """
+            <!-- RICH-CODEX terminal_width: 80 -->
+            ```sh
+            printf 'one   \\n\\ntwo\\n\\n\\n'
+            # [!output]
+            old output
+            # [!output end]
+            ```
+            """,
+        )
+        cs = codex_search()
+        assert self.run(cs) == 0
+        assert cs.rich_imgs[0].hide_command is True
+        assert md.read_text().splitlines()[3:8] == ["# [!output]", "one", "", "two", "# [!output end]"]
+        assert cs.num_img_saved == 1
+        assert cs.saved_img_paths == [str(md)]
+
+    def test_region_ends_at_the_closing_fence(self, tmp_cwd, codex_search):
+        md = tmp_cwd / "README.md"
+        write(md, "<!-- RICH-CODEX -->\n~~~~\necho hi\n// [!output lang=ansi]\nold\n~~~\n~~~~\n")
+        self.run(codex_search())
+        assert md.read_text() == "<!-- RICH-CODEX -->\n~~~~\necho hi\n// [!output lang=ansi]\nhi\n~~~~\n"
+
+    def test_block_without_marker_is_left_alone(self, tmp_cwd, codex_search):
+        content = "<!-- RICH-CODEX terminal_width: 60 -->\n```sh\necho hi\n```\n![`echo img`](img.svg)\n"
+        md = write(tmp_cwd / "README.md", content)
+        cs = codex_search()
+        cs.search_files()
+        assert md.read_text() == content
+        assert [(img.command, img.terminal_width, img.output_blocks) for img in cs.rich_imgs] == [("echo img", 60, [])]
+
+    def test_block_needs_a_config_comment(self, tmp_cwd, codex_search):
+        write(tmp_cwd / "README.md", "```sh\necho hi\n# [!output]\n```\n")
+        cs = codex_search()
+        cs.search_files()
+        assert cs.rich_imgs == []
+
+    def test_command_from_config_wins(self, tmp_cwd, codex_search):
+        md = tmp_cwd / "README.md"
+        write(md, "<!-- RICH-CODEX\ncommand: echo real\n-->\n\n```sh\nmy-tool\n# [!output]\n```\n")
+        self.run(codex_search())
+        assert md.read_text().splitlines()[-2:] == ["real", "```"]
+
+    def test_multiline_command(self, tmp_cwd, codex_search):
+        md = write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\n  echo one\n\n  echo two\n# [!output]\n```\n")
+        cs = codex_search()
+        self.run(cs)
+        assert cs.rich_imgs[0].command == "echo one\necho two"
+        assert md.read_text().splitlines()[-3:] == ["one", "two", "```"]
+
+    def test_no_command_is_an_error(self, tmp_cwd, codex_search, caplog):
+        write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\n# [!output]\n```\n")
+        cs = codex_search()
+        assert cs.search_files() == 1
+        assert cs.rich_imgs == []
+        assert "No command for code block" in caplog.text
+
+    def test_several_blocks_in_one_file(self, tmp_cwd, codex_search):
+        md = write(
+            tmp_cwd / "README.md",
+            """
+            <!-- RICH-CODEX -->
+            ```sh
+            seq 1 3
+            # [!output]
+            ```
+            <!-- RICH-CODEX -->
+            ```sh
+            echo same
+            # [!output]
+            a
+            b
+            c
+            ```
+            <!-- RICH-CODEX -->
+            ```sh
+            echo same
+            # [!output]
+            ```
+            """,
+        )
+        cs = codex_search()
+        self.run(cs)
+        # Identical commands are run once, but written to every block
+        assert len(cs.rich_imgs) == 2
+        assert cs.num_img_saved == 3
+        assert md.read_text().count("# [!output]\nsame\n```") == 2
+        assert "# [!output]\n1\n2\n3\n```" in md.read_text()
+
+    def test_mdx_comment(self, tmp_cwd, codex_search):
+        md = write(tmp_cwd / "page.mdx", "{/* RICH-CODEX terminal_width: 60 */}\n```sh\necho hi\n# [!output]\n```\n")
+        self.run(codex_search())
+        assert "# [!output]\nhi\n```" in md.read_text()
+
+    def test_unchanged_file_is_not_rewritten(self, tmp_cwd, codex_search):
+        md = write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```sh\necho hi\n# [!output]\nhi\n```\n")
+        os.utime(md, (0, 0))
+        cs = codex_search()
+        self.run(cs)
+        assert md.stat().st_mtime == 0
+        assert (cs.num_img_saved, cs.num_img_skipped, cs.saved_img_paths) == (0, 1, [])
+
+    def test_colours_are_written_as_escapes(self, tmp_cwd, codex_search):
+        md = tmp_cwd / "README.md"
+        write(md, "<!-- RICH-CODEX -->\n```sh\nprintf '\\033[33mhi\\033[0m'\n# [!output]\n```\n")
+        self.run(codex_search())
+        assert "\\e[33mhi\\e[0m" in md.read_text()
+        assert "\x1b" not in md.read_text()
+
+    def test_indented_block_keeps_its_indent(self, tmp_cwd, codex_search):
+        md = tmp_cwd / "README.md"
+        write(md, "1. Run it\n\n   <!-- RICH-CODEX -->\n   ```sh\n   echo hi\n   # [!output]\n   ```\n")
+        self.run(codex_search())
+        assert md.read_text().endswith("   # [!output]\n   hi\n   ```\n")
+
+    def test_ignored_commands_are_not_written(self, tmp_cwd, codex_search):
+        content = "<!-- RICH-CODEX -->\n```sh\necho hi\nrm -f nothing\n# [!output]\n```\n"
+        md = write(tmp_cwd / "README.md", content)
+        self.run(codex_search())
+        assert md.read_text() == content
+
+    def test_output_is_not_searched(self, tmp_cwd, codex_search):
+        write(tmp_cwd / "README.md", "<!-- RICH-CODEX -->\n```md\necho hi\n# [!output]\n![`echo no`](no.svg)\n```\n")
+        cs = codex_search()
+        cs.search_files()
+        assert [img.command for img in cs.rich_imgs] == ["echo hi"]
+
+    def test_confirm_table_shows_the_block(self, tmp_cwd, codex_search, console):
+        write(tmp_cwd / "README.md", "# Title\n<!-- RICH-CODEX -->\n```sh\necho hi\n# [!output]\n```\n")
+        cs = codex_search()
+        cs.search_files()
+        cs.confirm_commands()
+        assert "README.md:3" in console.file.getvalue()
 
 
 def test_config_comment_styles_are_paired():

@@ -381,6 +381,36 @@ class TestGetOutput:
         assert "no command or snippet" in caplog.text
 
 
+class TestAnsiText:
+    """Tests for RichImg.ansi_text()."""
+
+    def test_none_before_output(self, rich_img):
+        assert rich_img(command="echo hi").ansi_text() is None
+
+    def test_none_when_aborted(self, rich_img, tmp_cwd):
+        img = rich_img(command="rm -f nothing")
+        img.get_output()
+        assert img.ansi_text() is None
+
+    def test_escapes_are_written_out(self, rich_img, tmp_cwd):
+        img = rich_img(command=r"printf '\033[33mhi\033[0m'", hide_command=True)
+        img.get_output()
+        assert img.ansi_text() == [r"\e[33mhi\e[0m"]
+
+    def test_trailing_whitespace_is_dropped(self, rich_img, tmp_cwd):
+        img = rich_img(command=r"printf 'a   \n\nb\n\n\n'", hide_command=True, terminal_min_width=80)
+        img.get_output()
+        assert img.ansi_text() == ["a", "", "b"]
+
+    def test_images_can_still_be_saved(self, rich_img, tmp_cwd):
+        out = tmp_cwd / "out.svg"
+        img = rich_img(command="echo both", img_paths=[str(out)])
+        img.get_output()
+        assert img.ansi_text() == ["$ echo both", "both"]
+        img.save_images()
+        assert "both" in svg_text(out)
+
+
 class TestEnoughImageDifference:
     """Tests for RichImg._enough_image_difference()."""
 

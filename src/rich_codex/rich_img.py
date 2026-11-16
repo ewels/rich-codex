@@ -36,7 +36,7 @@ RICH_IMG_ATTRS = config_schema["properties"]["outputs"]["items"]["properties"].k
 # 'source' is deliberately kept, so that identical commands in different files stay distinct
 # and can be reported by CodexSearch.check_duplicate_paths().
 HASH_ATTRS = [attr for attr in RICH_IMG_ATTRS if attr != "source_line"]
-HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr != "img_paths"]
+HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr not in ("img_paths", "output_blocks")]
 
 # Width to rasterise PNGs at, in pixels. Big enough to stay sharp when a README scales
 # it down.
@@ -85,6 +85,7 @@ class RichImg:
         source_type: str | None = None,
         source: str | Path | None = None,
         source_line: int | None = None,
+        output_blocks: list[tuple[str, int]] | None = None,
     ) -> None:
         """Initialise the RichImg object with core console options."""
         self.command = command
@@ -127,6 +128,7 @@ class RichImg:
         self.source_type = source_type
         self.source = Path(source) if source is not None else None
         self.source_line = source_line
+        self.output_blocks = [] if output_blocks is None else output_blocks
 
     def __eq__(self, other: object) -> bool:
         """Compare RichImg objects for equality."""
@@ -175,7 +177,7 @@ class RichImg:
         self.command = self.command.strip()
 
         for ignore in IGNORE_COMMANDS:
-            if any(cmd_part.strip().startswith(ignore) for cmd_part in self.command.split("&;")):
+            if any(cmd_part.strip().startswith(ignore) for cmd_part in re.split("&;|\n", self.command)):
                 log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.command} [/]")
                 self.aborted = True
                 return
@@ -404,6 +406,17 @@ class RichImg:
             self.format_snippet()
         else:
             log.warning("Tried to get output with no command or snippet")
+
+    def ansi_text(self) -> list[str] | None:
+        r"""Get the rendered output as lines of text, with ANSI escapes written as a literal '\e'."""
+        if self.aborted or self.capture_console is None:
+            return None
+        # clear=False so that save_images() can still export the same output
+        text = self.capture_console.export_text(styles=True, clear=False).replace("\x1b", "\\e")
+        lines = [line.rstrip() for line in text.splitlines()]
+        while lines and not lines[-1]:
+            lines.pop()
+        return lines
 
     def _enough_image_difference(self, new_fn: str, old_fn: str) -> bool:
         """Decide whether the newly rendered image differs enough from the saved one.

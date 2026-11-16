@@ -11,7 +11,7 @@ You can disable these checks by using the `--no-confirm` CLI flag / setting env 
 
 ## Banned commands
 
-As a very basic safety step, rich-codex attempts to ignore any commands that start with the following: `rm`, `cp`, `mv`, `sudo`. This is to avoid accidentally messing with your local system.
+As a very basic safety step, rich-codex attempts to ignore any commands that start with the following, or have a line that starts with them: `rm`, `cp`, `mv`, `sudo`. This is to avoid accidentally messing with your local system.
 
 Please note that this is only for rough protection against accidents and would be easy for a malicious user to circumvent _(for example, putting these commands in a bash script and running that)_.
 
