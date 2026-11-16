@@ -1,5 +1,7 @@
 # Changelog: rich-codex
 
+## Version 1.6.0.dev0
+
 ## Version 1.5.0 (2026-11-16)
 
 ### Breaking changes
