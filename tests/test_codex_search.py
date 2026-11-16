@@ -716,6 +716,14 @@ class TestOutputBlocks:
         cs.search_files()
         assert [img.command for img in cs.rich_imgs] == ["echo later"]
 
+    def test_skip_change_regex_applies(self, tmp_cwd, codex_search):
+        content = "<!-- RICH-CODEX\nskip_change_regex: took\n-->\n```sh\necho took 2s\n# [!output]\ntook 1s\n```\n"
+        md = write(tmp_cwd / "README.md", content)
+        cs = codex_search()
+        assert self.run(cs) == 0
+        assert md.read_text() == content
+        assert (cs.num_img_saved, cs.num_img_skipped) == (0, 1)
+
     def test_output_to_file(self, tmp_cwd, codex_search):
         content = (
             "<!-- RICH-CODEX\nimg_paths: [out/hi.ansi, out/hi.svg]\n-->\n```sh\nprintf '\\033[33mhi\\033[0m\\n'\n```\n"
@@ -815,6 +823,13 @@ class TestOutputBlocks:
         cs.search_files()
         cs.confirm_commands()
         assert "README.md:3" in console.file.getvalue()
+
+
+def test_multiline_snippet_keeps_its_final_newline(tmp_cwd, codex_search):
+    write(tmp_cwd / "README.md", "<!-- RICH-CODEX\nsnippet: |\n  hello\n-->\n![](out.svg)\n")
+    cs = codex_search()
+    cs.search_files()
+    assert cs.rich_imgs[0].snippet == "hello\n"
 
 
 def test_config_comment_styles_are_paired():

@@ -28,10 +28,10 @@ A good option is [rich-cli](https://github.com/Textualize/rich-cli), which you c
 
 ```markdown
 <!-- RICH-CODEX hide_command: true -->
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
+![`rich ../example.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 ```
 <!-- RICH-CODEX hide_command: true -->
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
+![`rich ../example.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 
 
 !!! tip
@@ -53,11 +53,11 @@ For example:
 ```markdown
 You don't always want people to see the exact command you used, after all.
 <!-- RICH-CODEX hide_command: true -->
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
+![`rich ../example.py --tail 20 --force-terminal --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "example.py")
 ```
 <!-- prettier-ignore-end -->
 
-![long rich-cli command](../img/rich-codex-snippet-title.svg "rich_img.py")
+![long rich-cli command](../img/rich-codex-snippet-title.svg "example.py")
 
 ## Config comments
 
@@ -162,7 +162,7 @@ printf '\033[1;32m✓\033[0m All checks passed\n'
 
 - The text before the marker (`#`, `//`, ...) doesn't matter, and anything after `[!output` inside the brackets is ignored, eg. `[!output lang=ansi]`.
 - Colours are written as text with the escape character as `\e`, eg. `\e[33m`, so that they're readable in diffs. A literal `\e[` in the output is written as `\\e[`.
-- The file is only rewritten when the output changes. Code blocks without an `[!output]` marker or `img_paths` are left alone.
+- The file is only rewritten when the output changes. `min_pct_diff` and `skip_change_regex` work as they do for images, to ignore changes such as timings. Code blocks without an `[!output]` marker or `img_paths` are left alone.
 - Rich-codex won't write the output, and the run fails, if:
   - the code block has no closing fence or `[!output end]` line,
   - a line of the output would end the code block (a fence or `[!output end]`). Write it to a file instead.

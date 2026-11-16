@@ -418,6 +418,52 @@ class RichImg:
             lines.pop()
         return lines
 
+    def changed_enough(self, new_bytes: bytes, old_bytes: bytes) -> tuple[bool, str]:
+        """Decide whether new output differs enough from the old, by min_pct_diff and skip_change_regex.
+
+        Returns the decision and a description of the change for the log.
+        """
+        # This method works even with entirely binary files, no decoding required
+        pct_change = (1 - ratio(new_bytes, old_bytes)) * 100.0
+        create_file = pct_change > self.min_pct_diff
+        log_msg = f"{pct_change:.2f}% change"
+
+        # No point in looking for a diff if the files are identical
+        if pct_change > 0:
+            # Regex on file diff to skip.
+            # Drop blank lines only: an empty pattern would match every line.
+            # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
+            skip_regexes: list[str] = []
+            if self.skip_change_regex:
+                skip_regexes = [ln for ln in self.skip_change_regex.splitlines() if ln.strip()]
+            if len(skip_regexes) > 0:
+                new_lines = new_bytes.decode(errors="ignore").splitlines()
+                old_lines = old_bytes.decode(errors="ignore").splitlines()
+                log.info("Checking diff")
+
+                # Only continue if we found something to diff with
+                if len(new_lines) > 0 or len(old_lines) > 0:
+                    # unified_diff, not Differ: Differ is quadratic and these files can be big.
+                    # Skip the two '---' / '+++' header lines by position, as a removed
+                    # line starting with '--' is indistinguishable from the header.
+                    diffs = list(difflib.unified_diff(new_lines, old_lines, n=0, lineterm=""))[2:]
+                    lost_lines = [d for d in diffs if d.startswith("-")]
+
+                    # Only continue if there was some diff
+                    if len(lost_lines) > 0:
+                        matched_lost_lines = [
+                            line for line in lost_lines if any(re.search(regex, line) for regex in skip_regexes)
+                        ]
+
+                        log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
+                        if len(matched_lost_lines) == len(lost_lines):
+                            create_file = False
+                    else:
+                        log_msg += ", no diff found"
+                else:
+                    log_msg += ", no text to diff"
+        return create_file, log_msg
+
     def _enough_image_difference(self, new_fn: str, old_fn: str) -> bool:
         """Decide whether the newly rendered image differs enough from the saved one.
 
@@ -425,60 +471,17 @@ class RichImg:
         """
         new_file = Path(new_fn)
         old_file = Path(old_fn)
-        create_file = True
-        log_msg = ""
 
         # Target file doesn't exist yet, nothing to compare against
         if not old_file.exists():
-            log_msg = "new file"
-
+            create_file, log_msg = True, "new file"
         else:
-            # Percentage change in file, ignoring any embedded font: it's derived from the
-            # text, so counting it would swamp a small change to the output itself.
-            # This method works even with entirely binary files, no decoding required
-            new_file_bytes = svg_fonts.without_embedded_fonts(new_file.read_bytes())
-            old_file_bytes = svg_fonts.without_embedded_fonts(old_file.read_bytes())
-            pct_change = (1 - ratio(new_file_bytes, old_file_bytes)) * 100.0
-            if pct_change <= self.min_pct_diff:
-                create_file = False
-            log_msg = f"{pct_change:.2f}% change"
-
-            # No point in looking for a diff if the files are identical
-            if pct_change > 0:
-                # Regex on file diff to skip.
-                # Drop blank lines only: an empty pattern would match every line.
-                # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
-                skip_regexes: list[str] = []
-                if self.skip_change_regex:
-                    skip_regexes = [ln for ln in self.skip_change_regex.splitlines() if ln.strip()]
-                if len(skip_regexes) > 0:
-                    new_file_lines = new_file_bytes.decode(errors="ignore").splitlines()
-                    old_file_lines = old_file_bytes.decode(errors="ignore").splitlines()
-                    log.info("Checking diff")
-
-                    # Only continue if we found something to diff with
-                    if len(new_file_lines) > 0 or len(old_file_lines) > 0:
-                        # unified_diff, not Differ: Differ is quadratic and these files can be big.
-                        # Skip the two '---' / '+++' header lines by position, as a removed
-                        # line starting with '--' is indistinguishable from the header.
-                        diffs = list(difflib.unified_diff(new_file_lines, old_file_lines, n=0, lineterm=""))[2:]
-                        lost_lines = [d for d in diffs if d.startswith("-")]
-
-                        # Only continue if there was some diff
-                        if len(lost_lines) > 0:
-                            matched_lost_lines = [
-                                line
-                                for line in lost_lines
-                                if any(re.search(skip_regex, line) for skip_regex in skip_regexes)
-                            ]
-
-                            log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
-                            if len(matched_lost_lines) == len(lost_lines):
-                                create_file = False
-                        else:
-                            log_msg += ", no diff found"
-                    else:
-                        log_msg += ", no text to diff"
+            # Ignoring any embedded font: it's derived from the text, so counting it
+            # would swamp a small change to the output itself.
+            create_file, log_msg = self.changed_enough(
+                svg_fonts.without_embedded_fonts(new_file.read_bytes()),
+                svg_fonts.without_embedded_fonts(old_file.read_bytes()),
+            )
 
         old_fn_relative = relative_path(old_file)
         if create_file:

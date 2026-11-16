@@ -7,6 +7,7 @@
 - ✨ Run the command in a markdown code block and save its output as text, for docs sites that render ANSI colours as HTML
   - Put a config comment above a fenced code block, with `img_paths` to save the output to `.ansi` files, or an `[!output]` marker line to write it into the code block after the marker
   - `.ansi` files hold raw escape codes. Inside code blocks, colours are written as `\e[33m` style escape codes
+  - `min_pct_diff` and `skip_change_regex` apply to both, so that changes such as timings don't rewrite the output
   - An empty `<!-- RICH-CODEX -->` comment is now valid config, instead of an error
 - ✨ The log talks about outputs and files rather than images, as not all outputs are images now
 - ✨ `.ansi` is a new output format for `img_paths` everywhere, including config files and the command line

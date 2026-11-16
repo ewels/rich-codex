@@ -288,8 +288,9 @@ class CodexSearch:
                     # Parse +  validate config yaml
                     if local_config_str != "" and not in_config:
                         try:
-                            # An empty comment is enough to mark a code block for output
-                            local_config = yaml.safe_load(local_config_str.strip() or "{}")
+                            # An empty comment is enough to mark a code block for output.
+                            # Not stripped, as that drops the final newline of a '|' snippet.
+                            local_config = yaml.safe_load(local_config_str) if local_config_str.strip() else {}
                             if not isinstance(local_config, dict):
                                 raise ValueError("config YAML is not a dictionary")
                         except (yaml.YAMLError, ValueError) as e:
@@ -569,7 +570,7 @@ class CodexSearch:
 
     def save_all_images(self) -> int:
         """Save the images and code block outputs that we have collected. Returns the number of errors."""
-        block_outputs: dict[str, dict[int, tuple[str, list[str]]]] = {}
+        block_outputs: dict[str, dict[int, tuple[rich_img.RichImg, str, list[str]]]] = {}
         num_errors = 0
         for img_obj in self.rich_imgs:
             img_obj.get_output()
@@ -577,7 +578,7 @@ class CodexSearch:
             text = img_obj.ansi_text() if img_obj.output_blocks else None
             if text is not None:
                 for path, fence_line, block_command in img_obj.output_blocks:
-                    block_outputs.setdefault(path, {})[fence_line] = (block_command, text)
+                    block_outputs.setdefault(path, {})[fence_line] = (img_obj, block_command, text)
             if img_obj.img_paths or not img_obj.output_blocks:
                 img_obj.save_images()
             self.saved_img_paths += img_obj.saved_img_paths
@@ -586,7 +587,7 @@ class CodexSearch:
         # Only edit files once every command has run, as edits shift the line numbers
         return num_errors + sum(self.save_output_blocks(path, outputs) for path, outputs in block_outputs.items())
 
-    def save_output_blocks(self, path: str, outputs: dict[int, tuple[str, list[str]]]) -> int:
+    def save_output_blocks(self, path: str, outputs: dict[int, tuple[rich_img.RichImg, str, list[str]]]) -> int:
         """Write command output into the code blocks of one file, keyed by fence line number.
 
         Returns the number of blocks that couldn't be written.
@@ -597,7 +598,7 @@ class CodexSearch:
         new_lines = list(lines)
         # Bottom-up, so that each edit leaves the line numbers above it unchanged
         for fence_line in sorted(outputs, reverse=True):
-            block_command, text = outputs[fence_line]
+            img_obj, block_command, text = outputs[fence_line]
             block_name = f"{self._relative_path(path)}:{fence_line}"
             try:
                 block = parse_code_block(lines, fence_line - 1) if fence_line <= len(lines) else None
@@ -621,13 +622,16 @@ class CodexSearch:
             indent = fence[: len(fence) - len(fence.lstrip())]
             newline = "\r\n" if fence.endswith("\r\n") else "\n"
             replacement = [f"{indent}{line}{newline}" if line else newline for line in output_lines]
-            if new_lines[start:end] == replacement:
-                self.num_img_skipped += 1
-                log.debug(f"[dim]Skipped: '{block_name}' (no change)")
-            else:
+            changed, log_msg = img_obj.changed_enough(
+                "".join(replacement).encode(), "".join(new_lines[start:end]).encode()
+            )
+            if changed:
                 new_lines[start:end] = replacement
                 self.num_img_saved += 1
-                log.info(f"Saved: '{block_name}'")
+                log.info(f"Saved: '{block_name}' ({log_msg})")
+            else:
+                self.num_img_skipped += 1
+                log.debug(f"[dim]Skipped: '{block_name}' ({log_msg})")
         if new_lines != lines:
             with open(path, "w", encoding="utf-8", newline="") as fh:
                 fh.writelines(new_lines)
