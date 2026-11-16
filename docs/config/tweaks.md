@@ -81,9 +81,9 @@ You can set the number of lines of output that you would like to show using: _(C
 <!-- prettier-ignore-start -->
 ```markdown
 <!-- RICH-CODEX { head: 10, tail: 8 } -->
-![`rich ../../src/rich_codex/codex_search.py`](../img/head-tail.svg "codex_search.py")
+![`rich ../example.py`](../img/head-tail.svg "example.py")
 ```
-![rich ../../src/rich_codex/codex_search.py](../img/head-tail.svg "codex_search.py")
+![rich ../example.py](../img/head-tail.svg "example.py")
 
 If the number you set is larger than the amount of output then all output will be shown as usual.
 
@@ -105,8 +105,8 @@ No `truncated_text` is shown for this method currently (could be added if anyone
 
 <!-- prettier-ignore-start -->
 ```markdown
-<!-- RICH-CODEX { trim_after: "class CodexSearch:", truncated_text: "Where did the rest of the file go? 🕵️‍♀️" } -->
-![`rich ../../src/rich_codex/codex_search.py`](../img/trim-after_truncated-text.svg "codex_search.py")
+<!-- RICH-CODEX { trim_after: "class Greeter:", truncated_text: "Where did the rest of the file go? 🕵️‍♀️" } -->
+![`rich ../example.py`](../img/trim-after_truncated-text.svg "example.py")
 ```
-![rich ../../src/rich_codex/codex_search.py](../img/trim-after_truncated-text.svg "codex_search.py")
+![rich ../example.py](../img/trim-after_truncated-text.svg "example.py")
 <!-- prettier-ignore-end -->

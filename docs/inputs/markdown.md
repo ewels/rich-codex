@@ -28,10 +28,10 @@ A good option is [rich-cli](https://github.com/Textualize/rich-cli), which you c
 
 ```markdown
 <!-- RICH-CODEX hide_command: true -->
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
+![`rich ../example.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 ```
 <!-- RICH-CODEX hide_command: true -->
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
+![`rich ../example.py --tail 20 --force-terminal`](../img/rich-codex-snippet.svg)
 
 
 !!! tip
@@ -53,11 +53,11 @@ For example:
 ```markdown
 You don't always want people to see the exact command you used, after all.
 <!-- RICH-CODEX hide_command: true -->
-![`rich ../../src/rich_codex/rich_img.py --tail 20 --force-terminal --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "rich_img.py")
+![`rich ../example.py --tail 20 --force-terminal --guides --panel rounded --panel-style magenta --theme monokai`](../img/rich-codex-snippet-title.svg "example.py")
 ```
 <!-- prettier-ignore-end -->
 
-![long rich-cli command](../img/rich-codex-snippet-title.svg "rich_img.py")
+![long rich-cli command](../img/rich-codex-snippet-title.svg "example.py")
 
 ## Config comments
 
@@ -111,6 +111,56 @@ extra_env:
 Both comment styles are recognised in every file that is searched, so you can use JSX comments in `.md` files and HTML comments in `.mdx` files if you prefer (though the latter won't compile as MDX).
 
 <!-- prettier-ignore-end -->
+
+## Code block output
+
+Rich-codex can run the command in a code block and save its output as text with colours, for docs sites that show ANSI colours, such as Astro Starlight with [starlight-codeblocks](https://github.com/ewels/starlight-codeblocks).
+
+Put a config comment directly above the code block (it can be empty), and say where the output goes.
+
+### To a file
+
+Set `runnable.outputFile` on the fence line, relative to the markdown file. starlight-codeblocks shows the file as the block's output, in colour (needs [starlight-codeblocks 1.4.1](https://github.com/ewels/starlight-codeblocks/releases/tag/v1.4.1) or later).
+
+<!-- prettier-ignore-start -->
+
+````markdown
+<!-- RICH-CODEX -->
+```sh runnable.outputFile="../img/help.ansi"
+$ my-tool --help
+```
+````
+
+<!-- prettier-ignore-end -->
+
+`img_paths` in the config comment works too, and can add `.svg` or `.png` images of the same output.
+
+### Into the code block
+
+Put an `[!output]` line in the block. Rich-codex replaces everything after it, up to the closing fence or an `[!output end]` line, with the output. Colours are written as `\e[33m`, which starlight-codeblocks shows with `runnable.outputLang=ansi`.
+
+<!-- prettier-ignore-start -->
+
+````markdown
+<!-- RICH-CODEX -->
+```sh runnable.outputLang=ansi
+$ my-tool --version
+# [!output]
+\e[1mmy-tool\e[0m 1.0
+```
+````
+
+<!-- prettier-ignore-end -->
+
+If the output has a line that would end the block, rich-codex doesn't write it and the run fails. Write that output to a file instead.
+
+### Good to know
+
+- Shell prompts work as in starlight-codeblocks. In a terminal block (`sh`, `console`, ...) with lines that start with `$ ` or `> `, only those lines are run, without the prompt, plus lines that continue them with a trailing `\`. The other lines are output.
+- `command` in the config comment runs something other than what the block shows. Other options work as they do for images.
+- Text output never has the command line, or hyperlinks.
+- Commands get `FORCE_COLOR=1`, and `COLUMNS` and `TERMINAL_WIDTH` from `terminal_width`.
+- Code blocks inside another code block, such as the examples on this page, are never run.
 
 ## Code snippets
 

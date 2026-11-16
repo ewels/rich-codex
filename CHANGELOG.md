@@ -1,5 +1,26 @@
 # Changelog: rich-codex
 
+## Version 1.5.0.dev0
+
+### Breaking changes
+
+- 💥 A command refused by the `rm` / `cp` / `mv` / `sudo` check now fails the run, instead of only logging a warning. The check now also looks after `;`, `&`, `|` and new lines
+
+### New features
+
+- ✨ Run the command in a markdown code block and save its output as text with colours, for docs sites that show ANSI colours ([docs](https://ewels.github.io/rich-codex/inputs/markdown/#code-block-output))
+  - The output goes to a `.ansi` file (`runnable.outputFile` on the fence line, or `img_paths`), or into the code block after an `[!output]` line
+  - Shell prompts (`$ ` and `> `) work as in starlight-codeblocks, and code blocks inside another code block are never run
+- ✨ `.ansi` is a new output format for `img_paths` everywhere. Text output never has the command line or hyperlinks
+- ✨ Commands get `FORCE_COLOR=1`, and `COLUMNS` and `TERMINAL_WIDTH` from `terminal_width`. A command that isn't found gives a warning
+- ✨ An empty `<!-- RICH-CODEX -->` comment is valid config
+- ✨ Python 3.15 is tested and supported
+
+### Bug fixes
+
+- 🐛 `--use-pty` crashed when stdin wasn't a terminal, and hung on macOS
+- 🐛 With Rich 15, every line ending in `\r\n` (all `--use-pty` output) came out blank, and output gained a blank last line
+
 ## Version 1.4.0 (2026-09-15)
 
 ### Breaking changes

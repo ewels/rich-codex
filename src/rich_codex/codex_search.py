@@ -1,7 +1,8 @@
 import logging
 import re
+import textwrap
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import yaml
 from jsonschema.exceptions import ValidationError
@@ -25,6 +26,93 @@ CONFIG_COMMENT_STYLES = {"<!--": "-->", "{/*": "*/}"}
 config_schema_fn = Path(__file__).parent / "config-schema.yml"
 with config_schema_fn.open() as fh:
     CONFIG_SCHEMA = yaml.safe_load(fh)
+
+# eg. ```sh  or  ~~~~
+FENCE_RE = re.compile(r"\s*(?P<fence>`{3,}|~{3,})\s*(?P<lang>[^\s{]*)")
+# eg. # [!output]  or  // [!output lang=ansi]
+OUTPUT_MARKER_RE = re.compile(r"\[!output(?:\s[^\]]*)?\]")
+OUTPUT_END = "[!output end]"
+# eg. ```sh runnable.outputFile="out/help.ansi"  (starlight-codeblocks)
+OUTPUT_FILE_RE = re.compile(r"""(?:^|\s)runnable\.outputFile=(?:"(?P<dq>[^"]*)"|'(?P<sq>[^']*)'|(?P<bare>[^\s"']+))""")
+# Shell prompts and terminal languages, as starlight-codeblocks and Expressive Code have them
+PROMPTS = ("$ ", "> ")
+TERMINAL_LANGUAGES = {
+    *("ansi", "bash", "bat", "batch", "cmd", "console", "fish", "nu", "nushell", "powershell", "ps", "ps1"),
+    *("psd1", "psm1", "sh", "shell", "shellscript", "shellsession", "zsh"),
+}
+# A literal '\e[' (or '\x1b[' ...) in the output, which would otherwise read as an escape code
+LITERAL_ESCAPE_RE = re.compile(r"\\(?=(?:e|x1b|033|u001b)\[)", re.IGNORECASE)
+
+
+class CodeBlock(NamedTuple):
+    """A fenced code block in a markdown file."""
+
+    fence: str
+    command: str
+    # Path from 'runnable.outputFile' on the fence line, if set
+    output_file: str | None
+    # Slice of lines after the '[!output]' marker, or None if the block has no marker
+    output: tuple[int, int] | None
+    # Index of the line that ends the block
+    end: int
+
+
+def closes_fence(fence: str, line: str) -> bool:
+    """Whether a line closes a code block opened with 'fence'."""
+    return re.fullmatch(rf"\s*{re.escape(fence[0])}{{{len(fence)},}}\s*", line) is not None
+
+
+def shell_commands(lines: list[str]) -> list[str]:
+    """Get the commands in a terminal session, as starlight-codeblocks copies them.
+
+    That's the lines with a prompt, without it, and the lines that continue them with a
+    trailing backslash. The other lines are output.
+    """
+    commands: list[str] = []
+    continued = False
+    for line in lines:
+        prompt = next((p for p in PROMPTS if line.startswith(p)), None)
+        if prompt or continued:
+            commands.append(line.removeprefix(prompt or ""))
+        continued = (prompt is not None or continued) and line.rstrip().endswith("\\")
+    return commands
+
+
+def parse_code_block(lines: list[str], fence_idx: int) -> CodeBlock | None:
+    """Parse the fenced code block that opens at lines[fence_idx].
+
+    The command is the code above the '[!output]' marker, or all of it if there's no marker.
+    In a terminal block with prompts, only the commands after them are run.
+    Returns None if the line doesn't open a code block, and raises ValueError if the block
+    is never closed.
+    """
+    fence_match = FENCE_RE.match(lines[fence_idx])
+    if not fence_match:
+        return None
+    fence = fence_match["fence"]
+    file_match = OUTPUT_FILE_RE.search(lines[fence_idx])
+    output_file = next((path for path in file_match.groups() if path is not None), None) if file_match else None
+    command_lines: list[str] = []
+    start: int | None = None
+    for idx in range(fence_idx + 1, len(lines)):
+        line = lines[idx]
+        if closes_fence(fence, line) or (start is not None and OUTPUT_END in line):
+            code = textwrap.dedent("\n".join(ln.rstrip("\r\n") for ln in command_lines)).splitlines()
+            if fence_match["lang"] in TERMINAL_LANGUAGES and any(ln.startswith(PROMPTS) for ln in code):
+                code = shell_commands(code)
+            command = "\n".join(code).strip("\n")
+            return CodeBlock(fence, command, output_file, None if start is None else (start, idx), idx)
+        if start is None:
+            if OUTPUT_MARKER_RE.search(line) and OUTPUT_END not in line:
+                start = idx + 1
+            else:
+                command_lines.append(line)
+    raise ValueError(f"No closing '{fence}' or '{OUTPUT_END}' for the code block")
+
+
+def escape_output_line(line: str) -> str:
+    r"""Write ANSI escape codes as a literal '\e', doubling any backslash that would read as one."""
+    return LITERAL_ESCAPE_RE.sub(r"\\\\", line).replace("\x1b", "\\e")
 
 
 class CodexSearch:
@@ -209,13 +297,20 @@ class CodexSearch:
         for file in files_to_search:
             file_rel_fn = file.relative_to(self.cwd)
             log.debug(f"Searching: [magenta]{file_rel_fn}[/]")
-            with open(file) as fh:
-                line_number = 0
+            with open(file, encoding="utf-8") as fh:
+                lines = fh.readlines()
                 in_config = False
+                awaiting_block = False
+                skip_to_line = 0
+                # The fence of the code block we're in, if any. Code blocks inside it are just text.
+                outer_fence: str | None = None
+                config_in_fence = False
                 comment_end: str | None = None
                 local_config_str = ""
-                for line in fh:
-                    line_number += 1
+                for line_number, line in enumerate(lines, 1):
+                    # Don't search output that rich-codex wrote itself
+                    if line_number <= skip_to_line:
+                        continue
 
                     # Keep saving config if we're in a config block
                     if in_config:
@@ -228,7 +323,9 @@ class CodexSearch:
                     # Parse +  validate config yaml
                     if local_config_str != "" and not in_config:
                         try:
-                            local_config = yaml.safe_load(local_config_str)
+                            # An empty comment is enough to mark a code block for output.
+                            # Not stripped, as that drops the final newline of a '|' snippet.
+                            local_config = yaml.safe_load(local_config_str) if local_config_str.strip() else {}
                             if not isinstance(local_config, dict):
                                 raise ValueError("config YAML is not a dictionary")
                         except (yaml.YAMLError, ValueError) as e:
@@ -237,43 +334,99 @@ class CodexSearch:
                             local_config = {}
                             num_errors += 1
                         local_config_str = ""
+                        awaiting_block = True
+                        config_in_fence = outer_fence is not None
+
+                    # A config comment directly above a code block, with an '[!output]' marker
+                    # or 'img_paths' to write the output to
+                    code_block = None
+                    if awaiting_block and line.strip() and not outer_fence:
+                        awaiting_block = False
+                        try:
+                            code_block = parse_code_block(lines, line_number - 1)
+                        except ValueError as e:
+                            log.error(f"[red][✗] {e} in '{file_rel_fn}' line {line_number}")
+                            local_config = {}
+                            num_errors += 1
+                            continue
+                        if code_block and (code_block.output or code_block.output_file or "img_paths" in local_config):
+                            # Don't search the code or output as markdown
+                            skip_to_line = code_block.end + 1
+                            if local_config.get("skip"):
+                                local_config = {}
+                                continue
+                        else:
+                            code_block = None
+                    awaiting_block = awaiting_block and not line.strip()
+
+                    if not in_config and not code_block:
+                        if outer_fence is None:
+                            if fence_match := FENCE_RE.match(line):
+                                outer_fence = fence_match["fence"]
+                        elif closes_fence(outer_fence, line):
+                            outer_fence = None
+                            # A config comment in an example only applies to an image in the same example
+                            if config_in_fence:
+                                local_config, config_in_fence = {}, False
 
                     # Look for images
                     # Both patterns capture 'img_path' and 'title'; only the command one has 'cmd'
                     img_cmd_match = img_cmd_re.match(line)
                     img_match = img_cmd_match or img_snippet_re.match(line)
-                    if img_match and not local_config.get("skip"):
+                    if (code_block or img_match) and not local_config.get("skip"):
                         # Logging string of original local config
                         local_config_logmsg = f" with config: {local_config}" if len(local_config) > 0 else ""
 
-                        m = img_match.groupdict()
-
-                        # Get the command and title from a command regex match
-                        if img_cmd_match:
-                            local_config["command"] = m["cmd"]
-                            # Save the title if set
-                            if m["title"]:
-                                local_config["title"] = m["title"].strip("'\" ")
-
-                        # Counters for commands / snippets
-                        if "command" in local_config:
+                        if code_block:
+                            local_config["command"] = local_config.get("command") or code_block.command
+                            if not local_config["command"]:
+                                log.error(f"[red][✗] No command for code block in '{file_rel_fn}' line {line_number}")
+                                local_config = {}
+                                num_errors += 1
+                                continue
+                            # The code block already shows the command
+                            local_config["hide_command"] = local_config.get("hide_command", True)
+                            if code_block.output:
+                                local_config["output_blocks"] = [(str(file), line_number, code_block.command)]
+                            # Relative to the markdown file, like an image path
+                            img_paths = local_config.get("img_paths", [])
+                            if code_block.output_file:
+                                img_paths = [*img_paths, code_block.output_file]
+                            local_config["img_paths"] = list(
+                                dict.fromkeys(str((Path(file).parent / img_path).resolve()) for img_path in img_paths)
+                            )
                             num_commands += 1
-                            img_type = "[blue]command[/]"
-                        elif local_config.get("snippet", "") != "":
-                            num_snippets += 1
-                            img_type = "[red]snippet[/]"
-                        # Just a regular image with no command / snippet - carry on
-                        else:
-                            log.debug(f"[dim]Skipped markdown image, line {line_number}: {m}")
-                            if len(local_config) > 0:
-                                log.warning(f"Skipped image but local_config was not empty: {local_config}")
-                            local_config = {}
-                            local_config_str = ""
-                            continue
+                            img_type = "[blue]code block[/]"
 
-                        # Set the image path (append in case any others were in the config)
-                        img_path = Path(file).parent / Path(m["img_path"].strip())
-                        local_config["img_paths"] = local_config.get("img_paths", []) + [str(img_path.resolve())]
+                        elif img_match:
+                            m = img_match.groupdict()
+
+                            # Get the command and title from a command regex match
+                            if img_cmd_match:
+                                local_config["command"] = m["cmd"]
+                                # Save the title if set
+                                if m["title"]:
+                                    local_config["title"] = m["title"].strip("'\" ")
+
+                            # Counters for commands / snippets
+                            if "command" in local_config:
+                                num_commands += 1
+                                img_type = "[blue]command[/]"
+                            elif local_config.get("snippet", "") != "":
+                                num_snippets += 1
+                                img_type = "[red]snippet[/]"
+                            # Just a regular image with no command / snippet - carry on
+                            else:
+                                log.debug(f"[dim]Skipped markdown image, line {line_number}: {m}")
+                                if len(local_config) > 0:
+                                    log.warning(f"Skipped image but local_config was not empty: {local_config}")
+                                local_config = {}
+                                local_config_str = ""
+                                continue
+
+                            # Set the image path (append in case any others were in the config)
+                            img_path = Path(file).parent / Path(m["img_path"].strip())
+                            local_config["img_paths"] = local_config.get("img_paths", []) + [str(img_path.resolve())]
 
                         # Set other config defaults if not supplied
                         local_config["working_dir"] = local_config.get("working_dir", str(Path(file).parent))
@@ -388,6 +541,7 @@ class CodexSearch:
             ri_hash = ri._hash_no_fn()
             if ri_hash in merged_imgs:
                 merged_imgs[ri_hash].img_paths.extend(ri.img_paths)
+                merged_imgs[ri_hash].output_blocks.extend(ri.output_blocks)
             else:
                 merged_imgs[ri_hash] = ri
         log.debug(f"Collapsing {len(self.rich_imgs)} image requests to {len(merged_imgs)} deduplicated")
@@ -423,7 +577,10 @@ class CodexSearch:
                 rel_source = self._relative_path(img_obj.source)
                 if img_obj.source_line:
                     rel_source = f"{rel_source}:{img_obj.source_line}"
-                outputs = "\n".join(self._path_link(p) for p in img_obj.img_paths)
+                outputs = "\n".join(
+                    [self._path_link(p) for p in img_obj.img_paths]
+                    + [self._path_link(p, f"{self._relative_path(p)}:{line}") for p, line, _ in img_obj.output_blocks]
+                )
                 table.add_row(img_obj.command, outputs, self._path_link(img_obj.source, rel_source))
 
         if table.row_count == 0:
@@ -460,11 +617,72 @@ class CodexSearch:
                 src_paths = "', '".join({self._relative_path(s) for s in src})
                 log.warning(f"Duplicate output file path '{img_path_rel}' found in '{src_paths}'")
 
-    def save_all_images(self) -> None:
-        """Save the images that we have collected."""
+    def save_all_images(self) -> int:
+        """Save the images and code block outputs that we have collected. Returns the number of errors."""
+        block_outputs: dict[str, dict[int, tuple[rich_img.RichImg, str, list[str]]]] = {}
+        num_errors = 0
         for img_obj in self.rich_imgs:
             img_obj.get_output()
-            img_obj.save_images()
+            num_errors += img_obj.aborted
+            text = img_obj.ansi_text() if img_obj.output_blocks else None
+            if text is not None:
+                for path, fence_line, block_command in img_obj.output_blocks:
+                    block_outputs.setdefault(path, {})[fence_line] = (img_obj, block_command, text)
+            if img_obj.img_paths or not img_obj.output_blocks:
+                img_obj.save_images()
             self.saved_img_paths += img_obj.saved_img_paths
             self.num_img_saved += img_obj.num_img_saved
             self.num_img_skipped += img_obj.num_img_skipped
+        # Only edit files once every command has run, as edits shift the line numbers
+        return num_errors + sum(self.save_output_blocks(path, outputs) for path, outputs in block_outputs.items())
+
+    def save_output_blocks(self, path: str, outputs: dict[int, tuple[rich_img.RichImg, str, list[str]]]) -> int:
+        """Write command output into the code blocks of one file, keyed by fence line number.
+
+        Returns the number of blocks that couldn't be written.
+        """
+        num_errors = 0
+        with open(path, encoding="utf-8", newline="") as fh:
+            lines = fh.readlines()
+        new_lines = list(lines)
+        # Bottom-up, so that each edit leaves the line numbers above it unchanged
+        for fence_line in sorted(outputs, reverse=True):
+            img_obj, block_command, text = outputs[fence_line]
+            block_name = f"{self._relative_path(path)}:{fence_line}"
+            try:
+                block = parse_code_block(lines, fence_line - 1) if fence_line <= len(lines) else None
+            except ValueError:
+                block = None
+            # A command may have edited the file since it was searched
+            if block is None or block.output is None or block.command != block_command:
+                log.error(f"[red][✗] The code block at '{block_name}' changed during the run, not writing its output")
+                num_errors += 1
+                continue
+            output_lines = [escape_output_line(line) for line in text]
+            if any(closes_fence(block.fence, line) or OUTPUT_END in line for line in output_lines):
+                log.error(
+                    f"[red][✗] The output for '{block_name}' has a line that would end the code block, "
+                    "not writing it. Write it to a file with 'img_paths' instead."
+                )
+                num_errors += 1
+                continue
+            start, end = block.output
+            fence = lines[fence_line - 1]
+            indent = fence[: len(fence) - len(fence.lstrip())]
+            newline = "\r\n" if fence.endswith("\r\n") else "\n"
+            replacement = [f"{indent}{line}{newline}" if line else newline for line in output_lines]
+            changed, log_msg = img_obj.changed_enough(
+                "".join(replacement).encode(), "".join(new_lines[start:end]).encode()
+            )
+            if changed:
+                new_lines[start:end] = replacement
+                self.num_img_saved += 1
+                log.info(f"Saved: '{block_name}' ({log_msg})")
+            else:
+                self.num_img_skipped += 1
+                log.debug(f"[dim]Skipped: '{block_name}' ({log_msg})")
+        if new_lines != lines:
+            with open(path, "w", encoding="utf-8", newline="") as fh:
+                fh.writelines(new_lines)
+            self.saved_img_paths.append(path)
+        return num_errors

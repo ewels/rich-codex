@@ -61,7 +61,7 @@ For example:
 
 ```markdown
 <!-- RICH-CODEX fake_command: "my_tool --is-simple" -->
-![`echo "I won't tell if you don't 🤫" > temp_file.txt && echo "" && cat temp_file.txt && rm temp_file.txt`](../img/fake_command.svg)
+![`echo "" && echo "I won't tell if you don't 🤫" | cat`](../img/fake_command.svg)
 ```
 ![](../img/fake_command.svg)
 

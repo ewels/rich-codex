@@ -74,11 +74,10 @@ properties:
         img_paths:
           title: Array of image filenames to generate
           type: array
-          minItems: 1
           items:
             type: string
             title: An image path
-            pattern: "(?i)\\.(svg|png)$"
+            pattern: "(?i)\\.(svg|png|ansi)$"
         # Internal fields, set by rich-codex rather than by the user
         source:
           title: Filename / meta about where the image came from
@@ -88,6 +87,9 @@ properties:
         source_line:
           title: Line number in the source file that the image came from
           type: integer
+        output_blocks:
+          title: Markdown code blocks to write the output into, as (file, fence line number, command) items
+          type: array
 
         # Shared config options
         extra_env: { "$ref": "#/$defs/extra_env" }

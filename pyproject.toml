@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dynamic = [ "version" ]
 dependencies = [
@@ -48,6 +49,13 @@ urls."Issue Tracker" = "https://github.com/ewels/rich-codex/issues"
 urls."Source Code" = "https://github.com/ewels/rich-codex"
 urls.Documentation = "https://github.com/ewels/rich-codex"
 scripts.rich-codex = "rich_codex.cli:main"
+
+[dependency-groups]
+docs = [
+    "cowsay>=6.1",
+    "lolcat>=1.4",
+    "mkdocs-material[imaging]>=9.7.7",
+]
 
 [tool.setuptools]
 packages.find.where = [ "src" ]

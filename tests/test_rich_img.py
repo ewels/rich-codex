@@ -290,9 +290,38 @@ class TestRunCommand:
         assert "timed out" in caplog.text
 
     def test_use_pty(self, rich_img, tmp_cwd, tty_stdin):
-        img = rich_img(command="echo hello-from-pty", use_pty=True, terminal_width=100, notrim=True)
+        img = rich_img(command="printf 'hello-from-%s\\n' pty", use_pty=True, terminal_width=100, hide_command=True)
         img.run_command()
-        assert "hello-from-pty" in rendered_text(img)
+        assert img.ansi_text() == ["hello-from-pty"]
+
+    def test_use_pty_without_a_terminal_on_stdin(self, rich_img, tmp_cwd):
+        """pytest's stdin isn't a terminal, as in a git hook or CI."""
+        img = rich_img(command="stty size", use_pty=True, terminal_width=60, hide_command=True)
+        img.run_command()
+        assert img.ansi_text() == ["24 60"]
+
+    def test_crlf_and_final_newline(self, rich_img, tmp_cwd):
+        img = rich_img(command="printf 'a\\r\\n\\r\\nb\\r\\n'", hide_command=True)
+        img.run_command()
+        assert rendered_text(img).splitlines() == ["a", "", "b"]
+
+    def test_terminal_env(self, rich_img, tmp_cwd, monkeypatch):
+        monkeypatch.setenv("TERMINAL_WIDTH", "80")
+        monkeypatch.delenv("FORCE_COLOR", raising=False)
+        command = "echo $COLUMNS $TERMINAL_WIDTH $FORCE_COLOR"
+        img = rich_img(command=command, terminal_width=48, hide_command=True)
+        img.run_command()
+        assert img.ansi_text() == ["48 48 1"]
+        monkeypatch.setenv("FORCE_COLOR", "0")
+        img = rich_img(command=command, terminal_width=48, hide_command=True, extra_env={"COLUMNS": 100})
+        img.run_command()
+        assert img.ansi_text() == ["100 48 0"]
+
+    def test_command_not_found_warns(self, rich_img, tmp_cwd, caplog):
+        img = rich_img(command="no-such-command-here")
+        img.run_command()
+        assert "Command not found, exit code 127" in caplog.text
+        assert img.aborted is False
 
     def test_use_pty_falls_back_when_import_fails(self, rich_img, tmp_cwd, block_import, caplog):
         """On Windows the pty import fails, and we fall back to plain subprocess."""
@@ -381,6 +410,53 @@ class TestGetOutput:
         assert "no command or snippet" in caplog.text
 
 
+class TestAnsiText:
+    """Tests for RichImg.ansi_text()."""
+
+    def test_none_before_output(self, rich_img):
+        assert rich_img(command="echo hi").ansi_text() is None
+
+    def test_none_when_aborted(self, rich_img, tmp_cwd):
+        img = rich_img(command="rm -f nothing")
+        img.get_output()
+        assert img.ansi_text() is None
+
+    def test_escapes_are_written_out(self, rich_img, tmp_cwd):
+        img = rich_img(command=r"printf '\033[33mhi\033[0m'", hide_command=True)
+        img.get_output()
+        assert img.ansi_text() == ["\x1b[33mhi\x1b[0m"]
+
+    def test_trailing_whitespace_is_dropped(self, rich_img, tmp_cwd):
+        img = rich_img(command=r"printf 'a   \n\nb\n\n\n'", hide_command=True, terminal_min_width=80)
+        img.get_output()
+        assert img.ansi_text() == ["a", "", "b"]
+
+    def test_links_are_removed(self, rich_img, tmp_cwd):
+        """Rich gives each link a random ID, which would change the text on every run."""
+        command = "printf '\\033]8;;https://example.com\\033\\\\link\\033]8;;\\033\\\\ text\\n'"
+        texts = []
+        for _ in range(2):
+            img = rich_img(command=command, hide_command=True)
+            img.get_output()
+            assert "\x1b]8" in img.capture_console.export_text(styles=True, clear=False)
+            texts.append(img.ansi_text())
+        assert texts[0] == texts[1] == ["link text"]
+
+    def test_command_is_left_out_even_when_wrapped(self, rich_img, tmp_cwd):
+        img = rich_img(command="echo " + "x" * 30 + " && echo second-line", terminal_width=20, terminal_min_width=20)
+        img.get_output()
+        assert img.num_command_lines > 1
+        assert img.ansi_text() == ["x" * 30, "second-line"]
+
+    def test_images_can_still_be_saved(self, rich_img, tmp_cwd):
+        out = tmp_cwd / "out.svg"
+        img = rich_img(command="echo both", img_paths=[str(out)])
+        img.get_output()
+        assert img.ansi_text() == ["both"]
+        img.save_images()
+        assert "both" in svg_text(out)
+
+
 class TestEnoughImageDifference:
     """Tests for RichImg._enough_image_difference()."""
 
@@ -390,7 +466,7 @@ class TestEnoughImageDifference:
         img = rich_img()
         assert img._enough_image_difference(str(new_file), str(tmp_cwd / "target.svg")) is True
         assert img.num_img_saved == 1
-        assert "new image" in caplog.text
+        assert "new file" in caplog.text
 
     def test_identical_files_are_skipped(self, rich_img, tmp_cwd):
         content = "<svg>identical</svg>"
@@ -594,7 +670,7 @@ class TestEnoughImageDifference:
         img = rich_img()
         img._enough_image_difference(str(new_file), target)
         img._enough_image_difference(str(new_file), target)
-        assert "More than one image with file name" in caplog.text
+        assert "More than one output with file name" in caplog.text
         assert img.saved_img_paths == [target]
 
 
@@ -901,7 +977,7 @@ class TestSaveImages:
         out = tmp_cwd / "out.pdf"
         img = self.rendered(rich_img, img_paths=[str(out)])
         img.save_images()
-        assert "Can only save SVG and PNG images" in caplog.text
+        assert "Can only save SVG, PNG and ANSI files" in caplog.text
         assert not out.exists()
         assert img.num_img_saved == 0
 
@@ -946,3 +1022,10 @@ def test_ignored_commands_are_matched_as_prefixes(rich_img, tmp_cwd):
     img.run_command()
     assert img.aborted is True
     assert rich_img(command="echo rm").aborted is False
+
+
+def test_ignored_commands_after_a_separator(rich_img, tmp_cwd):
+    for command in ["echo hi && rm -f x", "echo hi; sudo true", "echo hi | mv a b", "echo hi\ncp a b"]:
+        img = rich_img(command=command)
+        img.run_command()
+        assert img.aborted is True, command

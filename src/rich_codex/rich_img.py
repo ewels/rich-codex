@@ -1,11 +1,14 @@
+import contextlib
 import difflib
 import io
 import json
 import logging
 import os
 import re
+import select
 import signal
 import subprocess
+import time
 import zlib
 from pathlib import Path
 from shutil import copyfile
@@ -36,7 +39,7 @@ RICH_IMG_ATTRS = config_schema["properties"]["outputs"]["items"]["properties"].k
 # 'source' is deliberately kept, so that identical commands in different files stay distinct
 # and can be reported by CodexSearch.check_duplicate_paths().
 HASH_ATTRS = [attr for attr in RICH_IMG_ATTRS if attr != "source_line"]
-HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr != "img_paths"]
+HASH_ATTRS_NO_FN = [attr for attr in HASH_ATTRS if attr not in ("img_paths", "output_blocks")]
 
 # Width to rasterise PNGs at, in pixels. Big enough to stay sharp when a README scales
 # it down.
@@ -44,6 +47,9 @@ PNG_WIDTH = 4000
 
 # Base list of commands to ignore
 IGNORE_COMMANDS = ["rm", "cp", "mv", "sudo"]
+
+# eg. \x1b]8;id=123;https://example.com\x1b\\
+OSC8_LINK_RE = re.compile(r"\x1b\]8;[^\x07\x1b]*(?:\x07|\x1b\\)")
 
 
 class RichImg:
@@ -85,6 +91,7 @@ class RichImg:
         source_type: str | None = None,
         source: str | Path | None = None,
         source_line: int | None = None,
+        output_blocks: list[tuple[str, int, str]] | None = None,
     ) -> None:
         """Initialise the RichImg object with core console options."""
         self.command = command
@@ -124,9 +131,12 @@ class RichImg:
         self.num_img_skipped = 0
         self.no_confirm = False
         self.aborted = False
+        # Lines at the start of the output that show the command, left out of text output
+        self.num_command_lines = 0
         self.source_type = source_type
         self.source = Path(source) if source is not None else None
         self.source_line = source_line
+        self.output_blocks = [] if output_blocks is None else output_blocks
 
     def __eq__(self, other: object) -> bool:
         """Compare RichImg objects for equality."""
@@ -175,8 +185,8 @@ class RichImg:
         self.command = self.command.strip()
 
         for ignore in IGNORE_COMMANDS:
-            if any(cmd_part.strip().startswith(ignore) for cmd_part in self.command.split("&;")):
-                log.warning(f"Ignoring command because it contained '{ignore}': [white on black] {self.command} [/]")
+            if any(cmd_part.strip().startswith(ignore) for cmd_part in re.split(r"[;&|\n]", self.command)):
+                log.error(f"[red][✗] Refusing to run a command with '{ignore}': [white on black] {self.command} [/]")
                 self.aborted = True
                 return
 
@@ -210,6 +220,12 @@ class RichImg:
         # Set up the command environment vars, with extra_env if set
         command_env = os.environ.copy()
         command_env["RICH_CODEX"] = "1"
+        if not run_with_pty:
+            # What a terminal would give the command, as its output is captured to keep its colours.
+            # Width is set even if the caller has it, as TERMINAL_WIDTH is rich-codex's own setting.
+            command_env.setdefault("FORCE_COLOR", "1")
+            if self.terminal_width is not None:
+                command_env["COLUMNS"] = command_env["TERMINAL_WIDTH"] = str(self.terminal_width)
         if len(self.extra_env):
             log.debug(f"Adding extra env variables: {self.extra_env}")
             command_env.update({str(k): str(v) for k, v in self.extra_env.items()})
@@ -242,12 +258,16 @@ class RichImg:
             # Resize routine for pty
             # First, get our own current terminal size
             # (struct is documented here: https://www.delorie.com/djgpp/doc/libc/libc_495.html)
-            size = fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack("HHHH", 0, 0, 0, 0))
-
-            # Rewrite size with selected terminal width if set
+            try:
+                rows, cols = struct.unpack("HHHH", fcntl.ioctl(0, termios.TIOCGWINSZ, struct.pack("HHHH", 0, 0, 0, 0)))[
+                    :2
+                ]
+            except OSError:
+                # stdin isn't a terminal, eg. in a git hook or CI
+                rows, cols = 24, 80
             if self.terminal_width is not None:
-                winsize = struct.unpack("HHHH", size)
-                size = struct.pack("HHHH", winsize[0], self.terminal_width, 0, 0)
+                cols = self.terminal_width
+            size = struct.pack("HHHH", rows, cols, 0, 0)
 
             # Issue command to pty to resize
             fcntl.ioctl(write_end, termios.TIOCSWINSZ, size)
@@ -256,37 +276,43 @@ class RichImg:
             signal.signal(signal.SIGWINCH, lambda s, f: fcntl.ioctl(read_end, termios.TIOCSWINSZ, size))
 
             # Run subprocess in pty
-            try:
-                process = subprocess.Popen(
-                    self.command,
-                    cwd=self.working_dir,
-                    shell=True,
-                    env=command_env,
-                    close_fds=True,
-                    start_new_session=True,  # Needed for subprocess termination
-                    stdin=write_end,
-                    stdout=write_end,
-                    stderr=write_end,
-                )
-                process.wait(timeout=self.timeout)
-            except subprocess.TimeoutExpired:
-                log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
-                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            process = subprocess.Popen(
+                self.command,
+                cwd=self.working_dir,
+                shell=True,
+                env=command_env,
+                close_fds=True,
+                start_new_session=True,  # Needed for subprocess termination
+                stdin=write_end,
+                stdout=write_end,
+                stderr=write_end,
+            )
+            # Our copy of the child's end has to be closed for the read to end when the child does
             os.close(write_end)
 
+            # Read while the command runs, as on macOS it can't finish exiting until its output is read
             output_arr: list[bytes] = []
-
-            # This loop will keep going until no more data is incoming (child process closed their pipe)
+            deadline = time.monotonic() + self.timeout
+            timed_out = False
             while True:
+                if not timed_out and (
+                    time.monotonic() >= deadline
+                    or not select.select([read_end], [], [], deadline - time.monotonic())[0]
+                ):
+                    log.info(f"Command '{self.command}' timed out after {self.timeout} seconds")
+                    # The process group ID is the PID, as it started a new session
+                    with contextlib.suppress(ProcessLookupError):
+                        os.killpg(process.pid, signal.SIGKILL)
+                    timed_out = True
+                    continue
                 try:
                     data = os.read(read_end, 1024)
-                except OSError:
+                except OSError:  # Linux raises EIO once the child's end is closed
                     data = b""
-
-                if data:
-                    output_arr.append(data)
-                else:
+                if not data:
                     break
+                output_arr.append(data)
+            process.wait()
 
             os.close(read_end)
             output = b"".join(output_arr).decode("utf-8")
@@ -311,6 +337,9 @@ class RichImg:
                 output_bytes, _ = process.communicate()
             output = output_bytes.decode("utf-8")
 
+        if process.returncode == 127:
+            log.warning(f"[yellow]Command not found, exit code 127: [white on black] {self.command} [/]")
+
         # Run after_command if set
         if self.after_command:
             log.debug("Running 'after_command'")
@@ -333,6 +362,9 @@ class RichImg:
                 )
             log.debug(Text.from_ansi(capture.get()).plain)
 
+        # Rich 15+ reads '\r' as a carriage return, which blanks every line of PTY output
+        # ('\r\n'), and reads a final newline as an extra empty line
+        output = output.replace("\r\n", "\n").removesuffix("\n")
         decoder = AnsiDecoder()
 
         # Count lines and find longest line
@@ -359,6 +391,7 @@ class RichImg:
         # Print the command
         if not self.hide_command:
             self.capture_console.print(f"$ {self.fake_command if self.fake_command else self.command}")
+            self.num_command_lines = len(self.capture_console.export_text(clear=False).splitlines())
 
         # Decode and print the output (captured)
         truncated = False
@@ -405,6 +438,68 @@ class RichImg:
         else:
             log.warning("Tried to get output with no command or snippet")
 
+    def ansi_text(self) -> list[str] | None:
+        """Get the rendered output as lines of text with ANSI escape codes.
+
+        Without the command line, as anything showing text output shows the command itself,
+        and without hyperlinks, as Rich gives each one a random ID.
+        """
+        if self.aborted or self.capture_console is None:
+            return None
+        # clear=False so that the same output can be exported again
+        text = self.capture_console.export_text(styles=True, clear=False)
+        text = OSC8_LINK_RE.sub("", text)
+        lines = [line.rstrip() for line in text.splitlines()[self.num_command_lines :]]
+        while lines and not lines[-1]:
+            lines.pop()
+        return lines
+
+    def changed_enough(self, new_bytes: bytes, old_bytes: bytes) -> tuple[bool, str]:
+        """Decide whether new output differs enough from the old, by min_pct_diff and skip_change_regex.
+
+        Returns the decision and a description of the change for the log.
+        """
+        # This method works even with entirely binary files, no decoding required
+        pct_change = (1 - ratio(new_bytes, old_bytes)) * 100.0
+        create_file = pct_change > self.min_pct_diff
+        log_msg = f"{pct_change:.2f}% change"
+
+        # No point in looking for a diff if the files are identical
+        if pct_change > 0:
+            # Regex on file diff to skip.
+            # Drop blank lines only: an empty pattern would match every line.
+            # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
+            skip_regexes: list[str] = []
+            if self.skip_change_regex:
+                skip_regexes = [ln for ln in self.skip_change_regex.splitlines() if ln.strip()]
+            if len(skip_regexes) > 0:
+                new_lines = new_bytes.decode(errors="ignore").splitlines()
+                old_lines = old_bytes.decode(errors="ignore").splitlines()
+                log.info("Checking diff")
+
+                # Only continue if we found something to diff with
+                if len(new_lines) > 0 or len(old_lines) > 0:
+                    # unified_diff, not Differ: Differ is quadratic and these files can be big.
+                    # Skip the two '---' / '+++' header lines by position, as a removed
+                    # line starting with '--' is indistinguishable from the header.
+                    diffs = list(difflib.unified_diff(new_lines, old_lines, n=0, lineterm=""))[2:]
+                    lost_lines = [d for d in diffs if d.startswith("-")]
+
+                    # Only continue if there was some diff
+                    if len(lost_lines) > 0:
+                        matched_lost_lines = [
+                            line for line in lost_lines if any(re.search(regex, line) for regex in skip_regexes)
+                        ]
+
+                        log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
+                        if len(matched_lost_lines) == len(lost_lines):
+                            create_file = False
+                    else:
+                        log_msg += ", no diff found"
+                else:
+                    log_msg += ", no text to diff"
+        return create_file, log_msg
+
     def _enough_image_difference(self, new_fn: str, old_fn: str) -> bool:
         """Decide whether the newly rendered image differs enough from the saved one.
 
@@ -412,66 +507,23 @@ class RichImg:
         """
         new_file = Path(new_fn)
         old_file = Path(old_fn)
-        create_file = True
-        log_msg = ""
 
         # Target file doesn't exist yet, nothing to compare against
         if not old_file.exists():
-            log_msg = "new image"
-
+            create_file, log_msg = True, "new file"
         else:
-            # Percentage change in file, ignoring any embedded font: it's derived from the
-            # text, so counting it would swamp a small change to the output itself.
-            # This method works even with entirely binary files, no decoding required
-            new_file_bytes = svg_fonts.without_embedded_fonts(new_file.read_bytes())
-            old_file_bytes = svg_fonts.without_embedded_fonts(old_file.read_bytes())
-            pct_change = (1 - ratio(new_file_bytes, old_file_bytes)) * 100.0
-            if pct_change <= self.min_pct_diff:
-                create_file = False
-            log_msg = f"{pct_change:.2f}% change"
-
-            # No point in looking for a diff if the files are identical
-            if pct_change > 0:
-                # Regex on file diff to skip.
-                # Drop blank lines only: an empty pattern would match every line.
-                # Not clean_list(), as '#' starts a valid regex and spaces can be significant.
-                skip_regexes: list[str] = []
-                if self.skip_change_regex:
-                    skip_regexes = [ln for ln in self.skip_change_regex.splitlines() if ln.strip()]
-                if len(skip_regexes) > 0:
-                    new_file_lines = new_file_bytes.decode(errors="ignore").splitlines()
-                    old_file_lines = old_file_bytes.decode(errors="ignore").splitlines()
-                    log.info("Checking diff")
-
-                    # Only continue if we found something to diff with
-                    if len(new_file_lines) > 0 or len(old_file_lines) > 0:
-                        # unified_diff, not Differ: Differ is quadratic and these files can be big.
-                        # Skip the two '---' / '+++' header lines by position, as a removed
-                        # line starting with '--' is indistinguishable from the header.
-                        diffs = list(difflib.unified_diff(new_file_lines, old_file_lines, n=0, lineterm=""))[2:]
-                        lost_lines = [d for d in diffs if d.startswith("-")]
-
-                        # Only continue if there was some diff
-                        if len(lost_lines) > 0:
-                            matched_lost_lines = [
-                                line
-                                for line in lost_lines
-                                if any(re.search(skip_regex, line) for skip_regex in skip_regexes)
-                            ]
-
-                            log_msg += f", {len(matched_lost_lines)}/{len(lost_lines)} diff lines matched regex filters"
-                            if len(matched_lost_lines) == len(lost_lines):
-                                create_file = False
-                        else:
-                            log_msg += ", no diff found"
-                    else:
-                        log_msg += ", no text to diff"
+            # Ignoring any embedded font: it's derived from the text, so counting it
+            # would swamp a small change to the output itself.
+            create_file, log_msg = self.changed_enough(
+                svg_fonts.without_embedded_fonts(new_file.read_bytes()),
+                svg_fonts.without_embedded_fonts(old_file.read_bytes()),
+            )
 
         old_fn_relative = relative_path(old_file)
         if create_file:
             self.num_img_saved += 1
             if old_fn in self.saved_img_paths:
-                log.warning(f"More than one image with file name '{old_fn}'")
+                log.warning(f"More than one output with file name '{old_fn}'")
             else:
                 self.saved_img_paths.append(old_fn)
             log.info(f"Saved: '{old_fn_relative}' ({log_msg})")
@@ -592,8 +644,8 @@ class RichImg:
 
             for filename in self.img_paths:
                 suffix = Path(filename).suffix.lower()
-                if suffix not in (".svg", ".png"):
-                    log.error(f"Can only save SVG and PNG images, not '{filename}'")
+                if suffix not in (".svg", ".png", ".ansi"):
+                    log.error(f"Can only save SVG, PNG and ANSI files, not '{filename}'")
                     continue
 
                 # Make directories if necessary
@@ -601,6 +653,13 @@ class RichImg:
                     Path(filename).parent.mkdir(parents=True, exist_ok=True)
                 except OSError:  # Covers PermissionError, which is a subclass
                     log.error(f"Invalid path: {filename}")
+                    continue
+
+                if suffix == ".ansi":
+                    ansi_tmp_filename = Path(tmp_dir) / "render.ansi"
+                    ansi_tmp_filename.write_text("\n".join(self.ansi_text() or []) + "\n", encoding="utf-8")
+                    if self._enough_image_difference(str(ansi_tmp_filename), filename):
+                        copyfile(ansi_tmp_filename, filename)
                     continue
 
                 # If already made this image, copy it from the last destination
@@ -618,6 +677,7 @@ class RichImg:
                 # We always render an SVG first, then reuse it for every other output
                 if svg_img is None and not rendered_svg:
                     svg_content = self.capture_console.export_svg(
+                        clear=False,
                         title=self.title,
                         theme=terminal_theme,
                         unique_id=self._svg_unique_id(),
