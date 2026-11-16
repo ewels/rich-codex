@@ -49,6 +49,13 @@ urls."Source Code" = "https://github.com/ewels/rich-codex"
 urls.Documentation = "https://github.com/ewels/rich-codex"
 scripts.rich-codex = "rich_codex.cli:main"
 
+[dependency-groups]
+docs = [
+    "cowsay>=6.1",
+    "lolcat>=1.4",
+    "mkdocs-material[imaging]>=9.7.7",
+]
+
 [tool.setuptools]
 packages.find.where = [ "src" ]
 package-data.rich_codex = [ "config-schema.yml", "fonts/*" ]
